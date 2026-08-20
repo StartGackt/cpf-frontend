@@ -102,14 +102,6 @@ const isActive = (path: string) => {
               class="absolute top-full left-0 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50 text-sm"
               @click="isAdminDropdownOpen = false"
             >
-              <NuxtLink to="/admin" class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
-                <UIcon name="i-lucide-layout-dashboard" class="size-4" />
-                <span>Dashboard</span>
-              </NuxtLink>
-              <NuxtLink to="/admin/km-repository" class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
-                <UIcon name="i-lucide-book-open" class="size-4" />
-                <span>KM Repository</span>
-              </NuxtLink>
               <NuxtLink to="/admin/users" class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
                 <UIcon name="i-lucide-users" class="size-4" />
                 <span>User Management</span>
