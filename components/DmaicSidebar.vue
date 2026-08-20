@@ -51,6 +51,7 @@ const dmaicPhases = [
       { name: 'Selected Tools', icon: 'i-lucide-wrench', completed: true, path: 'analyze/selected-tools' },
       { name: 'Action', icon: 'i-lucide-check-square', completed: true, path: 'analyze/action' },
       { name: 'Hypothesis Testing', icon: 'i-lucide-test-tube-2', completed: true, path: 'analyze/hypothesis' },
+      { name: 'Regression', icon: 'i-lucide-trending-up', completed: true, path: 'analyze/regression' },
       { name: 'Summary', icon: 'i-lucide-file-check', completed: true, path: 'analyze/summary' }
     ]
   },
@@ -59,7 +60,9 @@ const dmaicPhases = [
     status: 'Complete',
     progress: '100% Complete',
     steps: [
+      { name: 'Action (Before/After)', icon: 'i-lucide-check-square', completed: true, path: 'improve/action' },
       { name: 'DOE', icon: 'i-lucide-flask-conical', completed: true, path: 'improve/doe' },
+      { name: 'Simulation Model', icon: 'i-lucide-cpu', completed: true, path: 'improve/simulation' },
       { name: 'Summary', icon: 'i-lucide-clipboard-check', completed: true, path: 'improve/summary' }
     ]
   },
