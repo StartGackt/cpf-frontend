@@ -6,5 +6,16 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   routeRules: {
     '/': { redirect: '/admin' }
+  },
+  icon: {
+    provider: 'server',
+    serverBundle: 'local',
+    clientBundle: {
+      scan: true
+    }
+  },
+  experimental: {
+    appManifest: false
   }
 })
+
