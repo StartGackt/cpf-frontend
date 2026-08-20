@@ -70,6 +70,20 @@ const isActive = (path: string) => {
             />
           </NuxtLink>
 
+          <!-- KM Repository Tab (Module 8 Requirement) -->
+          <NuxtLink
+            to="/admin/km-repository"
+            class="flex items-center gap-2 px-3 h-14 text-sm font-medium transition-colors relative"
+            :class="isActive('/admin/km-repository') ? 'text-[#008779]' : 'text-gray-600 hover:text-gray-900'"
+          >
+            <UIcon name="i-lucide-book-open" class="size-4" />
+            <span>GenieWisdom (KM)</span>
+            <div
+              v-if="isActive('/admin/km-repository')"
+              class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#008779]"
+            />
+          </NuxtLink>
+
           <!-- Admin Tab with dropdown -->
           <div class="relative">
             <button
@@ -92,13 +106,9 @@ const isActive = (path: string) => {
                 <UIcon name="i-lucide-layout-dashboard" class="size-4" />
                 <span>Dashboard</span>
               </NuxtLink>
-              <NuxtLink to="/ai" class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
-                <UIcon name="i-lucide-bot" class="size-4" />
-                <span>AI Assistant</span>
-              </NuxtLink>
-              <NuxtLink to="/admin/roadmap" class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
-                <UIcon name="i-lucide-map" class="size-4" />
-                <span>Roadmap V2.0</span>
+              <NuxtLink to="/admin/km-repository" class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
+                <UIcon name="i-lucide-book-open" class="size-4" />
+                <span>KM Repository</span>
               </NuxtLink>
               <NuxtLink to="/admin/users" class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
                 <UIcon name="i-lucide-users" class="size-4" />

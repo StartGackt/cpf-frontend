@@ -68,10 +68,12 @@ const dmaicPhases = [
   },
   {
     name: 'Control',
-    status: '',
+    status: 'Complete',
     steps: [
-      { name: 'Control Plan', icon: 'i-lucide-shield-check', completed: false, path: 'control/plan' },
-      { name: 'Control Tracking', icon: 'i-lucide-activity', completed: false, path: 'control/tracking' }
+      { name: 'Control Plan', icon: 'i-lucide-shield-check', completed: true, path: 'control/plan' },
+      { name: 'Control Tracking', icon: 'i-lucide-activity', completed: true, path: 'control/tracking' },
+      { name: 'Project Finish', icon: 'i-lucide-award', completed: true, path: 'control/finish' },
+      { name: 'Realization', icon: 'i-lucide-line-chart', completed: true, path: 'control/realization' }
     ]
   }
 ]

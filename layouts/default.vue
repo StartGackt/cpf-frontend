@@ -8,11 +8,8 @@
       <slot />
     </main>
 
-    <!-- Floating Help Button -->
-    <button class="fixed bottom-6 right-6 bg-[#008779] hover:bg-[#007366] text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-sm font-medium transition-all hover:scale-105 z-30 cursor-pointer">
-      <UIcon name="i-lucide-help-circle" class="size-4" />
-      <span>Help</span>
-    </button>
+    <!-- GenieWisdom Global AI Chatbot Copilot (Module 8 Requirement) -->
+    <GenieWisdomChat />
 
     <!-- Footer Version Info -->
     <footer class="py-3 px-6 text-right text-[11px] text-gray-400">
