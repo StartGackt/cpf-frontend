@@ -369,47 +369,47 @@ const isNewProjectModalOpen = ref(false)
             </div>
           </div>
 
+          <!-- Project Belt / Type Selection -->
+          <div class="space-y-1">
+            <label class="font-semibold text-gray-700 block">Project Belt / Type *</label>
+            <select class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#008779]">
+              <option value="bb">Black Belt (BB)</option>
+              <option value="gb" selected>Green Belt (GB)</option>
+              <option value="yb">Yellow Belt (YB)</option>
+              <option value="sme">SME / Automation Innovation</option>
+              <option value="kaizen">Kaizen / Quick Win</option>
+            </select>
+          </div>
+
           <!-- Business -->
           <div class="space-y-1">
-            <label class="font-semibold text-gray-700 block">Business</label>
-            <select class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-500 focus:outline-none focus:border-[#008779]">
-              <option value="">Select business</option>
-              <option value="feed">Feed</option>
-              <option value="farm">Farm</option>
-              <option value="food">Food</option>
+            <label class="font-semibold text-gray-700 block">Business *</label>
+            <select class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#008779]">
+              <option value="food">Food Business</option>
+              <option value="feed">Feed Business</option>
+              <option value="farm">Farm Business</option>
             </select>
           </div>
 
           <!-- Business Unit -->
           <div class="space-y-1">
-            <label class="font-semibold text-gray-700 block">Business Unit</label>
-            <select class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-500 focus:outline-none focus:border-[#008779]">
-              <option value="">Select business unit</option>
+            <label class="font-semibold text-gray-700 block">Business Unit *</label>
+            <select class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#008779]">
               <option value="chicken">Chicken Processing</option>
               <option value="swine">Swine Processing</option>
+              <option value="rte">Ready-to-Eat Food Division</option>
             </select>
           </div>
 
-          <!-- Working Committee -->
+          <!-- Plant / Location -->
           <div class="space-y-1">
-            <label class="font-semibold text-gray-700 block">Working Committee</label>
-            <select class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-500 focus:outline-none focus:border-[#008779]">
-              <option value="">Select committee</option>
-              <option value="c1">Six Sigma Committee A</option>
-              <option value="c2">Quality Control Committee B</option>
+            <label class="font-semibold text-gray-700 block">Plant / Location *</label>
+            <select class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#008779]">
+              <option value="loc-1">โรงงานแปรรูปโชคชัย (Nakhon Ratchasima)</option>
+              <option value="loc-2">โรงงานแปรรูปอาหาร 2 (นครราชสีมา)</option>
+              <option value="loc-3">โรงงานแปรรูปสระบุรี</option>
+              <option value="loc-4">โรงงานแปรรูปมีนบุรี</option>
             </select>
-          </div>
-
-          <!-- Location -->
-          <div class="space-y-1.5 pt-1">
-            <label class="font-semibold text-gray-700 block">Location *</label>
-            <button
-              type="button"
-              class="border border-blue-200 text-blue-600 hover:bg-blue-50 text-xs px-3 py-1.5 rounded-md flex items-center gap-1 font-medium transition-colors"
-            >
-              <UIcon name="i-lucide-plus" class="size-3.5" />
-              <span>Add Location</span>
-            </button>
           </div>
         </div>
 
