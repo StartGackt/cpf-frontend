@@ -36,7 +36,9 @@ const dmaicPhases = [
     status: 'Complete',
     steps: [
       { name: 'Overview', icon: 'i-lucide-pie-chart', completed: true, path: 'measure/overview' },
+      { name: 'Capability Analysis', icon: 'i-lucide-gauge', completed: true, path: 'measure/capability' },
       { name: 'Process Map', icon: 'i-lucide-git-merge', completed: true, path: 'measure/process-map' },
+      { name: 'MSA', icon: 'i-lucide-ruler', completed: true, path: 'measure/msa' },
       { name: 'Fishbone Diagram', icon: 'i-lucide-git-branch', completed: true, path: 'measure/fishbone' },
       { name: 'FMEA', icon: 'i-lucide-table', completed: true, path: 'measure/fmea' },
       { name: 'Introduction to Hypothesis Testing', icon: 'i-lucide-file-question', completed: true, path: 'measure/intro-hypothesis' }

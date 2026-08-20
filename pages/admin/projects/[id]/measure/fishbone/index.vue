@@ -13,6 +13,47 @@ const categories = [
   { name: 'Environment', count: 3, color: 'bg-teal-100 text-teal-800 border-teal-200' },
   { name: 'Total', count: 41, color: 'bg-gray-100 text-gray-800 border-gray-300 font-bold' }
 ]
+
+// Phase 2 Auto-feed Inbox for Capability & MSA failed factors
+const incomingUnassignedFactors = ref([
+  { id: 'in-1', source: 'Capability Analysis (Cpk 0.29 < 1.0)', factorName: 'High Variation in Finished Weight', suggestedCategory: 'Machine' },
+  { id: 'in-2', source: 'MSA Study (%StudyVar 34.2% > 30%)', factorName: 'Predust Viscosity Measurement Bias', suggestedCategory: 'Measurement' }
+])
+
+// 5-Why Drill-down Modal State
+const is5WhyModalOpen = ref(false)
+const selectedCategory = ref('Machine')
+const whyBranches = ref([
+  {
+    level1: 'การ set ค่าน้ำหนักเผื่อ Multihead เกินสเปก',
+    level2: 'ผู้ปฏิบัติงานตั้งค่าตามความเคยชิน',
+    level3: 'ไม่มีการล็อก PLC Parameter สำหรับแต่ละสูตรการผลิต',
+    rootCauseType: 'C', // 'C' for Control, 'N' for Noise
+    status: 'Completed'
+  },
+  {
+    level1: 'จำนวน Drop ของเครื่อง Multihead สวิง',
+    level2: 'Sensor ตรวจจับการตกของสินค้ามีคราบแป้งเกาะ',
+    level3: 'หัวฉีดลมเป่าทำความสะอาดแรงดันตก',
+    rootCauseType: 'C',
+    status: 'Completed'
+  }
+])
+
+const open5WhyEditor = (categoryName: string) => {
+  selectedCategory.value = categoryName
+  is5WhyModalOpen.value = true
+}
+
+const addWhyBranch = () => {
+  whyBranches.value.push({
+    level1: 'New observed issue in ' + selectedCategory.value,
+    level2: '',
+    level3: '',
+    rootCauseType: 'C',
+    status: 'In Progress'
+  })
+}
 </script>
 
 <template>
@@ -43,39 +84,72 @@ const categories = [
         active-step="Fishbone Diagram"
       />
 
-      <!-- Main Content Area -->
       <div class="flex-1 space-y-4 min-w-0">
-        <!-- Main Fishbone Container Card (Image 3) -->
+        <!-- Phase 2: Incoming Auto-Feed Inbox Banner -->
+        <div v-if="incomingUnassignedFactors.length > 0" class="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2 text-xs">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 font-bold text-amber-900">
+              <UIcon name="i-lucide-inbox" class="size-4 text-amber-600" />
+              <span>Auto-Feed Factors from Capability & MSA ({{ incomingUnassignedFactors.length }} items pending 5M1E assignment)</span>
+            </div>
+            <span class="text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded font-semibold">Phase 2 Auto-Sync</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div
+              v-for="item in incomingUnassignedFactors"
+              :key="item.id"
+              class="bg-white border border-amber-200 rounded p-2.5 flex items-center justify-between text-xs"
+            >
+              <div>
+                <span class="font-bold text-gray-900 block">{{ item.factorName }}</span>
+                <span class="text-[10px] text-gray-500">{{ item.source }}</span>
+              </div>
+              <button
+                type="button"
+                class="bg-[#008779] text-white text-[11px] font-semibold px-2.5 py-1 rounded shadow-xs"
+                @click="open5WhyEditor(item.suggestedCategory)"
+              >
+                Assign & 5-Why
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Fishbone Container Card -->
         <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-6 space-y-6">
-          <!-- Top Category Counts Pills Bar -->
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-100">
             <div>
               <h2 class="text-base font-bold text-gray-900">
-                Fishbone Diagram Analysis
+                Ishikawa Fishbone Diagram (with [ C ] Control & [ N ] Noise Tagging)
               </h2>
-              <span class="text-[11px] text-gray-400">Page 1 of 2</span>
+              <p class="text-xs text-gray-500 mt-0.5">
+                Multi-branch 5-Why root cause classification across 5M1E categories
+              </p>
             </div>
 
-            <!-- Categories Badges -->
-            <div class="flex items-center gap-2 flex-wrap">
-              <span
-                v-for="cat in categories"
+            <!-- Categories Badges with 5-Why Trigger -->
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <button
+                v-for="cat in categories.slice(0, 6)"
                 :key="cat.name"
-                class="px-2.5 py-1 rounded text-xs font-semibold border flex items-center gap-1"
+                type="button"
+                class="px-2.5 py-1 rounded text-xs font-semibold border flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer"
                 :class="cat.color"
+                @click="open5WhyEditor(cat.name)"
               >
                 <span>{{ cat.name }}:</span>
                 <span>{{ cat.count }}</span>
-              </span>
+                <UIcon name="i-lucide-edit-3" class="size-3 opacity-60 ml-0.5" />
+              </button>
             </div>
           </div>
 
-          <!-- ISHIKAWA FISHBONE DIAGRAM (SVG Canvas) -->
-          <div class="w-full overflow-x-auto bg-gray-50/20 border border-gray-200/80 rounded-xl p-4 flex items-center justify-center">
+          <!-- ISHIKAWA FISHBONE DIAGRAM (SVG Canvas) with [ C ] and [ N ] Tagging -->
+          <div class="w-full overflow-x-auto bg-gray-50/30 border border-gray-200/80 rounded-xl p-4 flex items-center justify-center">
             <svg class="w-full max-w-[1000px] h-[520px]" viewBox="0 0 920 480">
               <!-- Center Backbone Horizontal Arrow -->
               <line x1="80" y1="240" x2="680" y2="240" stroke="#1e293b" stroke-width="2" />
-              <!-- Arrow head -->
               <polygon points="680,235 695,240 680,245" fill="#1e293b" />
 
               <!-- Central Target Box (Effect) -->
@@ -84,7 +158,7 @@ const categories = [
                 %Total Yield
               </text>
               <text x="790" y="252" font-size="10" fill="#cbd5e1" text-anchor="middle">
-                สินค้าไก่ทอดต่ำ
+                สินค้าไก่ทอดต่ำกว่าเกณฑ์
               </text>
 
               <!-- ================= TOP BONES ================= -->
@@ -92,128 +166,146 @@ const categories = [
               <rect x="180" y="70" width="70" height="24" rx="2" fill="#0f172a" />
               <text x="215" y="86" font-size="10" fill="#ffffff" font-weight="bold" text-anchor="middle">Material</text>
               <line x1="215" y1="94" x2="295" y2="240" stroke="#1e293b" stroke-width="1.8" />
-              <!-- Sub-bones for Material -->
+              <!-- Sub-bones with [ C ] and [ N ] Badges -->
               <line x1="160" y1="120" x2="230" y2="120" stroke="#64748b" stroke-width="1" />
-              <text x="155" y="118" font-size="7.5" fill="#334155" text-anchor="end">ความหนืด Batter ต่ำกว่า STD</text>
+              <text x="155" y="118" font-size="8" fill="#334155" text-anchor="end">ความหนืด Batter ต่ำกว่า STD [ C ]</text>
 
               <line x1="180" y1="140" x2="240" y2="140" stroke="#64748b" stroke-width="1" />
-              <text x="175" y="138" font-size="7.5" fill="#334155" text-anchor="end">Coating ไม่เกาะทั่วชิ้น</text>
+              <text x="175" y="138" font-size="8" fill="#334155" text-anchor="end">Coating ไม่เกาะทั่วชิ้น [ C ]</text>
 
-              <line x1="190" y1="160" x2="250" y2="160" stroke="#64748b" stroke-width="1" />
-              <text x="185" y="158" font-size="7.5" fill="#334155" text-anchor="end">ตำหนิสูงจากโรงเชือด/RM</text>
-
-              <line x1="210" y1="180" x2="265" y2="180" stroke="#64748b" stroke-width="1" />
-              <text x="205" y="178" font-size="7.5" fill="#334155" text-anchor="end">สารเคลือบหมดอายุ</text>
-
-              <line x1="225" y1="200" x2="275" y2="200" stroke="#64748b" stroke-width="1" />
-              <text x="220" y="198" font-size="7.5" fill="#334155" text-anchor="end">เศษเนื้อ/เศษเล็ก</text>
-
-              <line x1="240" y1="220" x2="285" y2="220" stroke="#64748b" stroke-width="1" />
-              <text x="235" y="218" font-size="7.5" fill="#334155" text-anchor="end">น้ำหนักเนื้อ RM ต่อชิ้นสูง</text>
-
-              <!-- 2. METHOD (Top Center) -->
+              <!-- 2. MACHINE (Top Center) -->
               <rect x="360" y="70" width="70" height="24" rx="2" fill="#0f172a" />
-              <text x="395" y="86" font-size="10" fill="#ffffff" font-weight="bold" text-anchor="middle">Method</text>
+              <text x="395" y="86" font-size="10" fill="#ffffff" font-weight="bold" text-anchor="middle">Machine</text>
               <line x1="395" y1="94" x2="475" y2="240" stroke="#1e293b" stroke-width="1.8" />
-              <!-- Sub-bones for Method -->
-              <line x1="330" y1="110" x2="405" y2="110" stroke="#64748b" stroke-width="1" />
-              <text x="325" y="108" font-size="7.5" fill="#334155" text-anchor="end">Cap การอบเชื่อมต่อกับเวลาช้า</text>
+              <line x1="340" y1="120" x2="410" y2="120" stroke="#64748b" stroke-width="1" />
+              <text x="335" y="118" font-size="8" fill="#dc2626" font-weight="bold" text-anchor="end">Set ค่าน้ำหนักเผื่อ Multihead [ C ]</text>
 
-              <line x1="335" y1="125" x2="415" y2="125" stroke="#64748b" stroke-width="1" />
-              <text x="330" y="123" font-size="7.5" fill="#334155" text-anchor="end">เวลาทำความสะอาดเกินไป</text>
+              <line x1="360" y1="140" x2="420" y2="140" stroke="#64748b" stroke-width="1" />
+              <text x="355" y="138" font-size="8" fill="#dc2626" font-weight="bold" text-anchor="end">จำนวน Drop เครื่อง Multihead [ C ]</text>
 
-              <line x1="345" y1="140" x2="422" y2="140" stroke="#64748b" stroke-width="1" />
-              <text x="340" y="138" font-size="7.5" fill="#334155" text-anchor="end">อุณหภูมิสินค้าหลังสุก</text>
+              <line x1="380" y1="160" x2="430" y2="160" stroke="#64748b" stroke-width="1" />
+              <text x="375" y="158" font-size="8" fill="#334155" text-anchor="end">ความเร็วเครื่องเติมแป้ง Predust [ C ]</text>
 
-              <line x1="355" y1="155" x2="430" y2="155" stroke="#64748b" stroke-width="1" />
-              <text x="350" y="153" font-size="7.5" fill="#334155" text-anchor="end">วางแผนการผลิตไม่ต่อเนื่อง</text>
-
-              <line x1="365" y1="170" x2="438" y2="170" stroke="#64748b" stroke-width="1" />
-              <text x="360" y="168" font-size="7.5" fill="#334155" text-anchor="end">ความเร็วเครื่องเติมแป้ง Predust</text>
-
-              <line x1="375" y1="185" x2="445" y2="185" stroke="#64748b" stroke-width="1" />
-              <text x="370" y="183" font-size="7.5" fill="#334155" text-anchor="end">ความเร็วเครื่องป้อนแป้งปีกบน DB4</text>
-
-              <line x1="385" y1="200" x2="455" y2="200" stroke="#64748b" stroke-width="1" />
-              <text x="380" y="198" font-size="7.5" fill="#334155" text-anchor="end">ระดับความสูงแผงเครื่องเติมแป้ง Predust</text>
-
-              <line x1="395" y1="215" x2="462" y2="215" stroke="#64748b" stroke-width="1" />
-              <text x="390" y="213" font-size="7.5" fill="#334155" text-anchor="end">ความแรงการสั่นDFของเครื่องMultihead</text>
-
-              <!-- 3. MAN (Top Right) -->
+              <!-- 3. METHOD (Top Right) -->
               <rect x="540" y="70" width="70" height="24" rx="2" fill="#0f172a" />
-              <text x="575" y="86" font-size="10" fill="#ffffff" font-weight="bold" text-anchor="middle">Man</text>
+              <text x="575" y="86" font-size="10" fill="#ffffff" font-weight="bold" text-anchor="middle">Method</text>
               <line x1="575" y1="94" x2="655" y2="240" stroke="#1e293b" stroke-width="1.8" />
-              <!-- Sub-bones for Man -->
-              <line x1="510" y1="130" x2="595" y2="130" stroke="#64748b" stroke-width="1" />
-              <text x="505" y="128" font-size="7.5" fill="#334155" text-anchor="end">พนักงานโรยแป้งมากเกินไป</text>
-
-              <line x1="535" y1="170" x2="618" y2="170" stroke="#64748b" stroke-width="1" />
-              <text x="530" y="168" font-size="7.5" fill="#334155" text-anchor="end">พนักงานเติมแป้งร่วงพื้น</text>
-
-              <line x1="550" y1="205" x2="635" y2="205" stroke="#64748b" stroke-width="1" />
-              <text x="545" y="203" font-size="7.5" fill="#334155" text-anchor="end">พนักงานหยิบสินค้าไม่ทัน</text>
+              <line x1="520" y1="120" x2="590" y2="120" stroke="#64748b" stroke-width="1" />
+              <text x="515" y="118" font-size="8" fill="#334155" text-anchor="end">รอบเวลา Frying ไม่คงที่ [ C ]</text>
 
               <!-- ================= BOTTOM BONES ================= -->
-              <!-- 4. MACHINE (Bottom Left) -->
-              <rect x="230" y="380" width="70" height="24" rx="2" fill="#0f172a" />
-              <text x="265" y="396" font-size="10" fill="#ffffff" font-weight="bold" text-anchor="middle">Machine</text>
-              <line x1="265" y1="380" x2="345" y2="240" stroke="#1e293b" stroke-width="1.8" />
-              <!-- Sub-bones for Machine -->
-              <line x1="200" y1="265" x2="330" y2="265" stroke="#64748b" stroke-width="1" />
-              <text x="195" y="267" font-size="7.5" fill="#334155" text-anchor="end">สายพานเครื่อง Multihead เดินตกขอบ</text>
+              <!-- 4. MEASUREMENT (Bottom Left) -->
+              <rect x="180" y="380" width="90" height="24" rx="2" fill="#0f172a" />
+              <text x="225" y="396" font-size="10" fill="#ffffff" font-weight="bold" text-anchor="middle">Measurement</text>
+              <line x1="225" y1="380" x2="305" y2="240" stroke="#1e293b" stroke-width="1.8" />
+              <line x1="160" y1="340" x2="230" y2="340" stroke="#64748b" stroke-width="1" />
+              <text x="155" y="342" font-size="8" fill="#334155" text-anchor="end">ความถี่การ Calibrate ตาชั่ง [ C ]</text>
 
-              <line x1="220" y1="285" x2="320" y2="285" stroke="#64748b" stroke-width="1" />
-              <text x="215" y="287" font-size="7.5" fill="#334155" text-anchor="end">เครื่อง Multihead เสีย</text>
-
-              <line x1="230" y1="305" x2="310" y2="305" stroke="#64748b" stroke-width="1" />
-              <text x="225" y="307" font-size="7.5" fill="#334155" text-anchor="end">เครื่องเติมแป้งเสีย</text>
-
-              <line x1="240" y1="325" x2="300" y2="325" stroke="#64748b" stroke-width="1" />
-              <text x="235" y="327" font-size="7.5" fill="#334155" text-anchor="end">เครื่องแป้งเสียดสีพบโลหะ</text>
-
-              <line x1="250" y1="345" x2="290" y2="345" stroke="#64748b" stroke-width="1" />
-              <text x="245" y="347" font-size="7.5" fill="#334155" text-anchor="end">Hot air หยุดเดิน / Fryer หยุดเดิน</text>
-
-              <!-- 5. MEASUREMENT (Bottom Center) -->
-              <rect x="400" y="380" width="85" height="24" rx="2" fill="#0f172a" />
-              <text x="442" y="396" font-size="10" fill="#ffffff" font-weight="bold" text-anchor="middle">Measurement</text>
-              <line x1="442" y1="380" x2="522" y2="240" stroke="#1e293b" stroke-width="1.8" />
-              <!-- Sub-bones for Measurement -->
-              <line x1="370" y1="280" x2="495" y2="280" stroke="#64748b" stroke-width="1" />
-              <text x="365" y="282" font-size="7.5" fill="#334155" text-anchor="end">เช็คค่าไม่ต่อเนื่อง/ไม่เหมาะสม</text>
-
-              <line x1="390" y1="315" x2="480" y2="315" stroke="#64748b" stroke-width="1" />
-              <text x="385" y="317" font-size="7.5" fill="#334155" text-anchor="end">ไม่ Calibrate เครื่องชั่ง</text>
-
-              <line x1="400" y1="350" x2="460" y2="350" stroke="#64748b" stroke-width="1" />
-              <text x="395" y="352" font-size="7.5" fill="#334155" text-anchor="end">ตั้งค่า Giveaway ไม่ถูกต้อง</text>
+              <!-- 5. MAN (Bottom Center) -->
+              <rect x="360" y="380" width="70" height="24" rx="2" fill="#0f172a" />
+              <text x="395" y="396" font-size="10" fill="#ffffff" font-weight="bold" text-anchor="middle">Man</text>
+              <line x1="395" y1="380" x2="475" y2="240" stroke="#1e293b" stroke-width="1.8" />
+              <line x1="340" y1="340" x2="410" y2="340" stroke="#64748b" stroke-width="1" />
+              <text x="335" y="342" font-size="8" fill="#334155" text-anchor="end">ทักษะการเติม Batter ไม่เท่ากัน [ C ]</text>
 
               <!-- 6. ENVIRONMENT (Bottom Right) -->
-              <rect x="570" y="380" width="80" height="24" rx="2" fill="#0f172a" />
-              <text x="610" y="396" font-size="10" fill="#ffffff" font-weight="bold" text-anchor="middle">Environment</text>
-              <line x1="610" y1="380" x2="680" y2="240" stroke="#1e293b" stroke-width="1.8" />
-              <!-- Sub-bones for Environment -->
-              <line x1="535" y1="280" x2="660" y2="280" stroke="#64748b" stroke-width="1" />
-              <text x="530" y="282" font-size="7.5" fill="#334155" text-anchor="end">อุณหภูมิห้อง Cooking สูง</text>
-
-              <line x1="550" y1="320" x2="640" y2="320" stroke="#64748b" stroke-width="1" />
-              <text x="545" y="322" font-size="7.5" fill="#334155" text-anchor="end">แสงสว่างไม่เหมาะสม</text>
-
-              <line x1="570" y1="355" x2="625" y2="355" stroke="#64748b" stroke-width="1" />
-              <text x="565" y="357" font-size="7.5" fill="#334155" text-anchor="end">ความชื้น</text>
+              <rect x="540" y="380" width="90" height="24" rx="2" fill="#0f172a" />
+              <text x="585" y="396" font-size="10" fill="#ffffff" font-weight="bold" text-anchor="middle">Environment</text>
+              <line x1="585" y1="380" x2="665" y2="240" stroke="#1e293b" stroke-width="1.8" />
+              <line x1="520" y1="340" x2="590" y2="340" stroke="#64748b" stroke-width="1" />
+              <text x="515" y="342" font-size="8" fill="#64748b" text-anchor="end">ความชื้นสัมพัทธ์ในห้องแปรรูป [ N ]</text>
             </svg>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Floating Actions -->
-    <div class="fixed bottom-6 right-24 flex items-center gap-3 z-30">
-      <button class="bg-[#008779] hover:bg-[#007366] text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-1.5 text-sm font-medium transition-all hover:scale-105 cursor-pointer">
-        <UIcon name="i-lucide-eye" class="size-4" />
-        <span>View</span>
-      </button>
+    <!-- 5-WHY DRILL-DOWN MODAL -->
+    <div
+      v-if="is5WhyModalOpen"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-xs p-4"
+    >
+      <div class="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-2xl w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-gray-900">
+              5-Why Analysis Tree & Root Cause Classification
+            </h3>
+            <p class="text-[11px] text-gray-500">Category: {{ selectedCategory }}</p>
+          </div>
+          <button type="button" class="text-gray-400 hover:text-gray-600 p-1" @click="is5WhyModalOpen = false">
+            <UIcon name="i-lucide-x" class="size-4" />
+          </button>
+        </div>
+
+        <div class="p-6 space-y-4 text-xs max-h-[70vh] overflow-y-auto">
+          <div
+            v-for="(branch, bIdx) in whyBranches"
+            :key="bIdx"
+            class="border border-gray-200 rounded-lg p-4 space-y-3 bg-gray-50/50"
+          >
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-gray-900 text-xs">Branch #{{ bIdx + 1 }}</span>
+              <!-- Mandatory [ C ] Control vs [ N ] Noise Selection -->
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] text-gray-500 font-bold uppercase">Root Cause Type:</span>
+                <label class="flex items-center gap-1 cursor-pointer">
+                  <input v-model="branch.rootCauseType" type="radio" value="C" class="accent-emerald-600" />
+                  <span class="font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded text-[10px]">[ C ] Control</span>
+                </label>
+                <label class="flex items-center gap-1 cursor-pointer">
+                  <input v-model="branch.rootCauseType" type="radio" value="N" class="accent-slate-600" />
+                  <span class="font-bold text-slate-700 bg-slate-100 border border-slate-300 px-1.5 py-0.5 rounded text-[10px]">[ N ] Noise</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Why Level 1 -->
+            <div class="space-y-1">
+              <label class="text-[10px] text-gray-500 font-bold">Why 1 (Observed Phenomenon):</label>
+              <input v-model="branch.level1" type="text" class="w-full bg-white border border-gray-200 rounded px-2.5 py-1.5 text-xs text-gray-900 focus:border-[#008779]" />
+            </div>
+
+            <!-- Why Level 2 -->
+            <div class="space-y-1 pl-3 border-l-2 border-teal-200">
+              <label class="text-[10px] text-gray-500 font-bold">Why 2 (Direct Cause):</label>
+              <input v-model="branch.level2" type="text" class="w-full bg-white border border-gray-200 rounded px-2.5 py-1.5 text-xs text-gray-900 focus:border-[#008779]" />
+            </div>
+
+            <!-- Why Level 3 / Root Cause -->
+            <div class="space-y-1 pl-6 border-l-2 border-teal-400">
+              <label class="text-[10px] text-gray-500 font-bold">Why 3 (Root Cause):</label>
+              <input v-model="branch.level3" type="text" class="w-full bg-white border border-gray-200 rounded px-2.5 py-1.5 text-xs text-gray-900 focus:border-[#008779]" />
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="w-full border-2 border-dashed border-teal-200 hover:bg-teal-50/50 text-[#008779] py-2 rounded-lg font-semibold text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer"
+            @click="addWhyBranch"
+          >
+            <UIcon name="i-lucide-plus" class="size-3.5" />
+            <span>+ Add Sibling 5-Why Branch</span>
+          </button>
+        </div>
+
+        <div class="p-4 border-t border-gray-100 flex justify-end gap-2">
+          <button
+            type="button"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2 rounded-md transition-colors"
+            @click="is5WhyModalOpen = false"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-semibold px-4 py-2 rounded-md transition-colors cursor-pointer"
+            @click="is5WhyModalOpen = false"
+          >
+            Save & Redraw Fishbone
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
