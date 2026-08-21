@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useApprovalWorkflow, type ApprovalWorkflow } from '~/composables/useApprovalWorkflow'
 
 const route = useRoute()
 const projectId = (route.params.id as string) || 'example-total-yield'
@@ -9,6 +10,20 @@ const owner = ref('Romteera Tadderm')
 const location = ref('โรงงานแปรรูปโชคชัย (Nakhon Ratchasima)')
 const year = ref('2025')
 const lastUpdated = ref('Feb 24, 2026')
+
+const { getProjectWorkflow } = useApprovalWorkflow()
+
+const pcrWorkflow = computed<ApprovalWorkflow | undefined>(() => getProjectWorkflow(projectId, 'PCR') || getProjectWorkflow('p2', 'PCR'))
+const pfrWorkflow = computed<ApprovalWorkflow | undefined>(() => getProjectWorkflow(projectId, 'PFR') || getProjectWorkflow('example-total-yield', 'PFR'))
+
+const isWorkflowModalOpen = ref(false)
+const activeWorkflowModal = ref<ApprovalWorkflow | null>(null)
+const isVerifierModalOpen = ref(false)
+
+const openWorkflowDrawer = (wf: ApprovalWorkflow) => {
+  activeWorkflowModal.value = wf
+  isWorkflowModalOpen.value = true
+}
 </script>
 
 <template>
@@ -37,29 +52,41 @@ const lastUpdated = ref('Feb 24, 2026')
         active-step="Insight Data"
       />
 
-      <!-- Main Content Area: 2 Cards (Image 3) -->
+      <!-- Main Content Area -->
       <div class="flex-1 space-y-6 min-w-0">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           <!-- LEFT CARD: Project Overview (8 Cols) -->
           <div class="lg:col-span-8 bg-white rounded-lg border border-gray-200 shadow-xs p-6 space-y-6">
-            <div>
-              <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-                PROJECT OVERVIEW
-              </span>
-              <h1 class="text-xl font-bold text-gray-900">
-                {{ projectName }}
-              </h1>
-              <div class="flex items-center gap-2 mt-2">
-                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  Status: Active
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
+                  PROJECT OVERVIEW
                 </span>
-                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-[#008779] border border-teal-200">
-                  Phase: Improve
-                </span>
+                <h1 class="text-xl font-bold text-gray-900">
+                  {{ projectName }}
+                </h1>
+                <div class="flex items-center gap-2 mt-2">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    Status: Active
+                  </span>
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-[#008779] border border-teal-200">
+                    Phase: Improve
+                  </span>
+                </div>
               </div>
+
+              <!-- Button to open Team Member & Approver Directory Verifier -->
+              <button
+                type="button"
+                class="bg-gray-50 hover:bg-teal-50 border border-gray-200 hover:border-teal-300 text-gray-700 hover:text-[#008779] text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer self-start"
+                @click="isVerifierModalOpen = true"
+              >
+                <UIcon name="i-lucide-users" class="size-4 text-[#008779]" />
+                <span>Manage Team & Approvers</span>
+              </button>
             </div>
 
-            <!-- 4 Stat Boxes in Grid (Image 3) -->
+            <!-- 4 Stat Boxes in Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <!-- Owner -->
               <div class="bg-gray-50/60 border border-gray-100 rounded-lg p-3.5 flex items-start gap-3">
@@ -105,9 +132,44 @@ const lastUpdated = ref('Feb 24, 2026')
                 </div>
               </div>
             </div>
+
+            <!-- Milestone Approval Status Bar (PCR & PFR) -->
+            <div class="pt-4 border-t border-gray-100 space-y-3">
+              <span class="text-xs font-bold text-gray-900 block">
+                Project Milestone Sign-off Workflows (CPF Corporate E-Sign):
+              </span>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <!-- PCR Card -->
+                <div
+                  v-if="pcrWorkflow"
+                  class="border border-blue-200 bg-blue-50/30 rounded-lg p-3.5 flex items-center justify-between cursor-pointer hover:bg-blue-50/60 transition-colors"
+                  @click="openWorkflowDrawer(pcrWorkflow)"
+                >
+                  <div class="space-y-0.5">
+                    <span class="font-bold text-blue-950 block">1. Project Charter (PCR)</span>
+                    <span class="text-[10px] text-blue-700 font-mono">Status: {{ pcrWorkflow.status }} • {{ pcrWorkflow.steps.filter(s => s.status === 'Approved').length }}/{{ pcrWorkflow.steps.length }} Signed</span>
+                  </div>
+                  <UIcon name="i-lucide-chevron-right" class="size-4 text-blue-600" />
+                </div>
+
+                <!-- PFR Card -->
+                <div
+                  v-if="pfrWorkflow"
+                  class="border border-teal-200 bg-teal-50/30 rounded-lg p-3.5 flex items-center justify-between cursor-pointer hover:bg-teal-50/60 transition-colors"
+                  @click="openWorkflowDrawer(pfrWorkflow)"
+                >
+                  <div class="space-y-0.5">
+                    <span class="font-bold text-teal-950 block">2. Project Final Report (PFR)</span>
+                    <span class="text-[10px] text-teal-700 font-mono">Status: {{ pfrWorkflow.status }} • {{ pfrWorkflow.steps.filter(s => s.status === 'Approved').length }}/{{ pfrWorkflow.steps.length }} Signed</span>
+                  </div>
+                  <UIcon name="i-lucide-chevron-right" class="size-4 text-[#008779]" />
+                </div>
+              </div>
+            </div>
           </div>
 
-          <!-- RIGHT CARD: Overall Progress (4 Cols - Image 3) -->
+          <!-- RIGHT CARD: Overall Progress (4 Cols) -->
           <div class="lg:col-span-4 bg-white rounded-lg border border-gray-200 shadow-xs p-6 space-y-6">
             <div class="flex items-center justify-between">
               <div>
@@ -157,12 +219,19 @@ const lastUpdated = ref('Feb 24, 2026')
       </div>
     </div>
 
-    <!-- Floating Actions -->
-    <div class="fixed bottom-6 right-24 flex items-center gap-3 z-30">
-      <button class="bg-[#008779] hover:bg-[#007366] text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-1.5 text-sm font-medium transition-all hover:scale-105 cursor-pointer">
-        <UIcon name="i-lucide-eye" class="size-4" />
-        <span>View</span>
-      </button>
-    </div>
+    <!-- Embedded Approval Workflow Drawer -->
+    <ApprovalWorkflowModal
+      v-if="isWorkflowModalOpen && activeWorkflowModal"
+      :workflow="activeWorkflowModal"
+      @close="isWorkflowModalOpen = false"
+    />
+
+    <!-- Embedded Project Member & Approver Verifier Modal -->
+    <ProjectMemberVerifierModal
+      v-if="isVerifierModalOpen"
+      :project-id="projectId"
+      :project-name="projectName"
+      @close="isVerifierModalOpen = false"
+    />
   </div>
 </template>

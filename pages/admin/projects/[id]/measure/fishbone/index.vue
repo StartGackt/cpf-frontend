@@ -325,8 +325,15 @@ const quickInputs = ref<Record<string, { name: string; type: 'C' | 'N'; isKey: b
   environment: { name: '', type: 'C', isKey: false }
 })
 
+const getQuickInput = (key: string) => {
+  if (!quickInputs.value[key]) {
+    quickInputs.value[key] = { name: '', type: 'C', isKey: false }
+  }
+  return quickInputs.value[key]!
+}
+
 const addQuickCause = (categoryKey: string) => {
-  const input = quickInputs.value[categoryKey]
+  const input = getQuickInput(categoryKey)
   if (!input || !input.name.trim()) return
 
   const targetCategory = categories.value.find(c => c.key === categoryKey)
@@ -343,6 +350,20 @@ const addQuickCause = (categoryKey: string) => {
   triggerToast(`เพิ่ม "${input.name.trim()}" ใน ${targetCategory.name} เรียบร้อย`)
   input.name = ''
   input.isKey = false
+}
+
+const addIncomingFactorDirectly = (item: typeof incomingUnassignedFactors.value[0]) => {
+  const targetCategory = categories.value.find(c => c.key === item.suggestedCategory)
+  if (!targetCategory) return
+  targetCategory.causes.push({
+    id: `inbox-${Date.now()}`,
+    name: item.factorName,
+    type: item.type,
+    isKey: true,
+    whys: [`ตรวจพบจาก ${item.source}`, item.factorName, '']
+  })
+  incomingUnassignedFactors.value = incomingUnassignedFactors.value.filter(i => i.id !== item.id)
+  triggerToast(`เพิ่ม "${item.factorName}" เข้าหมวด ${targetCategory.name} สำเร็จ`)
 }
 
 // ================= DRAG AND DROP HANDLERS (ลากแล้ววาง) =================
@@ -433,12 +454,14 @@ const onDropOnCategory = (event: DragEvent, targetCategoryKey: string) => {
     if (causeIndex === -1) return
 
     const [movedCause] = sourceCategory.causes.splice(causeIndex, 1)
-    targetCategory.causes.push(movedCause)
+    if (movedCause) {
+      targetCategory.causes.push(movedCause)
 
-    if (sourceCategory.key !== targetCategory.key) {
-      triggerToast(`ย้าย "${movedCause.name}" จาก ${sourceCategory.name} → ${targetCategory.name} สำเร็จ`)
-    } else {
-      triggerToast(`จัดลำดับ "${movedCause.name}" ใน ${targetCategory.name} เรียบร้อย`)
+      if (sourceCategory.key !== targetCategory.key) {
+        triggerToast(`ย้าย "${movedCause.name}" จาก ${sourceCategory.name} → ${targetCategory.name} สำเร็จ`)
+      } else {
+        triggerToast(`จัดลำดับ "${movedCause.name}" ใน ${targetCategory.name} เรียบร้อย`)
+      }
     }
   }
 
@@ -522,13 +545,14 @@ const saveCauseModal = () => {
       }
     })
 
-    if (originalCategoryIndex !== -1 && categories.value[originalCategoryIndex].key !== selectedCategoryKey.value) {
-      categories.value[originalCategoryIndex].causes.splice(originalCauseIndex, 1)
+    const origCat = originalCategoryIndex !== -1 ? categories.value[originalCategoryIndex] : undefined
+    if (origCat && origCat.key !== selectedCategoryKey.value) {
+      origCat.causes.splice(originalCauseIndex, 1)
       targetCategory.causes.push({
         ...editingCause.value,
         whys: cleanedWhys.length ? cleanedWhys : [editingCause.value.name]
       })
-    } else if (originalCategoryIndex !== -1) {
+    } else if (originalCategoryIndex !== -1 && targetCategory.causes[originalCauseIndex]) {
       targetCategory.causes[originalCauseIndex] = {
         ...editingCause.value,
         whys: cleanedWhys.length ? cleanedWhys : [editingCause.value.name]
@@ -551,9 +575,12 @@ const deleteCause = (causeId: string, categoryKey: string) => {
   if (!cat) return
   const idx = cat.causes.findIndex(c => c.id === causeId)
   if (idx !== -1) {
-    const deletedName = cat.causes[idx].name
-    cat.causes.splice(idx, 1)
-    triggerToast(`ลบสาเหตุ "${deletedName}" สำเร็จ`)
+    const deletedCause = cat.causes[idx]
+    if (deletedCause) {
+      const deletedName = deletedCause.name
+      cat.causes.splice(idx, 1)
+      triggerToast(`ลบสาเหตุ "${deletedName}" สำเร็จ`)
+    }
   }
 }
 
@@ -665,7 +692,7 @@ const resetToDefaults = () => {
                 <button
                   type="button"
                   class="bg-[#008779] hover:bg-[#007366] text-white text-[11px] font-semibold px-2.5 py-1 rounded shadow-xs flex items-center gap-1 transition-colors cursor-pointer"
-                  @click="onDropOnCategory(new CustomEvent('drop') as any, item.suggestedCategory)"
+                  @click="addIncomingFactorDirectly(item)"
                 >
                   <UIcon name="i-lucide-plus" class="size-3" />
                   <span>เพิ่มทันที</span>
@@ -1250,7 +1277,7 @@ const resetToDefaults = () => {
               <div class="p-2 bg-white border-b border-gray-100 space-y-1.5 shadow-xs">
                 <div class="flex items-center gap-1">
                   <input
-                    v-model="quickInputs[cat.key].name"
+                    v-model="getQuickInput(cat.key).name"
                     type="text"
                     :placeholder="`+ พิมพ์สาเหตุใน ${cat.name}...`"
                     class="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1 text-[11px] text-gray-900 focus:outline-none focus:bg-white focus:border-[#008779]"
@@ -1271,13 +1298,13 @@ const resetToDefaults = () => {
                   <button
                     type="button"
                     class="px-1.5 py-0.5 rounded font-bold border transition-colors cursor-pointer"
-                    :class="quickInputs[cat.key].type === 'C' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-700 border-slate-200'"
-                    @click="quickInputs[cat.key].type = quickInputs[cat.key].type === 'C' ? 'N' : 'C'"
+                    :class="getQuickInput(cat.key).type === 'C' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-700 border-slate-200'"
+                    @click="getQuickInput(cat.key).type = getQuickInput(cat.key).type === 'C' ? 'N' : 'C'"
                   >
-                    [{{ quickInputs[cat.key].type }}] {{ quickInputs[cat.key].type === 'C' ? 'Control' : 'Noise' }}
+                    [{{ getQuickInput(cat.key).type }}] {{ getQuickInput(cat.key).type === 'C' ? 'Control' : 'Noise' }}
                   </button>
                   <label class="flex items-center gap-1 cursor-pointer text-gray-500 hover:text-rose-600">
-                    <input v-model="quickInputs[cat.key].isKey" type="checkbox" class="accent-rose-600 size-3" />
+                    <input v-model="getQuickInput(cat.key).isKey" type="checkbox" class="accent-rose-600 size-3" />
                     <span>⭐ Key</span>
                   </label>
                 </div>

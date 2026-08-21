@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useCompanyDirectory } from '~/composables/useCompanyDirectory'
 
 const route = useRoute()
+const { pendingRequestsCount } = useCompanyDirectory()
 
 const isAdminDropdownOpen = ref(false)
 
@@ -49,7 +51,6 @@ const isActive = (path: string) => {
           >
             <UIcon name="i-lucide-home" class="size-4" />
             <span>Dashboard</span>
-            <!-- Active indicator border at bottom -->
             <div
               v-if="isActive('/admin')"
               class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#008779]"
@@ -70,7 +71,26 @@ const isActive = (path: string) => {
             />
           </NuxtLink>
 
-          <!-- KM Repository Tab (Module 8 Requirement) -->
+          <!-- Approvals Tab Direct Link -->
+          <NuxtLink
+            to="/admin/approvals"
+            class="flex items-center gap-1.5 px-3 h-14 text-sm font-medium transition-colors relative"
+            :class="isActive('/admin/approvals') ? 'text-[#008779]' : 'text-gray-600 hover:text-gray-900'"
+          >
+            <UIcon name="i-lucide-clipboard-check" class="size-4" />
+            <span>Approvals</span>
+            <span
+              v-if="pendingRequestsCount > 0"
+              class="size-2 rounded-full bg-amber-500 animate-pulse"
+              title="Pending approvals / requests"
+            ></span>
+            <div
+              v-if="isActive('/admin/approvals')"
+              class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#008779]"
+            />
+          </NuxtLink>
+
+          <!-- KM Repository Tab -->
           <NuxtLink
             to="/admin/km-repository"
             class="flex items-center gap-2 px-3 h-14 text-sm font-medium transition-colors relative"
@@ -88,7 +108,7 @@ const isActive = (path: string) => {
           <div class="relative">
             <button
               type="button"
-              class="flex items-center gap-2 px-3 h-14 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors focus:outline-none"
+              class="flex items-center gap-2 px-3 h-14 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors focus:outline-hidden cursor-pointer"
               @click="isAdminDropdownOpen = !isAdminDropdownOpen"
             >
               <UIcon name="i-lucide-settings" class="size-4" />
@@ -99,16 +119,21 @@ const isActive = (path: string) => {
             <!-- Dropdown Menu -->
             <div
               v-if="isAdminDropdownOpen"
-              class="absolute top-full left-0 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50 text-sm"
+              class="absolute top-full left-0 w-52 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50 text-sm animate-in fade-in zoom-in-95 duration-100"
               @click="isAdminDropdownOpen = false"
             >
-              <NuxtLink to="/admin/users" class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
-                <UIcon name="i-lucide-users" class="size-4" />
-                <span>User Management</span>
+              <NuxtLink to="/admin/users" class="flex items-center justify-between px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
+                <div class="flex items-center gap-2">
+                  <UIcon name="i-lucide-users" class="size-4" />
+                  <span>User Management</span>
+                </div>
+                <span v-if="pendingRequestsCount > 0" class="text-[10px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded-full">
+                  {{ pendingRequestsCount }}
+                </span>
               </NuxtLink>
               <NuxtLink to="/admin/approvals" class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
                 <UIcon name="i-lucide-check-square" class="size-4" />
-                <span>Approvals</span>
+                <span>Approval Center (PCR/PFR)</span>
               </NuxtLink>
               <NuxtLink to="/admin/e-learning" class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
                 <UIcon name="i-lucide-graduation-cap" class="size-4" />
@@ -140,12 +165,21 @@ const isActive = (path: string) => {
         </div>
 
         <!-- Notification Bell with Red Badge -->
-        <button class="relative p-1.5 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100 transition-colors">
+        <NuxtLink to="/admin/approvals" class="relative p-1.5 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100 transition-colors" title="Pending Approvals & Notifications">
           <UIcon name="i-lucide-bell" class="size-5" />
-          <span class="absolute 0 top-0.5 right-0.5 size-4 bg-red-500 text-white font-bold text-[10px] rounded-full flex items-center justify-center ring-2 ring-white">
-            2
+          <span
+            v-if="pendingRequestsCount > 0"
+            class="absolute top-0.5 right-0.5 size-4 bg-amber-500 text-gray-950 font-bold text-[10px] rounded-full flex items-center justify-center ring-2 ring-white"
+          >
+            {{ pendingRequestsCount }}
           </span>
-        </button>
+          <span
+            v-else
+            class="absolute top-0.5 right-0.5 size-4 bg-teal-600 text-white font-bold text-[10px] rounded-full flex items-center justify-center ring-2 ring-white"
+          >
+            1
+          </span>
+        </NuxtLink>
 
         <!-- User Greeting -->
         <div class="hidden sm:block text-sm text-gray-700">
