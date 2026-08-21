@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useCompanyDirectory, type CompanyUser } from '~/composables/useCompanyDirectory'
+
+const { users, provisioningRequests, pendingRequestsCount, approveProvisioningRequest } = useCompanyDirectory()
 
 const searchQuery = ref('')
 const selectedRole = ref('all')
@@ -18,92 +21,11 @@ const formBusiness = ref('Food')
 const formBu = ref('Chicken Processing')
 const formLocation = ref('โรงงานแปรรูปโชคชัย (Nakhon Ratchasima)')
 
-const users = ref([
-  {
-    id: 1,
-    name: 'Romteera Tadderm',
-    initials: 'RT',
-    email: 'romteera.t@cpf.co.th',
-    role: 'Project Owner',
-    belt: 'Black Belt',
-    business: 'Food',
-    bu: 'Chicken Processing',
-    location: 'โรงงานแปรรูปโชคชัย (Nakhon Ratchasima)',
-    projectCount: 3,
-    status: 'Active',
-    lastLogin: '2026-02-24 10:15'
-  },
-  {
-    id: 2,
-    name: 'Nadtapong Aontawee',
-    initials: 'NA',
-    email: 'nadtapong.a@cpf.co.th',
-    role: 'Project Owner',
-    belt: 'Green Belt',
-    business: 'Food',
-    bu: 'Chicken Processing',
-    location: 'โรงงานแปรรูปอาหาร 2 (นครราชสีมา)',
-    projectCount: 2,
-    status: 'Active',
-    lastLogin: '2026-02-24 09:30'
-  },
-  {
-    id: 3,
-    name: 'Dr. Prasert Chareon',
-    initials: 'PC',
-    email: 'prasert.c@cpf.co.th',
-    role: 'Master Black Belt (MBB)',
-    belt: 'Master Black Belt',
-    business: 'Corporate',
-    bu: 'Quality Excellence & CI',
-    location: 'Corporate HQ (Bangkok)',
-    projectCount: 14,
-    status: 'Active',
-    lastLogin: '2026-02-23 16:45'
-  },
-  {
-    id: 4,
-    name: 'Somchai Vong',
-    initials: 'SV',
-    email: 'somchai.v@cpf.co.th',
-    role: 'Champion / Sponsor',
-    belt: 'Champion',
-    business: 'Food',
-    bu: 'Food Processing Division',
-    location: 'Saraburi Plant',
-    projectCount: 8,
-    status: 'Active',
-    lastLogin: '2026-02-22 14:20'
-  },
-  {
-    id: 5,
-    name: 'System Admin',
-    initials: 'SA',
-    email: 'admin.insight@cpf.co.th',
-    role: 'System Admin',
-    belt: 'None',
-    business: 'Corporate',
-    bu: 'Digital Transformation',
-    location: 'Corporate HQ (Bangkok)',
-    projectCount: 42,
-    status: 'Active',
-    lastLogin: '2026-02-24 11:00'
-  },
-  {
-    id: 6,
-    name: 'Kittisak P.',
-    initials: 'KP',
-    email: 'kittisak.p@cpf.co.th',
-    role: 'Member / Viewer',
-    belt: 'Yellow Belt',
-    business: 'Feed',
-    bu: 'Feedmill Division',
-    location: 'โรงงานอาหารสัตว์บก บางนา',
-    projectCount: 1,
-    status: 'Inactive',
-    lastLogin: '2026-01-15 08:10'
-  }
-])
+const toastMsg = ref('')
+const showToast = (msg: string) => {
+  toastMsg.value = msg
+  setTimeout(() => { toastMsg.value = '' }, 3500)
+}
 
 const filteredUsers = computed(() => {
   return users.value.filter(u => {
@@ -156,13 +78,67 @@ const openEditUser = (user: any) => {
   isAddUserModalOpen.value = true
 }
 
+const saveUser = () => {
+  if (!formName.value.trim() || !formEmail.value.trim()) {
+    alert('Please fill in name and email.')
+    return
+  }
+
+  if (modalMode.value === 'add') {
+    const initials = formName.value.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'CP'
+    const newUser: CompanyUser = {
+      id: `u-${Date.now()}`,
+      employeeId: `CPF-${Math.floor(10000 + Math.random() * 90000)}`,
+      name: formName.value.trim(),
+      initials,
+      email: formEmail.value.trim().toLowerCase(),
+      department: formBu.value,
+      business: formBusiness.value,
+      bu: formBu.value,
+      location: formLocation.value,
+      role: formRole.value,
+      belt: formBelt.value,
+      status: 'Active'
+    }
+    users.value.push(newUser)
+    showToast(`Added ${newUser.name} to user directory!`)
+  } else if (selectedUser.value) {
+    selectedUser.value.name = formName.value
+    selectedUser.value.email = formEmail.value
+    selectedUser.value.role = formRole.value
+    selectedUser.value.belt = formBelt.value
+    selectedUser.value.business = formBusiness.value
+    selectedUser.value.bu = formBu.value
+    selectedUser.value.location = formLocation.value
+    showToast(`Updated ${selectedUser.value.name}`)
+  }
+  isAddUserModalOpen.value = false
+}
+
 const toggleStatus = (user: any) => {
   user.status = user.status === 'Active' ? 'Inactive' : 'Active'
+  showToast(`User status set to ${user.status}`)
+}
+
+const handleQuickApproveProvisioning = (reqId: string) => {
+  const res = approveProvisioningRequest(reqId)
+  if (res.success) {
+    showToast(res.message)
+  }
 }
 </script>
 
 <template>
   <div class="space-y-6">
+    <!-- Toast Notification -->
+    <div
+      v-if="toastMsg"
+      class="fixed top-5 right-5 z-50 bg-gray-900 border border-teal-500 text-white px-4 py-2.5 rounded-lg shadow-2xl flex items-center gap-2 text-xs font-semibold animate-in fade-in"
+    >
+      <UIcon name="i-lucide-check-circle-2" class="size-4 text-teal-400" />
+      <span>{{ toastMsg }}</span>
+    </div>
+
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
@@ -170,11 +146,19 @@ const toggleStatus = (user: any) => {
           User Management
         </h1>
         <p class="text-xs text-gray-500 mt-1">
-          Manage system users, define Role-Based Access Control (RBAC), and assign plant locations
+          Manage system users, define Role-Based Access Control (RBAC), and approve account provisioning requests
         </p>
       </div>
 
       <div class="flex items-center gap-2">
+        <NuxtLink
+          to="/admin/approvals"
+          class="border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold px-3.5 py-2 rounded-md flex items-center gap-1.5 shadow-xs transition-colors"
+        >
+          <UIcon name="i-lucide-clipboard-check" class="size-4 text-[#008779]" />
+          <span>Approval Center</span>
+        </NuxtLink>
+
         <button
           type="button"
           class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-semibold px-4 py-2 rounded-md flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
@@ -186,31 +170,67 @@ const toggleStatus = (user: any) => {
       </div>
     </div>
 
+    <!-- Alert for Pending Auto-Provisioning Requests -->
+    <div
+      v-if="pendingRequestsCount > 0"
+      class="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center justify-between text-xs animate-in slide-in-from-top duration-150"
+    >
+      <div class="flex items-center gap-3">
+        <div class="size-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+          <UIcon name="i-lucide-user-plus" class="size-4" />
+        </div>
+        <div>
+          <span class="font-bold text-amber-950 block text-xs">
+            {{ pendingRequestsCount }} Pending Account Auto-Provisioning Requests
+          </span>
+          <span class="text-amber-800 text-[11px]">
+            New team members and approvers requested by project leaders requiring Admin approval and automated email invites.
+          </span>
+        </div>
+      </div>
+
+      <NuxtLink
+        to="/admin/approvals"
+        class="bg-amber-500 hover:bg-amber-600 text-gray-950 font-bold text-xs px-3.5 py-1.5 rounded-md flex items-center gap-1 transition-colors"
+      >
+        <span>Review in Approval Center</span>
+        <UIcon name="i-lucide-arrow-right" class="size-3.5" />
+      </NuxtLink>
+    </div>
+
     <!-- 4 Stats Cards Bar -->
     <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
       <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-3.5 space-y-1">
-        <span class="text-[11px] text-gray-500 font-medium">Total Users</span>
+        <span class="text-[11px] text-gray-500 font-medium">Total Directory Users</span>
         <p class="text-xl font-bold text-gray-900 font-mono">{{ users.length }}</p>
       </div>
 
       <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-3.5 space-y-1">
         <span class="text-[11px] text-purple-700 font-medium">System Admins</span>
-        <p class="text-xl font-bold text-purple-700 font-mono">1</p>
+        <p class="text-xl font-bold text-purple-700 font-mono">
+          {{ users.filter(u => u.role === 'System Admin').length }}
+        </p>
       </div>
 
       <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-3.5 space-y-1">
         <span class="text-[11px] text-red-700 font-medium">Master Black Belts (MBB)</span>
-        <p class="text-xl font-bold text-red-700 font-mono">1</p>
+        <p class="text-xl font-bold text-red-700 font-mono">
+          {{ users.filter(u => u.belt === 'Master Black Belt' || u.role.includes('MBB')).length }}
+        </p>
       </div>
 
       <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-3.5 space-y-1">
         <span class="text-[11px] text-[#008779] font-medium">Project Owners (BB/GB)</span>
-        <p class="text-xl font-bold text-[#008779] font-mono">2</p>
+        <p class="text-xl font-bold text-[#008779] font-mono">
+          {{ users.filter(u => u.role === 'Project Owner' || u.belt === 'Black Belt' || u.belt === 'Green Belt').length }}
+        </p>
       </div>
 
       <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-3.5 space-y-1">
         <span class="text-[11px] text-amber-700 font-medium">Champions / Sponsors</span>
-        <p class="text-xl font-bold text-amber-700 font-mono">1</p>
+        <p class="text-xl font-bold text-amber-700 font-mono">
+          {{ users.filter(u => u.role.includes('Champion')).length }}
+        </p>
       </div>
     </div>
 
@@ -224,7 +244,7 @@ const toggleStatus = (user: any) => {
             v-model="searchQuery"
             type="text"
             placeholder="Search by name, email, plant..."
-            class="w-full bg-gray-50/70 border border-gray-200 rounded-md pl-9 pr-3 py-1.5 text-xs text-gray-900 focus:outline-none focus:bg-white focus:border-[#008779]"
+            class="w-full bg-gray-50/70 border border-gray-200 rounded-md pl-9 pr-3 py-1.5 text-xs text-gray-900 focus:outline-hidden focus:bg-white focus:border-[#008779]"
           />
         </div>
 
@@ -234,7 +254,7 @@ const toggleStatus = (user: any) => {
             <span class="text-gray-500">Role:</span>
             <select
               v-model="selectedRole"
-              class="bg-white border border-gray-200 rounded px-2.5 py-1 text-xs text-gray-700 focus:outline-none focus:border-[#008779]"
+              class="bg-white border border-gray-200 rounded px-2.5 py-1 text-xs text-gray-700 focus:outline-hidden focus:border-[#008779]"
             >
               <option value="all">All Roles</option>
               <option value="System Admin">System Admin</option>
@@ -250,7 +270,7 @@ const toggleStatus = (user: any) => {
             <span class="text-gray-500">Status:</span>
             <select
               v-model="selectedStatus"
-              class="bg-white border border-gray-200 rounded px-2.5 py-1 text-xs text-gray-700 focus:outline-none focus:border-[#008779]"
+              class="bg-white border border-gray-200 rounded px-2.5 py-1 text-xs text-gray-700 focus:outline-hidden focus:border-[#008779]"
             >
               <option value="all">All Status</option>
               <option value="Active">Active</option>
@@ -268,7 +288,7 @@ const toggleStatus = (user: any) => {
               <th class="py-3 px-4 font-semibold">USER</th>
               <th class="py-3 px-4 font-semibold">ROLE & BELT</th>
               <th class="py-3 px-4 font-semibold">ORGANIZATION / LOCATION</th>
-              <th class="py-3 px-3 font-semibold text-center">PROJECTS</th>
+              <th class="py-3 px-3 font-semibold text-center">EMP ID</th>
               <th class="py-3 px-3 font-semibold text-center">STATUS</th>
               <th class="py-3 px-4 font-semibold text-center">ACTIONS</th>
             </tr>
@@ -278,50 +298,44 @@ const toggleStatus = (user: any) => {
               <!-- User Name & Email -->
               <td class="py-3.5 px-4">
                 <div class="flex items-center gap-3">
-                  <div class="size-8 rounded-full bg-[#008779] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                  <div class="size-8 rounded-full bg-[#008779] text-white flex items-center justify-center font-bold text-xs shrink-0">
                     {{ user.initials }}
                   </div>
                   <div>
-                    <span class="font-bold text-gray-900 block">{{ user.name }}</span>
-                    <span class="text-gray-500 text-[11px] font-mono">{{ user.email }}</span>
+                    <span class="font-bold text-gray-900 block text-xs">{{ user.name }}</span>
+                    <span class="text-[10px] text-gray-400 font-mono">{{ user.email }}</span>
                   </div>
                 </div>
               </td>
 
-              <!-- Role & Belt Badge -->
+              <!-- Role & Belt -->
               <td class="py-3.5 px-4">
-                <div class="space-y-1">
-                  <span
-                    class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border"
-                    :class="getRoleColor(user.role)"
-                  >
-                    {{ user.role }}
-                  </span>
-                  <span v-if="user.belt !== 'None'" class="text-[10px] text-gray-500 block">
-                    Belt: <strong>{{ user.belt }}</strong>
-                  </span>
-                </div>
+                <span
+                  class="text-[11px] font-medium px-2 py-0.5 rounded border inline-block"
+                  :class="getRoleColor(user.role)"
+                >
+                  {{ user.role }}
+                </span>
+                <span class="text-[10px] text-gray-500 block mt-0.5 font-medium">{{ user.belt }}</span>
               </td>
 
-              <!-- Org / Location -->
+              <!-- Location -->
               <td class="py-3.5 px-4">
-                <div class="text-xs">
-                  <span class="text-gray-800 font-medium block">{{ user.location }}</span>
-                  <span class="text-[11px] text-gray-500">{{ user.business }} › {{ user.bu }}</span>
-                </div>
+                <span class="font-medium text-gray-800 block truncate max-w-xs">{{ user.location }}</span>
+                <span class="text-[10px] text-gray-400 block">{{ user.business }} &rsaquo; {{ user.bu || user.department }}</span>
               </td>
 
-              <!-- Project Count -->
-              <td class="py-3.5 px-3 text-center font-bold text-gray-900 font-mono">
-                {{ user.projectCount }}
+              <!-- Emp ID -->
+              <td class="py-3.5 px-3 text-center font-mono text-gray-600">
+                {{ user.employeeId }}
               </td>
 
-              <!-- Status Toggle -->
+              <!-- Status -->
               <td class="py-3.5 px-3 text-center">
                 <button
                   type="button"
-                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border cursor-pointer transition-colors"
-                  :class="user.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-600 border-gray-200'"
+                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border transition-colors cursor-pointer"
+                  :class="user.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'"
                   @click="toggleStatus(user)"
                 >
                   <span class="size-1.5 rounded-full" :class="user.status === 'Active' ? 'bg-emerald-500' : 'bg-gray-400'"></span>
@@ -330,22 +344,15 @@ const toggleStatus = (user: any) => {
               </td>
 
               <!-- Actions -->
-              <td class="py-3.5 px-4">
-                <div class="flex items-center justify-center gap-1">
+              <td class="py-3.5 px-4 text-center">
+                <div class="flex items-center justify-center gap-1.5">
                   <button
                     type="button"
-                    class="size-7 rounded hover:bg-gray-100 text-gray-600 flex items-center justify-center transition-colors"
-                    title="Edit User"
+                    class="text-gray-400 hover:text-[#008779] p-1 rounded hover:bg-gray-100 transition-colors"
+                    title="Edit user"
                     @click="openEditUser(user)"
                   >
-                    <UIcon name="i-lucide-edit-2" class="size-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    class="size-7 rounded hover:bg-gray-100 text-gray-600 flex items-center justify-center transition-colors"
-                    title="Permissions"
-                  >
-                    <UIcon name="i-lucide-shield" class="size-3.5" />
+                    <UIcon name="i-lucide-edit-3" class="size-3.5" />
                   </button>
                 </div>
               </td>
@@ -353,28 +360,22 @@ const toggleStatus = (user: any) => {
           </tbody>
         </table>
       </div>
-
-      <!-- Footer -->
-      <div class="p-4 border-t border-gray-100 text-xs text-gray-500 flex items-center justify-between">
-        <span>Showing {{ filteredUsers.length }} of {{ users.length }} users</span>
-        <span>InsightGenie RBAC Framework V2.0</span>
-      </div>
     </div>
 
-    <!-- ADD / EDIT USER MODAL -->
+    <!-- Add / Edit User Modal -->
     <div
       v-if="isAddUserModalOpen"
       class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-xs p-4"
     >
-      <div class="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div class="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-md w-full overflow-hidden text-xs animate-in zoom-in-95 duration-150">
         <!-- Header -->
-        <div class="p-4 border-b border-gray-100 flex items-center justify-between">
-          <h3 class="text-sm font-bold text-gray-900">
-            {{ modalMode === 'add' ? 'Add New User' : 'Edit User & Permissions' }}
-          </h3>
+        <div class="p-4 bg-gradient-to-r from-teal-900 to-[#008779] text-white flex items-center justify-between">
+          <h2 class="text-sm font-bold text-white">
+            {{ modalMode === 'add' ? 'Add New User to Directory' : 'Edit User Profile' }}
+          </h2>
           <button
             type="button"
-            class="text-gray-400 hover:text-gray-600 p-1"
+            class="text-white/80 hover:text-white"
             @click="isAddUserModalOpen = false"
           >
             <UIcon name="i-lucide-x" class="size-4" />
@@ -382,35 +383,32 @@ const toggleStatus = (user: any) => {
         </div>
 
         <!-- Form Body -->
-        <div class="p-6 space-y-4 text-xs">
-          <!-- Full Name -->
+        <div class="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
           <div class="space-y-1">
             <label class="font-semibold text-gray-700 block">Full Name *</label>
             <input
               v-model="formName"
               type="text"
-              placeholder="e.g. Romteera Tadderm"
-              class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#008779]"
+              placeholder="e.g. Somsak Prasert"
+              class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-900 focus:outline-hidden focus:border-[#008779]"
             />
           </div>
 
-          <!-- Email -->
           <div class="space-y-1">
-            <label class="font-semibold text-gray-700 block">Corporate Email *</label>
+            <label class="font-semibold text-gray-700 block">Email Address (CPF Domain) *</label>
             <input
               v-model="formEmail"
               type="email"
               placeholder="e.g. name@cpf.co.th"
-              class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#008779]"
+              class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-900 focus:outline-hidden focus:border-[#008779]"
             />
           </div>
 
-          <!-- Role -->
           <div class="space-y-1">
             <label class="font-semibold text-gray-700 block">Assigned Role *</label>
             <select
               v-model="formRole"
-              class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#008779]"
+              class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 focus:outline-hidden focus:border-[#008779]"
             >
               <option value="System Admin">System Admin (Full Access)</option>
               <option value="Master Black Belt (MBB)">Master Black Belt (Reviewer / Methodology)</option>
@@ -420,12 +418,11 @@ const toggleStatus = (user: any) => {
             </select>
           </div>
 
-          <!-- Belt Level -->
           <div class="space-y-1">
             <label class="font-semibold text-gray-700 block">Six Sigma Belt Level</label>
             <select
               v-model="formBelt"
-              class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#008779]"
+              class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 focus:outline-hidden focus:border-[#008779]"
             >
               <option value="None">None</option>
               <option value="Yellow Belt">Yellow Belt (YB)</option>
@@ -436,13 +433,12 @@ const toggleStatus = (user: any) => {
             </select>
           </div>
 
-          <!-- Business & BU -->
           <div class="grid grid-cols-2 gap-3">
             <div class="space-y-1">
               <label class="font-semibold text-gray-700 block">Business</label>
               <select
                 v-model="formBusiness"
-                class="w-full bg-white border border-gray-200 rounded-md px-2.5 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#008779]"
+                class="w-full bg-white border border-gray-200 rounded-md px-2.5 py-2 text-xs text-gray-700 focus:outline-hidden focus:border-[#008779]"
               >
                 <option value="Food">Food Business</option>
                 <option value="Farm">Farm Business</option>
@@ -455,7 +451,7 @@ const toggleStatus = (user: any) => {
               <label class="font-semibold text-gray-700 block">Business Unit</label>
               <select
                 v-model="formBu"
-                class="w-full bg-white border border-gray-200 rounded-md px-2.5 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#008779]"
+                class="w-full bg-white border border-gray-200 rounded-md px-2.5 py-2 text-xs text-gray-700 focus:outline-hidden focus:border-[#008779]"
               >
                 <option value="Chicken Processing">Chicken Processing</option>
                 <option value="Swine Processing">Swine Processing</option>
@@ -465,12 +461,11 @@ const toggleStatus = (user: any) => {
             </div>
           </div>
 
-          <!-- Plant Location -->
           <div class="space-y-1">
             <label class="font-semibold text-gray-700 block">Plant / Factory Location</label>
             <select
               v-model="formLocation"
-              class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#008779]"
+              class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 focus:outline-hidden focus:border-[#008779]"
             >
               <option value="โรงงานแปรรูปโชคชัย (Nakhon Ratchasima)">โรงงานแปรรูปโชคชัย (Nakhon Ratchasima)</option>
               <option value="โรงงานแปรรูปอาหาร 2 (นครราชสีมา)">โรงงานแปรรูปอาหาร 2 (นครราชสีมา)</option>
@@ -492,7 +487,7 @@ const toggleStatus = (user: any) => {
           <button
             type="button"
             class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-semibold px-4 py-2 rounded-md transition-colors cursor-pointer"
-            @click="isAddUserModalOpen = false"
+            @click="saveUser"
           >
             {{ modalMode === 'add' ? 'Add User' : 'Save Changes' }}
           </button>

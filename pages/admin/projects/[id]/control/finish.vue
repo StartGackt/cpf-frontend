@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useApprovalWorkflow, type ApprovalWorkflow } from '~/composables/useApprovalWorkflow'
 
 const route = useRoute()
 const projectId = (route.params.id as string) || 'example-total-yield'
 
-const isPfrSubmitted = ref(true)
-const pfrStatus = ref<'draft' | 'pending' | 'approved'>('approved')
-const isArchivedToKm = ref(true)
+const { getProjectWorkflow } = useApprovalWorkflow()
+
+const isWorkflowModalOpen = ref(false)
+
+const pfrWorkflow = computed<ApprovalWorkflow | undefined>(() => {
+  return getProjectWorkflow(projectId, 'PFR') || getProjectWorkflow('example-total-yield', 'PFR')
+})
 
 const projectSummary = {
   name: 'Example เพิ่ม %Total Yield สินค้าไก่ทอด',
@@ -21,13 +26,6 @@ const projectSummary = {
   cpk: '1.45 (Stable)',
   pfrDocId: 'PFR-CPF-2026-088'
 }
-
-const signOffSteps = ref([
-  { role: 'Project Leader', name: 'Romteera Tadderm', status: 'Approved', date: '20/02/2026', signature: 'E-Signed (CPF Auth)' },
-  { role: 'Master Black Belt (MBB)', name: 'Dr. Prasert Chareon', status: 'Approved', date: '22/02/2026', signature: 'E-Signed (CPF Auth)' },
-  { role: 'Plant Champion / GM', name: 'Somchai Vong', status: 'Approved', date: '24/02/2026', signature: 'E-Signed (CPF Auth)' },
-  { role: 'Corporate PMO HQ', name: 'Quality Excellence Committee', status: 'Approved', date: '24/02/2026', signature: 'System Registered & Archived' }
-])
 </script>
 
 <template>
@@ -43,7 +41,9 @@ const signOffSteps = ref([
         Projects
       </NuxtLink>
       <span>›</span>
-      <span class="text-gray-700 font-medium">Example เพิ่ม %Total Yield สินค้าไก่ทอด</span>
+      <NuxtLink :to="`/admin/projects/${projectId}`" class="hover:text-[#008779] truncate max-w-[200px]">
+        Example เพิ่ม %Total Yield สินค้าไก่ทอด
+      </NuxtLink>
       <span>›</span>
       <span class="text-gray-700 font-medium">Control</span>
       <span>›</span>
@@ -58,7 +58,7 @@ const signOffSteps = ref([
       />
 
       <div class="flex-1 min-w-0 space-y-4">
-        <!-- 1. Close-out Congratulation & KM Archive Auto-Push Banner (Module 7 Requirement) -->
+        <!-- 1. Close-out Congratulation & KM Archive Auto-Push Banner -->
         <div class="bg-gradient-to-r from-teal-900 to-emerald-900 text-white rounded-xl p-6 shadow-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div class="space-y-1">
             <div class="flex items-center gap-2">
@@ -83,6 +83,15 @@ const signOffSteps = ref([
               <UIcon name="i-lucide-presentation" class="size-3.5" />
               <span>Presentation Mode</span>
             </NuxtLink>
+
+            <button
+              type="button"
+              class="bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3 py-2 rounded-md flex items-center gap-1.5 transition-colors border border-white/20 cursor-pointer"
+              @click="isWorkflowModalOpen = true"
+            >
+              <UIcon name="i-lucide-file-signature" class="size-3.5 text-teal-300" />
+              <span>View Approval Workflow</span>
+            </button>
 
             <NuxtLink
               :to="`/admin/projects/${projectId}/report`"
@@ -125,33 +134,52 @@ const signOffSteps = ref([
         <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-6 space-y-4">
           <div class="flex items-center justify-between pb-3 border-b border-gray-100">
             <div>
-              <h2 class="text-sm font-bold text-gray-900">
-                PFR Electronic Sign-off Chain (E-Signature Verified)
+              <h2 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+                <span>PFR Electronic Sign-off Chain (E-Signature Verified)</span>
+                <span class="text-[10px] bg-teal-50 text-[#008779] border border-teal-200 font-bold px-2 py-0.5 rounded">
+                  CPF E-Sign Security Standards
+                </span>
               </h2>
               <p class="text-xs text-gray-500 mt-0.5">
-                Sequential approval workflow linked with CPF Corporate IAM authentication
+                Sequential approval workflow linked with CPF Corporate IAM authentication and Cryptographic Audit Trail
               </p>
             </div>
-            <span class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-              ✓ Fully Approved (4/4 Signatures)
-            </span>
+            <button
+              type="button"
+              class="text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-3 py-1.5 rounded-lg flex items-center gap-1 cursor-pointer transition-colors"
+              @click="isWorkflowModalOpen = true"
+            >
+              <UIcon name="i-lucide-external-link" class="size-3.5" />
+              <span>Full Audit Trail</span>
+            </button>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+          <div v-if="pfrWorkflow" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
             <div
-              v-for="(step, idx) in signOffSteps"
-              :key="idx"
-              class="border border-emerald-200 bg-emerald-50/40 rounded-lg p-3.5 space-y-2"
+              v-for="step in pfrWorkflow.steps"
+              :key="step.id"
+              class="border rounded-lg p-3.5 space-y-2 transition-all"
+              :class="[
+                step.status === 'Approved' ? 'border-emerald-200 bg-emerald-50/40' :
+                step.status === 'Pending' ? 'border-teal-500 bg-teal-50/40 ring-1 ring-teal-400' :
+                'border-gray-200 bg-gray-50/50'
+              ]"
             >
               <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold text-emerald-800 uppercase">Step {{ idx + 1 }}: {{ step.role }}</span>
-                <UIcon name="i-lucide-check-circle-2" class="size-4 text-emerald-600" />
+                <span class="text-[10px] font-bold text-gray-700 uppercase">Step {{ step.stepNumber }}: {{ step.role }}</span>
+                <UIcon
+                  :name="step.status === 'Approved' ? 'i-lucide-check-circle-2' : 'i-lucide-clock'"
+                  class="size-4"
+                  :class="step.status === 'Approved' ? 'text-emerald-600' : 'text-amber-500'"
+                />
               </div>
-              <p class="font-bold text-gray-900 text-xs">{{ step.name }}</p>
-              <div class="text-[10px] text-gray-600 space-y-0.5 font-mono pt-1 border-t border-emerald-200/60">
-                <p>Status: <strong class="text-emerald-700">{{ step.status }}</strong></p>
-                <p>Date: {{ step.date }}</p>
-                <p class="text-emerald-800 font-semibold">{{ step.signature }}</p>
+              <p class="font-bold text-gray-900 text-xs">{{ step.approverName }}</p>
+              <div class="text-[10px] text-gray-600 space-y-0.5 font-mono pt-1 border-t border-gray-200/60">
+                <p>Status: <strong :class="step.status === 'Approved' ? 'text-emerald-700' : 'text-amber-700'">{{ step.status }}</strong></p>
+                <p>Date: {{ step.signedAt || 'Pending' }}</p>
+                <p v-if="step.signature" class="text-teal-800 font-semibold truncate" :title="step.signature.certificateId">
+                  {{ step.signature.certificateId }}
+                </p>
               </div>
             </div>
           </div>
@@ -183,5 +211,12 @@ const signOffSteps = ref([
         </div>
       </div>
     </div>
+
+    <!-- Embedded Approval Workflow Drawer -->
+    <ApprovalWorkflowModal
+      v-if="isWorkflowModalOpen && pfrWorkflow"
+      :workflow="pfrWorkflow"
+      @close="isWorkflowModalOpen = false"
+    />
   </div>
 </template>

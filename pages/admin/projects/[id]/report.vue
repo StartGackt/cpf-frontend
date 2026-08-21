@@ -1,8 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useApprovalWorkflow, type ApprovalWorkflow } from '~/composables/useApprovalWorkflow'
 
 const route = useRoute()
 const projectId = (route.params.id as string) || 'example-total-yield'
+
+const { getProjectWorkflow } = useApprovalWorkflow()
+
+const isWorkflowModalOpen = ref(false)
+
+const pfrWorkflow = computed<ApprovalWorkflow | undefined>(() => {
+  return getProjectWorkflow(projectId, 'PFR') || getProjectWorkflow('example-total-yield', 'PFR')
+})
 
 const printReport = () => {
   if (typeof window !== 'undefined') {
@@ -25,12 +34,24 @@ const printReport = () => {
           <span>›</span>
           <span class="text-gray-900 font-bold">Project Final Report (PFR)</span>
         </div>
-        <h1 class="text-xl font-bold text-gray-900">
-          Project Final Report (PFR) Documentation
+        <h1 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+          <span>Project Final Report (PFR) Documentation</span>
+          <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold px-2 py-0.5 rounded-full">
+            E-Sign Certified
+          </span>
         </h1>
       </div>
 
       <div class="flex items-center gap-2">
+        <button
+          type="button"
+          class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-3 py-2 rounded-md flex items-center gap-1.5 transition-colors cursor-pointer"
+          @click="isWorkflowModalOpen = true"
+        >
+          <UIcon name="i-lucide-file-signature" class="size-3.5 text-[#008779]" />
+          <span>Approval Workflow</span>
+        </button>
+
         <NuxtLink
           :to="`/admin/projects/${projectId}/presentation`"
           class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-3 py-2 rounded-md flex items-center gap-1.5 transition-colors"
@@ -60,7 +81,10 @@ const printReport = () => {
               SIX SIGMA DMAIC
             </span>
             <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider font-mono">
-              DOC ID: PFR-CPF-2026-088
+              DOC ID: {{ pfrWorkflow?.metricsSummary?.pfrDocId || 'PFR-CPF-2026-088' }}
+            </span>
+            <span class="text-[10px] font-bold bg-teal-50 text-[#008779] border border-teal-200 px-2 py-0.5 rounded font-mono">
+              STATUS: {{ pfrWorkflow?.status || 'APPROVED' }}
             </span>
           </div>
           <h1 class="text-2xl font-black text-gray-900 tracking-tight">
@@ -88,15 +112,15 @@ const printReport = () => {
         <div class="grid grid-cols-3 gap-4 text-center">
           <div class="border border-gray-200 rounded p-3 bg-gray-50/50">
             <span class="text-[10px] text-gray-500 font-bold block">BASELINE METRIC</span>
-            <span class="text-base font-bold text-red-600 font-mono">83.75%</span>
+            <span class="text-base font-bold text-red-600 font-mono">{{ pfrWorkflow?.metricsSummary?.baseline || '83.75%' }}</span>
           </div>
           <div class="border border-gray-200 rounded p-3 bg-gray-50/50">
             <span class="text-[10px] text-gray-500 font-bold block">ENTITLEMENT MAX</span>
-            <span class="text-base font-bold text-amber-600 font-mono">88.00%</span>
+            <span class="text-base font-bold text-amber-600 font-mono">{{ pfrWorkflow?.metricsSummary?.entitlement || '88.00%' }}</span>
           </div>
           <div class="border border-gray-200 rounded p-3 bg-teal-50/50 border-teal-200">
             <span class="text-[10px] text-teal-800 font-bold block">TARGET GOAL (LSS)</span>
-            <span class="text-base font-bold text-[#008779] font-mono">87.15%</span>
+            <span class="text-base font-bold text-[#008779] font-mono">{{ pfrWorkflow?.metricsSummary?.targetGoal || '87.15%' }}</span>
           </div>
         </div>
       </div>
@@ -166,11 +190,11 @@ const printReport = () => {
         </div>
       </div>
 
-      <!-- 5. Section: Control & Financial Sign-off -->
+      <!-- 5. Section: Control & Financial Sign-off with Certified E-Signatures -->
       <div class="space-y-4">
         <h2 class="text-sm font-bold text-gray-900 uppercase border-b border-gray-200 pb-1 flex items-center gap-2">
           <span class="size-5 rounded-full bg-teal-100 text-[#008779] flex items-center justify-center text-[10px] font-bold">4</span>
-          <span>Control Phase & Financial Sign-off</span>
+          <span>Control Phase & Financial Sign-off (Certified E-Signatures)</span>
         </h2>
         <div class="grid grid-cols-2 gap-4">
           <div class="border border-emerald-200 bg-emerald-50/50 rounded-lg p-4 space-y-1">
@@ -181,35 +205,50 @@ const printReport = () => {
 
           <div class="border border-teal-200 bg-teal-50/50 rounded-lg p-4 space-y-1">
             <span class="text-[10px] font-bold text-teal-800 uppercase block">VERIFIED FINANCIAL BENEFIT</span>
-            <p class="text-xl font-bold text-[#008779] font-mono">4,250,000 THB / Year</p>
+            <p class="text-xl font-bold text-[#008779] font-mono">{{ pfrWorkflow?.metricsSummary?.financialSavings || '4,250,000 THB / Year' }}</p>
             <span class="text-[11px] text-teal-700">Audited by Finance & CI Committee</span>
           </div>
         </div>
 
-        <!-- 4-Signatures Block -->
-        <div class="grid grid-cols-4 gap-4 pt-6 text-center border-t border-gray-200">
-          <div class="space-y-8">
-            <span class="text-[11px] font-bold text-gray-700 block">Project Leader</span>
-            <div class="border-b border-gray-400 pb-1 font-bold text-gray-900">Romteera Tadderm</div>
-            <span class="text-[10px] text-gray-500">Black Belt</span>
-          </div>
-          <div class="space-y-8">
-            <span class="text-[11px] font-bold text-gray-700 block">MBB Reviewer</span>
-            <div class="border-b border-gray-400 pb-1 font-bold text-gray-900">Dr. Prasert Chareon</div>
-            <span class="text-[10px] text-gray-500">Master Black Belt</span>
-          </div>
-          <div class="space-y-8">
-            <span class="text-[11px] font-bold text-gray-700 block">Plant Champion</span>
-            <div class="border-b border-gray-400 pb-1 font-bold text-gray-900">Somchai Vong</div>
-            <span class="text-[10px] text-gray-500">Plant Manager</span>
-          </div>
-          <div class="space-y-8">
-            <span class="text-[11px] font-bold text-gray-700 block">Corporate PMO</span>
-            <div class="border-b border-gray-400 pb-1 font-bold text-gray-900">Quality Excellence HQ</div>
-            <span class="text-[10px] text-gray-500">Final System Registry</span>
+        <!-- 4-Signatures Block with Real Digital Certificates -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-gray-200">
+          <div
+            v-for="(step, sIdx) in (pfrWorkflow?.steps || [])"
+            :key="step.id || sIdx"
+            class="border rounded-lg p-3 text-center space-y-1.5 bg-gray-50/40"
+            :class="step.status === 'Approved' ? 'border-teal-300 bg-teal-50/20' : 'border-gray-200'"
+          >
+            <span class="text-[10px] font-bold text-gray-500 uppercase block">{{ step.role }}</span>
+            <div class="border-b border-gray-300 pb-1 font-bold text-gray-900 text-xs">
+              {{ step.approverName }}
+            </div>
+            <div v-if="step.signature" class="space-y-0.5">
+              <span class="text-[9px] font-bold text-emerald-700 block">✓ E-Signed & Verified</span>
+              <span class="text-[8px] text-gray-400 font-mono block">{{ step.signature.certificateId }}</span>
+              <span class="text-[8px] text-gray-400 font-mono block">{{ step.signedAt }}</span>
+            </div>
+            <div v-else class="text-[9px] text-amber-600 font-semibold">
+              Pending Sign-off
+            </div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Embedded Approval Workflow Drawer -->
+    <ApprovalWorkflowModal
+      v-if="isWorkflowModalOpen && pfrWorkflow"
+      :workflow="pfrWorkflow"
+      @close="isWorkflowModalOpen = false"
+    />
   </div>
 </template>
+
+<style scoped>
+@media print {
+  @page {
+    size: portrait;
+    margin: 1cm;
+  }
+}
+</style>
