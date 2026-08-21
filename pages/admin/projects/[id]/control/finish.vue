@@ -1,31 +1,19 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useApprovalWorkflow, type ApprovalWorkflow } from '~/composables/useApprovalWorkflow'
+import { useProjectData } from '~/composables/useProjectData'
 
 const route = useRoute()
 const projectId = (route.params.id as string) || 'example-total-yield'
 
 const { getProjectWorkflow } = useApprovalWorkflow()
+const { project, projectSummary } = useProjectData(projectId)
 
 const isWorkflowModalOpen = ref(false)
 
 const pfrWorkflow = computed<ApprovalWorkflow | undefined>(() => {
   return getProjectWorkflow(projectId, 'PFR') || getProjectWorkflow('example-total-yield', 'PFR')
 })
-
-const projectSummary = {
-  name: 'Example เพิ่ม %Total Yield สินค้าไก่ทอด',
-  leader: 'Romteera Tadderm (Black Belt)',
-  plant: 'โรงงานแปรรูปโชคชัย (Food Business)',
-  baselineYield: '83.75%',
-  finalYield: '87.70%',
-  yieldImprovement: '+3.95%',
-  baselineGiveaway: '4.25%',
-  finalGiveaway: '2.20%',
-  verifiedAnnualSavings: '4,250,000 THB / Year',
-  cpk: '1.45 (Stable)',
-  pfrDocId: 'PFR-CPF-2026-088'
-}
 </script>
 
 <template>
@@ -42,7 +30,7 @@ const projectSummary = {
       </NuxtLink>
       <span>›</span>
       <NuxtLink :to="`/admin/projects/${projectId}`" class="hover:text-[#008779] truncate max-w-[200px]">
-        Example เพิ่ม %Total Yield สินค้าไก่ทอด
+        {{ project.name }}
       </NuxtLink>
       <span>›</span>
       <span class="text-gray-700 font-medium">Control</span>
@@ -58,7 +46,7 @@ const projectSummary = {
       />
 
       <div class="flex-1 min-w-0 space-y-4">
-        <!-- 1. Close-out Congratulation & KM Archive Auto-Push Banner -->
+        <!-- 1. Close-out Congratulation Banner -->
         <div class="bg-gradient-to-r from-teal-900 to-emerald-900 text-white rounded-xl p-6 shadow-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div class="space-y-1">
             <div class="flex items-center gap-2">
@@ -103,7 +91,7 @@ const projectSummary = {
           </div>
         </div>
 
-        <!-- 2. Final Verified Metrics Grid -->
+        <!-- 2. Final Verified Metrics Grid (Dynamic from Live Project Data) -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-4 text-center space-y-1">
             <span class="text-[10px] text-gray-500 font-bold uppercase">FINAL YIELD GAIN</span>
@@ -114,7 +102,7 @@ const projectSummary = {
           <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-4 text-center space-y-1">
             <span class="text-[10px] text-gray-500 font-bold uppercase">GIVEAWAY REDUCTION</span>
             <p class="text-2xl font-bold text-[#008779] font-mono">{{ projectSummary.finalGiveaway }}</p>
-            <span class="text-[10px] text-teal-600 font-mono">From 4.25% &rarr; 2.20%</span>
+            <span class="text-[10px] text-teal-600 font-mono">From 4.25% &rarr; {{ projectSummary.finalGiveaway }}</span>
           </div>
 
           <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-4 text-center space-y-1">

@@ -2,12 +2,27 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { exportPresentationToPptx, type PresentationSlide, type SlideWidget } from '~/utils/pptxExport'
 import { getDefaultSlides, SLIDE_TEMPLATES } from '~/utils/defaultSlides'
+import { useProjectData } from '~/composables/useProjectData'
 
 const route = useRoute()
 const projectId = (route.params.id as string) || 'example-total-yield'
-const projectName = 'Example เพิ่ม %Total Yield สินค้าไก่ทอด — โรงงานแปรรูปโชคชัย'
+
+const { project, projectSummary, baselineYield, entitlementYield, goalLssYield } = useProjectData(projectId)
+const projectName = computed(() => `${project.value.name} — ${project.value.plant}`)
 
 const STORAGE_KEY = `cpf_presentation_slides_${projectId}`
+
+const dynamicMetrics = computed(() => ({
+  projectName: project.value.name,
+  plant: project.value.plant,
+  leader: `${project.value.leader} / Somchai Vong (Champion)`,
+  baseline: `${baselineYield.value}%`,
+  entitlement: `${entitlementYield.value}%`,
+  goalLss: `${goalLssYield.value}%`,
+  finalYield: projectSummary.value.finalYield,
+  annualSavings: projectSummary.value.verifiedAnnualSavings,
+  cpk: projectSummary.value.cpk
+}))
 
 const fallbackSlide: PresentationSlide = {
   id: 1,
@@ -46,11 +61,11 @@ onMounted(() => {
       if (saved) {
         slides.value = JSON.parse(saved)
       } else {
-        slides.value = getDefaultSlides()
+        slides.value = getDefaultSlides(dynamicMetrics.value)
       }
     } catch (e) {
       console.warn('Failed to load saved slides, using defaults:', e)
-      slides.value = getDefaultSlides()
+      slides.value = getDefaultSlides(dynamicMetrics.value)
     }
   }
 
@@ -378,7 +393,7 @@ const downloadPptx = async () => {
     isDownloadMenuOpen.value = false
 
     const filename = `CPF_SixSigma_${projectId}_${new Date().toISOString().slice(0, 10)}.pptx`
-    await exportPresentationToPptx(slides.value, projectName, filename)
+    await exportPresentationToPptx(slides.value, projectName.value, filename)
 
     showToast('PowerPoint presentation downloaded successfully!')
   } catch (error) {

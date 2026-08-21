@@ -2,12 +2,37 @@
 
 import type { PresentationSlide, SlideWidget } from './pptxExport'
 
-export function getDefaultSlides(): PresentationSlide[] {
+export interface DynamicSlideMetrics {
+  projectName?: string
+  plant?: string
+  leader?: string
+  baseline?: string
+  entitlement?: string
+  goalLss?: string
+  finalYield?: string
+  annualSavings?: string
+  cpk?: string
+}
+
+export function getDefaultSlides(metrics?: DynamicSlideMetrics): PresentationSlide[] {
+  const m = {
+    projectName: 'Example เพิ่ม %Total Yield สินค้าไก่ทอด',
+    plant: 'โรงงานแปรรูปโชคชัย (Food Business)',
+    leader: 'Romteera Tadderm (BB) / Somchai Vong (Champion)',
+    baseline: '83.75%',
+    entitlement: '88.00%',
+    goalLss: '87.15%',
+    finalYield: '87.70%',
+    annualSavings: '4,250,000 THB / Year',
+    cpk: '1.45 (Stable & Sustained)',
+    ...metrics
+  }
+
   return [
     {
       id: 1,
       title: '1. Executive Summary & Project Charter (PCR/PFR)',
-      subtitle: 'Example เพิ่ม %Total Yield สินค้าไก่ทอด — โรงงานแปรรูปโชคชัย',
+      subtitle: `${m.projectName} — ${m.plant}`,
       headerTitle: 'INSIGHTGENIE SIX SIGMA PRESENTATION',
       headerSubtitle: 'CPF Digital Transformation & Quality Excellence',
       badge: 'Black Belt Certified Project',
@@ -22,10 +47,10 @@ export function getDefaultSlides(): PresentationSlide[] {
           type: 'key-value',
           data: {
             items: [
-              { label: 'Project Title', value: 'Example เพิ่ม %Total Yield สินค้าไก่ทอด' },
-              { label: 'Plant Location', value: 'โรงงานแปรรูปโชคชัย (Food Business)' },
-              { label: 'Project Leader & Sponsor', value: 'Romteera Tadderm (BB) / Somchai Vong (Champion)' },
-              { label: 'Expected Annual Cost Savings', value: '4,250,000 THB / Year', isHighlight: true }
+              { label: 'Project Title', value: m.projectName },
+              { label: 'Plant Location', value: m.plant },
+              { label: 'Project Leader & Sponsor', value: m.leader },
+              { label: 'Expected Annual Cost Savings', value: m.annualSavings, isHighlight: true }
             ]
           }
         },
@@ -36,9 +61,9 @@ export function getDefaultSlides(): PresentationSlide[] {
           type: 'kpi-grid',
           data: {
             kpis: [
-              { label: 'BASELINE', value: '83.75%', color: 'red', desc: 'Pre-Project Mean' },
-              { label: 'ENTITLEMENT', value: '88.00%', color: 'amber', desc: 'Process Potential' },
-              { label: 'GOAL LSS', value: '87.15%', color: 'purple', desc: 'Target 80% Gap' }
+              { label: 'BASELINE', value: m.baseline, color: 'red', desc: 'Pre-Project Mean' },
+              { label: 'ENTITLEMENT', value: m.entitlement, color: 'amber', desc: 'Process Potential' },
+              { label: 'GOAL LSS', value: m.goalLss, color: 'purple', desc: 'Target 80% Gap' }
             ],
             rule: 'Target set at 80% entitlement gap closure above baseline mean.'
           }
@@ -121,7 +146,7 @@ export function getDefaultSlides(): PresentationSlide[] {
           type: 'doe-settings',
           data: {
             description: 'Full Factorial 2³ Design identified optimum multihead weight setting:',
-            formula: 'Optimum %Giveaway = 2.20000% (Weight: 10g, Drops: 1 drop)',
+            formula: 'Optimum %Giveaway = 2.20% (Weight: 10g, Drops: 1 drop)',
             parameters: [
               { name: 'Target Overweight', val: '10g' },
               { name: 'Drop Count', val: '1 Drop' },
@@ -163,10 +188,10 @@ export function getDefaultSlides(): PresentationSlide[] {
           type: 'stat-cards',
           data: {
             stats: [
-              { label: 'FINAL %YIELD', value: '87.70%', color: 'emerald' },
-              { label: 'ANNUAL SAVINGS', value: '4.25M THB', color: 'teal' }
+              { label: 'FINAL %YIELD', value: m.finalYield, color: 'emerald' },
+              { label: 'ANNUAL SAVINGS', value: m.annualSavings, color: 'teal' }
             ],
-            note: 'Capability Cpk = 1.45 (Stable & Sustained)'
+            note: `Capability Cpk = ${m.cpk}`
           }
         }
       ]
@@ -174,15 +199,15 @@ export function getDefaultSlides(): PresentationSlide[] {
   ]
 }
 
-export const SLIDE_TEMPLATES: Array<{ name: string; desc: string; icon: string; slide: () => PresentationSlide }> = [
+export const SLIDE_TEMPLATES: Array<{ name: string; desc: string; icon: string; slide: (metrics?: DynamicSlideMetrics) => PresentationSlide }> = [
   {
     name: 'Executive Charter & BEG',
     desc: 'Project overview, team, and baseline / goal metrics',
     icon: 'i-lucide-file-text',
-    slide: () => ({
+    slide: (metrics) => ({
       id: Date.now(),
       title: 'Executive Summary & Project Charter',
-      subtitle: 'Project Title — Location & Department',
+      subtitle: `${metrics?.projectName || 'เพิ่มประสิทธิภาพกระบวนการแปรรูป'} — ${metrics?.plant || 'โรงงานแปรรูปโชคชัย'}`,
       headerTitle: 'INSIGHTGENIE SIX SIGMA PRESENTATION',
       headerSubtitle: 'CPF Digital Transformation & Quality Excellence',
       badge: 'Black Belt Certified Project',
@@ -197,10 +222,10 @@ export const SLIDE_TEMPLATES: Array<{ name: string; desc: string; icon: string; 
           type: 'key-value',
           data: {
             items: [
-              { label: 'Project Title', value: 'เพิ่มประสิทธิภาพกระบวนการแปรรูป' },
-              { label: 'Plant Location', value: 'โรงงานแปรรูปโชคชัย' },
-              { label: 'Project Leader', value: 'Romteera Tadderm (BB)' },
-              { label: 'Expected Cost Savings', value: '3,500,000 THB / Year', isHighlight: true }
+              { label: 'Project Title', value: metrics?.projectName || 'เพิ่มประสิทธิภาพกระบวนการแปรรูป' },
+              { label: 'Plant Location', value: metrics?.plant || 'โรงงานแปรรูปโชคชัย' },
+              { label: 'Project Leader', value: metrics?.leader || 'Romteera Tadderm (BB)' },
+              { label: 'Expected Cost Savings', value: metrics?.annualSavings || '4,250,000 THB / Year', isHighlight: true }
             ]
           }
         },
@@ -211,9 +236,9 @@ export const SLIDE_TEMPLATES: Array<{ name: string; desc: string; icon: string; 
           type: 'kpi-grid',
           data: {
             kpis: [
-              { label: 'BASELINE', value: '82.50%', color: 'red', desc: 'Pre-Project Mean' },
-              { label: 'ENTITLEMENT', value: '88.00%', color: 'amber', desc: 'Process Potential' },
-              { label: 'GOAL LSS', value: '86.90%', color: 'purple', desc: 'Target Gap' }
+              { label: 'BASELINE', value: metrics?.baseline || '83.75%', color: 'red', desc: 'Pre-Project Mean' },
+              { label: 'ENTITLEMENT', value: metrics?.entitlement || '88.00%', color: 'amber', desc: 'Process Potential' },
+              { label: 'GOAL LSS', value: metrics?.goalLss || '87.15%', color: 'purple', desc: 'Target Gap' }
             ],
             rule: 'Target set at 80% entitlement gap closure above baseline mean.'
           }
@@ -252,14 +277,14 @@ export const SLIDE_TEMPLATES: Array<{ name: string; desc: string; icon: string; 
         },
         {
           id: `w-${Date.now()}-2`,
-          title: 'Top Prioritized Causes (FMEA)',
-          icon: 'i-lucide-table',
+          title: 'Top Failure Modes by RPN',
+          icon: 'i-lucide-git-branch',
           type: 'fmea-table',
           data: {
-            description: 'Top critical failure modes ranked by RPN:',
+            description: 'Causes prioritized for statistical hypothesis testing:',
             rows: [
-              { rank: '#1', cause: 'การ set ค่าน้ำหนักเผื่อเครื่องชั่ง', s: 8, o: 9, d: 7, rpn: 504 },
-              { rank: '#2', cause: 'ความเร็วสายพานไม่สม่ำเสมอ', s: 6, o: 6, d: 5, rpn: 180 }
+              { rank: '#1', cause: 'การ set ค่าน้ำหนักเผื่อ Multihead', s: 7, o: 10, d: 7, rpn: 490 },
+              { rank: '#2', cause: 'จำนวน Drop ของเครื่อง Multihead', s: 7, o: 4, d: 10, rpn: 280 }
             ]
           }
         }
@@ -267,13 +292,13 @@ export const SLIDE_TEMPLATES: Array<{ name: string; desc: string; icon: string; 
     })
   },
   {
-    name: 'Control Plan & Financial ROI',
-    desc: 'Standardization checklist and key financial ROI stats',
-    icon: 'i-lucide-trending-up',
+    name: 'Hypothesis & DOE Result',
+    desc: 'Statistical test verification and DOE optimization settings',
+    icon: 'i-lucide-flask-conical',
     slide: () => ({
       id: Date.now(),
-      title: 'Control & Financial Results',
-      subtitle: 'Process Control Plan & Sustained Financial Impact',
+      title: 'Analyze & Improve: Validated Improvements',
+      subtitle: 'Statistical Hypothesis Testing and Optimization Matrix',
       headerTitle: 'INSIGHTGENIE SIX SIGMA PRESENTATION',
       headerSubtitle: 'CPF Digital Transformation & Quality Excellence',
       badge: 'Black Belt Certified Project',
@@ -283,70 +308,73 @@ export const SLIDE_TEMPLATES: Array<{ name: string; desc: string; icon: string; 
       widgets: [
         {
           id: `w-${Date.now()}-1`,
-          title: 'Standard Operating Procedures (SOP)',
-          icon: 'i-lucide-shield-check',
-          type: 'control-plan',
+          title: 'Hypothesis Testing Validation',
+          icon: 'i-lucide-test-tube',
+          type: 'hypothesis',
           data: {
-            description: 'Standardized controls implemented in line:',
-            items: [
-              { title: 'PLC Parameter locking on weighing machines' },
-              { title: 'Daily QA Scale Calibration Verification' },
-              { title: 'SPC Control Chart tracking hourly yield' }
-            ]
+            description: '2-Sample T Test on Critical Overweight Setting:',
+            pValueText: 'P-Value = 0.000 (Alpha = 0.05)',
+            conclusion: 'Significant impact confirmed. Overweight reduced from 15g to 10g.',
+            isSignificant: true
           }
         },
         {
           id: `w-${Date.now()}-2`,
-          title: 'Financial & Quality ROI',
-          icon: 'i-lucide-trending-up',
-          type: 'stat-cards',
+          title: 'DOE Standardized Countermeasures',
+          icon: 'i-lucide-box',
+          type: 'doe-settings',
           data: {
-            stats: [
-              { label: 'TOTAL COST SAVINGS', value: '4.25M THB', color: 'teal' },
-              { label: '%YIELD IMPROVEMENT', value: '+3.95%', color: 'emerald' }
-            ],
-            note: 'Cpk capability improved from 0.92 to 1.45'
+            description: 'Optimal parameters deployed to line PLC:',
+            formula: 'Giveaway reduced by 2.05% with zero quality degradation.',
+            parameters: [
+              { name: 'Multihead Offset', val: '10g' },
+              { name: 'Drop Count', val: '1 Drop' }
+            ]
           }
         }
       ]
     })
   },
   {
-    name: 'Blank Custom Slide',
-    desc: 'Empty slide with customizable card blocks',
-    icon: 'i-lucide-layout-grid',
-    slide: () => ({
+    name: 'Control Plan & Financial Impact',
+    desc: 'SOP controls and financial realization results',
+    icon: 'i-lucide-award',
+    slide: (metrics) => ({
       id: Date.now(),
-      title: 'Custom Title Slide',
-      subtitle: 'Add your custom description here',
+      title: 'Control & Financial Realization',
+      subtitle: 'Standard Operating Procedures & Sustained Cost Savings',
       headerTitle: 'INSIGHTGENIE SIX SIGMA PRESENTATION',
       headerSubtitle: 'CPF Digital Transformation & Quality Excellence',
-      badge: 'Six Sigma DMAIC Project',
+      badge: 'Black Belt Certified Project',
       date: 'Feb 2026',
       footerText: 'Confidential — Internal CPF Six Sigma Documentation',
       layout: '2-col',
       widgets: [
         {
           id: `w-${Date.now()}-1`,
-          title: 'Custom Section 1',
-          icon: 'i-lucide-file-text',
-          type: 'text-bullets',
+          title: 'Control Plan Highlights',
+          icon: 'i-lucide-shield-check',
+          type: 'control-plan',
           data: {
-            description: 'Enter your custom notes or findings:',
-            bullets: ['Key Finding 1', 'Key Finding 2', 'Key Finding 3']
+            description: 'Continuous monitoring protocols:',
+            items: [
+              { title: 'Shift QA checklist for scale zero-point accuracy' },
+              { title: 'PLC software lock on Multihead drop programming' },
+              { title: 'Monthly finance audit on raw material yield' }
+            ]
           }
         },
         {
           id: `w-${Date.now()}-2`,
-          title: 'Custom KPI Section 2',
-          icon: 'i-lucide-target',
-          type: 'kpi-grid',
+          title: 'Verified Financial & Quality KPIs',
+          icon: 'i-lucide-trending-up',
+          type: 'stat-cards',
           data: {
-            kpis: [
-              { label: 'BEFORE', value: '80%', color: 'red' },
-              { label: 'AFTER', value: '95%', color: 'emerald' }
+            stats: [
+              { label: 'SUSTAINED YIELD', value: metrics?.finalYield || '87.70%', color: 'emerald' },
+              { label: 'AUDITED SAVINGS', value: metrics?.annualSavings || '4,250,000 THB', color: 'teal' }
             ],
-            rule: 'Process optimized successfully.'
+            note: `Cpk = ${metrics?.cpk || '1.45 (Six Sigma Capable)'}`
           }
         }
       ]
