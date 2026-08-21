@@ -106,21 +106,21 @@ const isActive = (path: string) => {
                 <UIcon name="i-lucide-users" class="size-4" />
                 <span>User Management</span>
               </NuxtLink>
-              <NuxtLink to="/admin/master-data" class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
-                <UIcon name="i-lucide-database" class="size-4" />
-                <span>Master Data</span>
-              </NuxtLink>
               <NuxtLink to="/admin/approvals" class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
                 <UIcon name="i-lucide-check-square" class="size-4" />
                 <span>Approvals</span>
               </NuxtLink>
-              <NuxtLink to="/admin/data-migration" class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
-                <UIcon name="i-lucide-file-spreadsheet" class="size-4" />
-                <span>Data Migration</span>
-              </NuxtLink>
               <NuxtLink to="/admin/e-learning" class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
                 <UIcon name="i-lucide-graduation-cap" class="size-4" />
                 <span>E-Learning</span>
+              </NuxtLink>
+              <NuxtLink to="/admin/master-data" class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
+                <UIcon name="i-lucide-database" class="size-4" />
+                <span>Master Data</span>
+              </NuxtLink>
+              <NuxtLink to="/admin/data-migration" class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
+                <UIcon name="i-lucide-file-spreadsheet" class="size-4" />
+                <span>Data Migration</span>
               </NuxtLink>
             </div>
           </div>
