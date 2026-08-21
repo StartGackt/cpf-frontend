@@ -1,108 +1,24 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
+import { useProjectData } from '~/composables/useProjectData'
 
 const route = useRoute()
 const projectId = (route.params.id as string) || 'example-total-yield'
 
-const STORAGE_KEY = `cpf_insight_data_${projectId}`
+const {
+  project,
+  validInsightRows,
+  baselineYield,
+  entitlementYield,
+  goalLssYield
+} = useProjectData(projectId)
 
 const activeSubTab = ref<'chart' | 'charter' | 'counterbalance' | 'versions'>('chart')
 
-interface InsightRow {
-  id: number
-  period: string
-  actual: number
-  total: number
-  pct: number
-  isOutlier: boolean
-  outlierCause: string
-  notes?: string
-}
-
-const defaultRows: InsightRow[] = [
-  { id: 1, period: '1', actual: 80, total: 100, pct: 80.0, isOutlier: true, outlierCause: 'เครื่องจักรสะดุดช่วงเปลี่ยน Shift', notes: 'Outlier with cause' },
-  { id: 2, period: '2', actual: 84, total: 100, pct: 84.0, isOutlier: false, outlierCause: '', notes: '' },
-  { id: 3, period: '3', actual: 84, total: 100, pct: 84.0, isOutlier: false, outlierCause: '', notes: '' },
-  { id: 4, period: '4', actual: 83, total: 100, pct: 83.0, isOutlier: false, outlierCause: '', notes: '' },
-  { id: 5, period: '5', actual: 82, total: 100, pct: 82.0, isOutlier: false, outlierCause: '', notes: '' },
-  { id: 6, period: '6', actual: 85, total: 100, pct: 85.0, isOutlier: false, outlierCause: '', notes: '' },
-  { id: 7, period: '7', actual: 88, total: 100, pct: 88.0, isOutlier: false, outlierCause: '', notes: '' },
-  { id: 8, period: '8', actual: 83, total: 100, pct: 83.0, isOutlier: false, outlierCause: '', notes: '' },
-  { id: 9, period: '9', actual: 85, total: 100, pct: 85.0, isOutlier: false, outlierCause: '', notes: '' },
-  { id: 10, period: '10', actual: 82, total: 100, pct: 82.0, isOutlier: false, outlierCause: '', notes: '' },
-  { id: 11, period: '11', actual: 84, total: 100, pct: 84.0, isOutlier: false, outlierCause: '', notes: '' },
-  { id: 12, period: '12', actual: 85, total: 100, pct: 85.0, isOutlier: false, outlierCause: '', notes: '' }
-]
-
-const loadedData = ref<InsightRow[]>([...defaultRows])
-
-onMounted(() => {
-  if (typeof window !== 'undefined') {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        loadedData.value = JSON.parse(saved)
-      }
-    } catch (e) {}
-  }
-})
-
-// Dynamic Calculations from flexible data rows (No minimum row constraints)
-const validRows = computed(() => loadedData.value.filter(r => !r.isOutlier))
-
-const computedBaseline = computed(() => {
-  if (validRows.value.length === 0) return 83.75
-  const sum = validRows.value.reduce((acc, r) => acc + (r.pct || 0), 0)
-  return Number((sum / validRows.value.length).toFixed(2))
-})
-
-const computedEntitlement = computed(() => {
-  if (validRows.value.length === 0) return 88.00
-  const maxVal = Math.max(...validRows.value.map(r => r.pct || 0))
-  return Number(maxVal.toFixed(2))
-})
-
-const computedGoalLss = computed(() => {
-  const base = computedBaseline.value
-  const ent = computedEntitlement.value
-  const goal = base + (ent - base) * 0.8
-  return Number(goal.toFixed(2))
-})
-
-// Editable Goals State
-const begData = ref({
-  goalBu: '86.50',
-  goalChallenge: '89.00'
-})
-
-// Counterbalance Targets
-const counterbalanceTargets = ref([
-  { id: 1, name: 'Product Quality Defect Rate (%)', current: '0.45%', limit: '< 0.50%', status: 'Within Limit' },
-  { id: 2, name: 'Energy Consumption (kWh/ton)', current: '112.4', limit: '< 120.0', status: 'Within Limit' },
-  { id: 3, name: 'Customer Complaint PPM', current: '12 ppm', limit: '< 15 ppm', status: 'Within Limit' }
-])
-
-// PCR Version History
-const pcrVersions = ref([
-  {
-    version: 'V2.0 (Active)',
-    approvedBy: 'Dr. Prasert Chareon (MBB)',
-    approvedAt: '24/02/2026',
-    status: 'Active',
-    baseline: '83.75%',
-    goal: '87.15%',
-    comment: 'Updated goal calculation with 80% entitlement gap closure.'
-  },
-  {
-    version: 'V1.0',
-    approvedBy: 'Somchai Vong (Champion)',
-    approvedAt: '15/01/2026',
-    status: 'Archived',
-    baseline: '82.50%',
-    goal: '86.00%',
-    comment: 'Initial charter draft.'
-  }
-])
+const loadedData = computed(() => project.value.insightRows)
+const begData = computed(() => project.value.begGoals)
+const counterbalanceTargets = computed(() => project.value.counterbalanceTargets)
+const pcrVersions = computed(() => project.value.pcrVersions)
 
 const isSaveConfirmed = ref(false)
 const saveChanges = () => {
@@ -110,18 +26,58 @@ const saveChanges = () => {
   setTimeout(() => { isSaveConfirmed.value = false }, 3000)
 }
 
+// Quick edit point modal
+const isQuickEditOpen = ref(false)
+const quickEditRow = ref({
+  index: -1,
+  period: '',
+  actual: 84,
+  total: 100,
+  isOutlier: false,
+  outlierCause: ''
+})
+
+const openQuickEdit = (idx: number) => {
+  const row = project.value.insightRows[idx]
+  if (!row) return
+  quickEditRow.value = {
+    index: idx,
+    period: row.period,
+    actual: row.actual,
+    total: row.total,
+    isOutlier: row.isOutlier,
+    outlierCause: row.outlierCause || ''
+  }
+  isQuickEditOpen.value = true
+}
+
+const saveQuickEdit = () => {
+  const idx = quickEditRow.value.index
+  if (idx >= 0 && idx < project.value.insightRows.length) {
+    const target = project.value.insightRows[idx]
+    if (target) {
+      target.period = quickEditRow.value.period
+      target.actual = quickEditRow.value.actual
+      target.total = quickEditRow.value.total
+      target.pct = Number(((quickEditRow.value.actual / (quickEditRow.value.total || 100)) * 100).toFixed(2))
+      target.isOutlier = quickEditRow.value.isOutlier
+      target.outlierCause = quickEditRow.value.outlierCause
+    }
+  }
+  isQuickEditOpen.value = false
+}
+
 // SVG Dynamic Coordinate Mapping
-// Map pct values (e.g. 75% to 92%) into SVG Y (180 to 30)
 const minVal = computed(() => {
   const values = loadedData.value.map(r => r.pct || 0)
   if (values.length === 0) return 75
-  return Math.min(...values, computedBaseline.value, 78) - 2
+  return Math.min(...values, baselineYield.value, 78) - 2
 })
 
 const maxVal = computed(() => {
   const values = loadedData.value.map(r => r.pct || 0)
   if (values.length === 0) return 92
-  return Math.max(...values, computedEntitlement.value, 90) + 2
+  return Math.max(...values, entitlementYield.value, 90) + 2
 })
 
 const getYCoord = (val: number) => {
@@ -156,7 +112,7 @@ const polylinePoints = computed(() => {
       </NuxtLink>
       <span>›</span>
       <NuxtLink :to="`/admin/projects/${projectId}`" class="hover:text-[#008779] truncate max-w-[200px]">
-        Example เพิ่ม %Total Yield สินค้าไก่ทอด
+        {{ project.name }}
       </NuxtLink>
       <span>›</span>
       <span class="text-gray-700 font-medium">Define</span>
@@ -221,14 +177,14 @@ const polylinePoints = computed(() => {
             <div>
               <div class="flex items-center gap-2">
                 <h2 class="text-sm font-bold text-gray-900">
-                  BEG Statistical Time-Series Chart (Dynamic Sample Size)
+                  BEG Statistical Time-Series Chart (Interactive Real-Time)
                 </h2>
                 <span class="text-[10px] bg-teal-50 text-[#008779] border border-teal-200 px-2 py-0.5 rounded font-mono font-bold">
                   {{ loadedData.length }} Data Points
                 </span>
               </div>
               <p class="text-xs text-gray-500 mt-0.5">
-                Adapts dynamically to any entered sample size without minimum constraint.
+                คลิกที่จุดในกราฟเพื่อแก้ไขค่าแบบทันที หรือไปที่หน้า Insight Data เพื่อจัดการชุดข้อมูลทั้งหมด
               </p>
             </div>
 
@@ -238,7 +194,7 @@ const polylinePoints = computed(() => {
                 class="border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-md flex items-center gap-1 shadow-xs transition-colors"
               >
                 <UIcon name="i-lucide-edit" class="size-3.5" />
-                <span>Edit Insight Data</span>
+                <span>Manage All Data Rows</span>
               </NuxtLink>
 
               <span class="text-xs font-mono font-bold text-[#008779] bg-teal-50 border border-teal-200 px-2.5 py-1 rounded">
@@ -250,46 +206,45 @@ const polylinePoints = computed(() => {
           <!-- Dynamic SVG Time-Series Chart -->
           <div class="h-68 border border-gray-100 rounded-lg p-4 bg-gray-50/40 flex items-center justify-center relative overflow-hidden">
             <svg class="w-full h-full" viewBox="0 0 740 210">
-              <!-- Y Axis Reference Lines -->
               <!-- Entitlement Line - Amber -->
               <line
                 x1="45"
-                :y1="getYCoord(computedEntitlement)"
+                :y1="getYCoord(entitlementYield)"
                 x2="660"
-                :y2="getYCoord(computedEntitlement)"
+                :y2="getYCoord(entitlementYield)"
                 stroke="#f59e0b"
                 stroke-width="1.5"
                 stroke-dasharray="4 4"
               />
-              <text x="665" :y="getYCoord(computedEntitlement) + 4" font-size="10" fill="#f59e0b" font-weight="bold">
-                Entitlement: {{ computedEntitlement }}%
+              <text x="665" :y="getYCoord(entitlementYield) + 4" font-size="10" fill="#f59e0b" font-weight="bold">
+                Entitlement: {{ entitlementYield }}%
               </text>
 
               <!-- Goal Line - Purple -->
               <line
                 x1="45"
-                :y1="getYCoord(computedGoalLss)"
+                :y1="getYCoord(goalLssYield)"
                 x2="660"
-                :y2="getYCoord(computedGoalLss)"
+                :y2="getYCoord(goalLssYield)"
                 stroke="#9333ea"
                 stroke-width="2"
               />
-              <text x="665" :y="getYCoord(computedGoalLss) + 4" font-size="10" fill="#9333ea" font-weight="bold">
-                Goal LSS: {{ computedGoalLss }}%
+              <text x="665" :y="getYCoord(goalLssYield) + 4" font-size="10" fill="#9333ea" font-weight="bold">
+                Goal LSS: {{ goalLssYield }}%
               </text>
 
               <!-- Baseline Line - Red -->
               <line
                 x1="45"
-                :y1="getYCoord(computedBaseline)"
+                :y1="getYCoord(baselineYield)"
                 x2="660"
-                :y2="getYCoord(computedBaseline)"
+                :y2="getYCoord(baselineYield)"
                 stroke="#dc2626"
                 stroke-width="1.5"
                 stroke-dasharray="4 4"
               />
-              <text x="665" :y="getYCoord(computedBaseline) + 4" font-size="10" fill="#dc2626" font-weight="bold">
-                Baseline: {{ computedBaseline }}%
+              <text x="665" :y="getYCoord(baselineYield) + 4" font-size="10" fill="#dc2626" font-weight="bold">
+                Baseline: {{ baselineYield }}%
               </text>
 
               <!-- Actual Data Points Connected Line -->
@@ -302,15 +257,21 @@ const polylinePoints = computed(() => {
               />
 
               <!-- Data Dots & Tooltip labels -->
-              <g v-for="(row, rIdx) in loadedData" :key="row.id || rIdx">
+              <g
+                v-for="(row, rIdx) in loadedData"
+                :key="row.id || rIdx"
+                class="cursor-pointer group"
+                @click="openQuickEdit(rIdx)"
+              >
                 <!-- Dot -->
                 <circle
                   :cx="getXCoord(rIdx)"
                   :cy="getYCoord(row.pct)"
-                  :r="row.isOutlier ? 6 : 4.5"
+                  :r="row.isOutlier ? 6.5 : 5"
                   :fill="row.isOutlier ? '#f59e0b' : '#008779'"
                   :stroke="row.isOutlier ? '#dc2626' : '#ffffff'"
                   stroke-width="1.5"
+                  class="transition-transform group-hover:scale-125"
                 />
 
                 <!-- X Axis Period Label -->
@@ -329,7 +290,7 @@ const polylinePoints = computed(() => {
                 <text
                   :x="getXCoord(rIdx)"
                   :y="getYCoord(row.pct) - 8"
-                  font-size="8"
+                  font-size="8.5"
                   :fill="row.isOutlier ? '#b45309' : '#0f766e'"
                   text-anchor="middle"
                   font-weight="bold"
@@ -345,30 +306,30 @@ const polylinePoints = computed(() => {
           <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 pt-2">
             <div class="border border-red-200 rounded-lg p-3 bg-red-50/30 text-center">
               <label class="text-[10px] text-red-700 font-bold block uppercase">Baseline (B)</label>
-              <p class="text-lg font-mono font-bold text-red-700 mt-0.5">{{ computedBaseline }}%</p>
-              <span class="text-[10px] text-gray-500">From {{ validRows.length }} valid points</span>
+              <p class="text-lg font-mono font-bold text-red-700 mt-0.5">{{ baselineYield }}%</p>
+              <span class="text-[10px] text-gray-500">From {{ validInsightRows.length }} valid points</span>
             </div>
 
             <div class="border border-amber-200 rounded-lg p-3 bg-amber-50/30 text-center">
               <label class="text-[10px] text-amber-700 font-bold block uppercase">Entitlement (E)</label>
-              <p class="text-lg font-mono font-bold text-amber-700 mt-0.5">{{ computedEntitlement }}%</p>
+              <p class="text-lg font-mono font-bold text-amber-700 mt-0.5">{{ entitlementYield }}%</p>
               <span class="text-[10px] text-gray-500">Historical Maximum</span>
             </div>
 
             <div class="border border-purple-200 rounded-lg p-3 bg-purple-50/30 text-center">
               <label class="text-[10px] text-purple-700 font-bold block uppercase">Goal LSS (G)</label>
-              <p class="text-lg font-mono font-bold text-purple-700 mt-0.5">{{ computedGoalLss }}%</p>
+              <p class="text-lg font-mono font-bold text-purple-700 mt-0.5">{{ goalLssYield }}%</p>
               <span class="text-[10px] text-purple-600 font-medium">80% Gap Closure</span>
             </div>
 
             <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
               <label class="text-[10px] text-gray-600 font-bold block uppercase">Goal BU (Optional)</label>
-              <input v-model="begData.goalBu" type="text" placeholder="e.g. 86.50" class="w-full bg-white border border-gray-300 rounded px-2 py-1 text-xs font-mono mt-1 text-center font-semibold" />
+              <input v-model="begData.goalBu" type="text" placeholder="e.g. 86.50" class="w-full bg-white border border-gray-300 rounded px-2 py-1 text-xs font-mono mt-1 text-center font-semibold focus:border-[#008779] focus:outline-hidden" />
             </div>
 
             <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
               <label class="text-[10px] text-gray-600 font-bold block uppercase">Goal Challenge (Opt)</label>
-              <input v-model="begData.goalChallenge" type="text" placeholder="e.g. 89.00" class="w-full bg-white border border-gray-300 rounded px-2 py-1 text-xs font-mono mt-1 text-center font-semibold" />
+              <input v-model="begData.goalChallenge" type="text" placeholder="e.g. 89.00" class="w-full bg-white border border-gray-300 rounded px-2 py-1 text-xs font-mono mt-1 text-center font-semibold focus:border-[#008779] focus:outline-hidden" />
             </div>
           </div>
         </div>
@@ -381,7 +342,7 @@ const polylinePoints = computed(() => {
                 Project Charter (PCR) Documentation Editor
               </h2>
               <p class="text-xs text-gray-500 mt-0.5">
-                Structured fields component with rich formatting for PDF/Image 100% boundary export
+                Structured fields component with rich formatting for PDF/Image export
               </p>
             </div>
 
@@ -395,7 +356,7 @@ const polylinePoints = computed(() => {
           </div>
 
           <div v-if="isSaveConfirmed" class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs p-3 rounded-md font-semibold">
-            ✓ Project Charter modifications saved as new pending revision.
+            ✓ Project Charter modifications saved.
           </div>
 
           <div class="grid grid-cols-2 gap-4 text-xs">
@@ -404,7 +365,7 @@ const polylinePoints = computed(() => {
               <textarea
                 rows="3"
                 class="w-full bg-white border border-gray-200 rounded-md p-2.5 text-xs text-gray-900 focus:outline-hidden focus:border-[#008779]"
-                value="% Total Yield สินค้าไก่ทอดต่ำกว่าเกณฑ์มาตรฐาน (Baseline 83.75%) ส่งผลให้เกิดการสูญเสียต้นทุนวัตถุดิบและเกิด Giveaway เกินเป้าหมาย"
+                :value="`% Total Yield สินค้าไก่ทอดต่ำกว่าเกณฑ์มาตรฐาน (Baseline ${baselineYield}%) ส่งผลให้เกิดการสูญเสียต้นทุนวัตถุดิบและเกิด Giveaway เกินเป้าหมาย`"
               ></textarea>
             </div>
 
@@ -413,7 +374,7 @@ const polylinePoints = computed(() => {
               <textarea
                 rows="3"
                 class="w-full bg-white border border-gray-200 rounded-md p-2.5 text-xs text-gray-900 focus:outline-hidden focus:border-[#008779]"
-                :value="`เพิ่ม %Total Yield สินค้าไก่ทอด จาก Baseline ${computedBaseline}% สู่ Goal LSS ${computedGoalLss}% (Entitlement ${computedEntitlement}%) ภายในระยะเวลาดำเนินโครงการ`"
+                :value="`เพิ่ม %Total Yield สินค้าไก่ทอด จาก Baseline ${baselineYield}% สู่ Goal LSS ${goalLssYield}% (Entitlement ${entitlementYield}%) ภายในระยะเวลาดำเนินโครงการ`"
               ></textarea>
             </div>
           </div>
@@ -467,6 +428,53 @@ const polylinePoints = computed(() => {
                 <span>Goal: <strong class="text-purple-700">{{ v.goal }}</strong></span>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Edit Point Modal -->
+    <div
+      v-if="isQuickEditOpen"
+      class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-sm w-full overflow-hidden text-xs">
+        <div class="p-4 bg-[#008779] text-white flex items-center justify-between">
+          <h3 class="font-bold text-sm">Edit Data Point (Period {{ quickEditRow.period }})</h3>
+          <button type="button" class="text-white/80 hover:text-white cursor-pointer" @click="isQuickEditOpen = false">
+            <UIcon name="i-lucide-x" class="size-4" />
+          </button>
+        </div>
+        <div class="p-4 space-y-3">
+          <div>
+            <label class="font-bold text-gray-700 block mb-1">Period Label</label>
+            <input v-model="quickEditRow.period" type="text" class="w-full bg-gray-50 border border-gray-300 rounded px-2.5 py-1.5 font-mono text-xs focus:border-[#008779] focus:outline-hidden" />
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="font-bold text-gray-700 block mb-1">Actual (Num)</label>
+              <input v-model.number="quickEditRow.actual" type="number" class="w-full bg-gray-50 border border-gray-300 rounded px-2.5 py-1.5 font-mono text-xs focus:border-[#008779] focus:outline-hidden" />
+            </div>
+            <div>
+              <label class="font-bold text-gray-700 block mb-1">Total (Denom)</label>
+              <input v-model.number="quickEditRow.total" type="number" class="w-full bg-gray-50 border border-gray-300 rounded px-2.5 py-1.5 font-mono text-xs focus:border-[#008779] focus:outline-hidden" />
+            </div>
+          </div>
+          <div class="flex items-center gap-2 pt-1">
+            <input id="quickOutlier" v-model="quickEditRow.isOutlier" type="checkbox" class="accent-amber-600 size-4 cursor-pointer" />
+            <label for="quickOutlier" class="text-xs font-semibold text-gray-800 cursor-pointer">Flag as Outlier</label>
+          </div>
+          <div v-if="quickEditRow.isOutlier">
+            <label class="font-bold text-gray-700 block mb-1">Outlier Cause</label>
+            <input v-model="quickEditRow.outlierCause" type="text" placeholder="Reason for excluding from baseline" class="w-full bg-gray-50 border border-amber-300 rounded px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-hidden" />
+          </div>
+          <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
+            <button type="button" class="px-3 py-1.5 rounded text-gray-600 hover:bg-gray-100 cursor-pointer" @click="isQuickEditOpen = false">
+              Cancel
+            </button>
+            <button type="button" class="bg-[#008779] hover:bg-[#007366] text-white font-bold px-4 py-1.5 rounded shadow-xs cursor-pointer" @click="saveQuickEdit">
+              Save Point
+            </button>
           </div>
         </div>
       </div>

@@ -1,41 +1,22 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed } from 'vue'
+import { useProjectData, type InsightRow } from '~/composables/useProjectData'
 
 const route = useRoute()
 const projectId = (route.params.id as string) || 'example-total-yield'
 
-const STORAGE_KEY = `cpf_insight_data_${projectId}`
+const {
+  project,
+  validInsightRows,
+  baselineYield,
+  entitlementYield,
+  goalLssYield,
+  resetAllToDefaults
+} = useProjectData(projectId)
+
+const monthlyData = computed(() => project.value.insightRows)
 
 const periodFormat = ref<'sequence' | 'month' | 'week' | 'day' | 'custom'>('sequence')
-const pcrStatus = ref<'draft' | 'pending' | 'approved'>('approved')
-
-export interface InsightRow {
-  id: number
-  period: string
-  actual: number
-  total: number
-  pct: number
-  isOutlier: boolean
-  outlierCause: string
-  notes?: string
-}
-
-const defaultRows: InsightRow[] = [
-  { id: 1, period: '1', actual: 80, total: 100, pct: 80.0, isOutlier: true, outlierCause: 'เครื่องจักรสะดุดช่วงเปลี่ยน Shift', notes: 'Outlier with cause' },
-  { id: 2, period: '2', actual: 84, total: 100, pct: 84.0, isOutlier: false, outlierCause: '', notes: '' },
-  { id: 3, period: '3', actual: 84, total: 100, pct: 84.0, isOutlier: false, outlierCause: '', notes: '' },
-  { id: 4, period: '4', actual: 83, total: 100, pct: 83.0, isOutlier: false, outlierCause: '', notes: '' },
-  { id: 5, period: '5', actual: 82, total: 100, pct: 82.0, isOutlier: false, outlierCause: '', notes: '' },
-  { id: 6, period: '6', actual: 85, total: 100, pct: 85.0, isOutlier: false, outlierCause: '', notes: '' },
-  { id: 7, period: '7', actual: 88, total: 100, pct: 88.0, isOutlier: false, outlierCause: '', notes: '' },
-  { id: 8, period: '8', actual: 83, total: 100, pct: 83.0, isOutlier: false, outlierCause: '', notes: '' },
-  { id: 9, period: '9', actual: 85, total: 100, pct: 85.0, isOutlier: false, outlierCause: '', notes: '' },
-  { id: 10, period: '10', actual: 82, total: 100, pct: 82.0, isOutlier: false, outlierCause: '', notes: '' },
-  { id: 11, period: '11', actual: 84, total: 100, pct: 84.0, isOutlier: false, outlierCause: '', notes: '' },
-  { id: 12, period: '12', actual: 85, total: 100, pct: 85.0, isOutlier: false, outlierCause: '', notes: '' }
-]
-
-const monthlyData = ref<InsightRow[]>([...defaultRows])
 
 // Paste from Excel Modal
 const isPasteModalOpen = ref(false)
@@ -49,56 +30,8 @@ const showToast = (msg: string) => {
   setTimeout(() => { toastMsg.value = '' }, 3000)
 }
 
-onMounted(() => {
-  if (typeof window !== 'undefined') {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        monthlyData.value = JSON.parse(saved)
-      }
-    } catch (e) {}
-  }
-})
-
-// Auto-save to localStorage
-watch(monthlyData, (newVal) => {
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newVal))
-    } catch (e) {}
-  }
-}, { deep: true })
-
-// Real-time Valid Data & Metrics Computation (No minimum requirement)
-const validRows = computed(() => {
-  return monthlyData.value.filter(r => !r.isOutlier)
-})
-
 const outlierCount = computed(() => monthlyData.value.filter(d => d.isOutlier).length)
-const outlierWithCauseCount = computed(() => monthlyData.value.filter(d => d.isOutlier && d.outlierCause.trim() !== '').length)
-const outlierWithoutCauseCount = computed(() => monthlyData.value.filter(d => d.isOutlier && d.outlierCause.trim() === '').length)
-
-// Dynamic Live Statistical Metrics
-const computedBaseline = computed(() => {
-  if (validRows.value.length === 0) return 0
-  const sum = validRows.value.reduce((acc, r) => acc + (r.pct || 0), 0)
-  return Number((sum / validRows.value.length).toFixed(2))
-})
-
-const computedEntitlement = computed(() => {
-  if (validRows.value.length === 0) return 0
-  const maxVal = Math.max(...validRows.value.map(r => r.pct || 0))
-  return Number(maxVal.toFixed(2))
-})
-
-const computedGoalLss = computed(() => {
-  if (validRows.value.length === 0) return 0
-  const base = computedBaseline.value
-  const ent = computedEntitlement.value
-  // 80% Entitlement gap closure standard
-  const goal = base + (ent - base) * 0.8
-  return Number(goal.toFixed(2))
-})
+const outlierWithoutCauseCount = computed(() => monthlyData.value.filter(d => d.isOutlier && (!d.outlierCause || d.outlierCause.trim() === '')).length)
 
 const getPeriodLabel = (index: number) => {
   const n = index + 1
@@ -113,17 +46,17 @@ const getPeriodLabel = (index: number) => {
 }
 
 const applyPeriodFormatToAll = () => {
-  monthlyData.value.forEach((r, idx) => {
+  project.value.insightRows.forEach((r, idx) => {
     r.period = getPeriodLabel(idx)
   })
   showToast(`Updated period labels to ${periodFormat.value} format`)
 }
 
-// Row Operations (Unconstrained)
+// Row Operations
 const addSingleRow = () => {
-  const nextIdx = monthlyData.value.length
-  const nextId = (monthlyData.value[nextIdx - 1]?.id || 0) + 1
-  monthlyData.value.push({
+  const nextIdx = project.value.insightRows.length
+  const nextId = (project.value.insightRows[nextIdx - 1]?.id || 0) + 1
+  project.value.insightRows.push({
     id: nextId,
     period: getPeriodLabel(nextIdx),
     actual: 84,
@@ -137,11 +70,11 @@ const addSingleRow = () => {
 }
 
 const addMultipleRows = (count: number) => {
-  const startIdx = monthlyData.value.length
+  const startIdx = project.value.insightRows.length
   for (let i = 0; i < count; i++) {
     const idx = startIdx + i
-    const nextId = (monthlyData.value[monthlyData.value.length - 1]?.id || 0) + 1
-    monthlyData.value.push({
+    const nextId = (project.value.insightRows[project.value.insightRows.length - 1]?.id || 0) + 1
+    project.value.insightRows.push({
       id: nextId,
       period: getPeriodLabel(idx),
       actual: 84,
@@ -156,20 +89,20 @@ const addMultipleRows = (count: number) => {
 }
 
 const removeRow = (index: number) => {
-  monthlyData.value.splice(index, 1)
+  project.value.insightRows.splice(index, 1)
   showToast('Row removed')
 }
 
 const clearAllRows = () => {
   if (confirm('Clear all data rows? You can enter as few or as many rows as needed.')) {
-    monthlyData.value = []
+    project.value.insightRows = []
     showToast('All rows cleared')
   }
 }
 
-const resetToDefaults = () => {
-  monthlyData.value = JSON.parse(JSON.stringify(defaultRows))
-  showToast('Reset to default dataset')
+const handleReset = () => {
+  resetAllToDefaults()
+  showToast('Reset dataset to defaults')
 }
 
 // Paste Excel Parser
@@ -193,7 +126,6 @@ const handlePasteImport = () => {
       let total = num2
       let pct = num2 !== 0 ? Number(((num1 / num2) * 100).toFixed(2)) : num1
 
-      // If single percentage column provided
       if (cols.length === 2 && num1 <= 100 && num1 >= 0) {
         actual = num1
         total = 100
@@ -219,9 +151,9 @@ const handlePasteImport = () => {
   }
 
   if (pasteMode.value === 'replace') {
-    monthlyData.value = parsedRows
+    project.value.insightRows = parsedRows
   } else {
-    monthlyData.value.push(...parsedRows)
+    project.value.insightRows.push(...parsedRows)
   }
 
   isPasteModalOpen.value = false
@@ -262,7 +194,7 @@ const handlePasteImport = () => {
       </NuxtLink>
       <span>›</span>
       <NuxtLink :to="`/admin/projects/${projectId}`" class="hover:text-[#008779] truncate max-w-[200px]">
-        Example เพิ่ม %Total Yield สินค้าไก่ทอด
+        {{ project.name }}
       </NuxtLink>
       <span>›</span>
       <span class="text-gray-700 font-medium">Define</span>
@@ -298,7 +230,7 @@ const handlePasteImport = () => {
                 </span>
               </div>
               <p class="text-xs text-gray-500 mt-0.5">
-                Baseline and Outlier points will be locked during approval sign-off.
+                Baseline and Outlier points update live and dynamically feed all DMAIC phases.
               </p>
             </div>
           </div>
@@ -314,7 +246,7 @@ const handlePasteImport = () => {
           </div>
         </div>
 
-        <!-- Freedom of Row Count Guarantee Banner (Thai User Requirement) -->
+        <!-- Freedom of Row Count Guarantee Banner -->
         <div class="bg-gradient-to-r from-teal-50 via-emerald-50 to-teal-50/50 border border-teal-200/80 rounded-xl p-4 flex items-center justify-between text-xs shadow-2xs">
           <div class="flex items-center gap-3">
             <div class="size-8 rounded-lg bg-[#008779] text-white flex items-center justify-center font-bold shrink-0">
@@ -325,7 +257,7 @@ const handlePasteImport = () => {
                 รองรับจำนวนข้อมูลยืดหยุ่น (No Minimum Data Requirement)
               </span>
               <p class="text-teal-800 text-[11px] mt-0.5">
-                ระบบไม่จำกัดจำนวนข้อมูลขั้นต่ำ สามารถกรอกข้อมูลตามจริงได้ตั้งแต่ 1 แถวขึ้นไป ระบบจะคำนวณ Baseline, Entitlement และ Goal LSS ให้แบบอัตโนมัติ
+                แก้ไขข้อมูลที่นี่ กราฟ BEG Chart, Capability Analysis และหน้าอื่นๆ จะคำนวณและปรับเปลี่ยนให้อัตโนมัติทันที
               </p>
             </div>
           </div>
@@ -340,24 +272,24 @@ const handlePasteImport = () => {
           <div class="bg-white rounded-lg border border-gray-200 p-3.5 text-center shadow-xs space-y-1">
             <span class="text-[10px] text-gray-500 font-bold uppercase block">TOTAL ENTERED POINTS</span>
             <p class="text-xl font-bold font-mono text-gray-900">{{ monthlyData.length }} <span class="text-xs font-normal text-gray-500">Rows</span></p>
-            <span class="text-[10px] text-emerald-600 font-medium font-mono">{{ validRows.length }} Valid (Excl. Outliers)</span>
+            <span class="text-[10px] text-emerald-600 font-medium font-mono">{{ validInsightRows.length }} Valid (Excl. Outliers)</span>
           </div>
 
           <div class="bg-white rounded-lg border border-red-200 p-3.5 text-center shadow-xs space-y-1 bg-red-50/20">
             <span class="text-[10px] text-red-600 font-bold uppercase block">LIVE BASELINE (X̄)</span>
-            <p class="text-xl font-bold font-mono text-red-600">{{ computedBaseline }}%</p>
+            <p class="text-xl font-bold font-mono text-red-600">{{ baselineYield }}%</p>
             <span class="text-[10px] text-gray-500">Mean of Valid Rows</span>
           </div>
 
           <div class="bg-white rounded-lg border border-amber-200 p-3.5 text-center shadow-xs space-y-1 bg-amber-50/20">
             <span class="text-[10px] text-amber-600 font-bold uppercase block">LIVE ENTITLEMENT (MAX)</span>
-            <p class="text-xl font-bold font-mono text-amber-600">{{ computedEntitlement }}%</p>
+            <p class="text-xl font-bold font-mono text-amber-600">{{ entitlementYield }}%</p>
             <span class="text-[10px] text-gray-500">Best Historical Performance</span>
           </div>
 
           <div class="bg-white rounded-lg border border-purple-200 p-3.5 text-center shadow-xs space-y-1 bg-purple-50/20">
             <span class="text-[10px] text-purple-700 font-bold uppercase block">LIVE GOAL LSS (80% GAP)</span>
-            <p class="text-xl font-bold font-mono text-purple-700">{{ computedGoalLss }}%</p>
+            <p class="text-xl font-bold font-mono text-purple-700">{{ goalLssYield }}%</p>
             <span class="text-[10px] text-purple-600 font-medium">80% Entitlement Closure</span>
           </div>
         </div>
@@ -374,7 +306,7 @@ const handlePasteImport = () => {
                 </span>
               </h2>
               <p class="text-xs text-gray-500 mt-0.5">
-                No minimum row limits. Flag and document special causes for outlier data points.
+                แก้ไขตัวเลขหรือระบุ Outlier เพื่อปรับคำนวณ Baseline และ Goal ทันที
               </p>
             </div>
 
@@ -425,12 +357,12 @@ const handlePasteImport = () => {
                 <span>Paste from Excel</span>
               </button>
 
-              <!-- Reset / Clear Dropdown or Action -->
+              <!-- Reset / Clear Action -->
               <button
                 type="button"
-                class="text-gray-400 hover:text-gray-600 text-xs p-1.5 rounded"
+                class="text-gray-400 hover:text-gray-600 text-xs p-1.5 rounded cursor-pointer"
                 title="Reset to default dataset"
-                @click="resetToDefaults"
+                @click="handleReset"
               >
                 <UIcon name="i-lucide-rotate-ccw" class="size-3.5" />
               </button>
@@ -438,7 +370,7 @@ const handlePasteImport = () => {
               <button
                 v-if="monthlyData.length > 0"
                 type="button"
-                class="text-gray-400 hover:text-red-600 text-xs p-1.5 rounded"
+                class="text-gray-400 hover:text-red-600 text-xs p-1.5 rounded cursor-pointer"
                 title="Clear all rows"
                 @click="clearAllRows"
               >
@@ -510,7 +442,7 @@ const handlePasteImport = () => {
                   <!-- Row Index -->
                   <td class="py-2.5 px-3 font-mono text-gray-400 text-[11px]">{{ index + 1 }}</td>
 
-                  <!-- Period Label (Clean, no /25 hardcoded) -->
+                  <!-- Period Label -->
                   <td class="py-2.5 px-3 font-semibold text-gray-900 font-mono">
                     <input
                       v-model="row.period"
@@ -571,7 +503,7 @@ const handlePasteImport = () => {
                   <td class="py-2.5 px-3 text-center">
                     <button
                       type="button"
-                      class="text-gray-400 hover:text-red-600 p-1 transition-colors"
+                      class="text-gray-400 hover:text-red-600 p-1 transition-colors cursor-pointer"
                       title="Remove row"
                       @click="removeRow(index)"
                     >
@@ -599,7 +531,7 @@ const handlePasteImport = () => {
           </div>
           <button
             type="button"
-            class="text-white/80 hover:text-white"
+            class="text-white/80 hover:text-white cursor-pointer"
             @click="isPasteModalOpen = false"
           >
             <UIcon name="i-lucide-x" class="size-4" />
@@ -635,7 +567,7 @@ const handlePasteImport = () => {
           <div class="flex justify-end gap-2 pt-1">
             <button
               type="button"
-              class="px-4 py-2 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
+              class="px-4 py-2 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
               @click="isPasteModalOpen = false"
             >
               Cancel

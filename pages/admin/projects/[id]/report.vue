@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useApprovalWorkflow, type ApprovalWorkflow } from '~/composables/useApprovalWorkflow'
+import { useProjectData } from '~/composables/useProjectData'
 
 const route = useRoute()
 const projectId = (route.params.id as string) || 'example-total-yield'
 
 const { getProjectWorkflow } = useApprovalWorkflow()
+const { project, projectSummary, baselineYield, entitlementYield, goalLssYield } = useProjectData(projectId)
 
 const isWorkflowModalOpen = ref(false)
 
@@ -81,7 +83,7 @@ const printReport = () => {
               SIX SIGMA DMAIC
             </span>
             <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider font-mono">
-              DOC ID: {{ pfrWorkflow?.metricsSummary?.pfrDocId || 'PFR-CPF-2026-088' }}
+              DOC ID: {{ projectSummary.pfrDocId }}
             </span>
             <span class="text-[10px] font-bold bg-teal-50 text-[#008779] border border-teal-200 px-2 py-0.5 rounded font-mono">
               STATUS: {{ pfrWorkflow?.status || 'APPROVED' }}
@@ -91,14 +93,14 @@ const printReport = () => {
             PROJECT FINAL REPORT (PFR)
           </h1>
           <p class="text-sm font-bold text-[#008779]">
-            Example เพิ่ม %Total Yield สินค้าไก่ทอด
+            {{ project.name }}
           </p>
         </div>
 
         <div class="text-right text-[11px] text-gray-500 space-y-0.5 font-mono">
-          <p>Location: <strong>โรงงานแปรรูปโชคชัย</strong></p>
-          <p>Business: <strong>Food Business (Chicken)</strong></p>
-          <p>Date: <strong>Feb 24, 2026</strong></p>
+          <p>Location: <strong>{{ project.plant }}</strong></p>
+          <p>Leader: <strong>{{ project.leader }}</strong></p>
+          <p>Date: <strong>{{ project.lastUpdated }}</strong></p>
           <p>Belt Level: <strong>Black Belt (BB)</strong></p>
         </div>
       </div>
@@ -112,15 +114,15 @@ const printReport = () => {
         <div class="grid grid-cols-3 gap-4 text-center">
           <div class="border border-gray-200 rounded p-3 bg-gray-50/50">
             <span class="text-[10px] text-gray-500 font-bold block">BASELINE METRIC</span>
-            <span class="text-base font-bold text-red-600 font-mono">{{ pfrWorkflow?.metricsSummary?.baseline || '83.75%' }}</span>
+            <span class="text-base font-bold text-red-600 font-mono">{{ baselineYield }}%</span>
           </div>
           <div class="border border-gray-200 rounded p-3 bg-gray-50/50">
             <span class="text-[10px] text-gray-500 font-bold block">ENTITLEMENT MAX</span>
-            <span class="text-base font-bold text-amber-600 font-mono">{{ pfrWorkflow?.metricsSummary?.entitlement || '88.00%' }}</span>
+            <span class="text-base font-bold text-amber-600 font-mono">{{ entitlementYield }}%</span>
           </div>
           <div class="border border-gray-200 rounded p-3 bg-teal-50/50 border-teal-200">
             <span class="text-[10px] text-teal-800 font-bold block">TARGET GOAL (LSS)</span>
-            <span class="text-base font-bold text-[#008779] font-mono">{{ pfrWorkflow?.metricsSummary?.targetGoal || '87.15%' }}</span>
+            <span class="text-base font-bold text-[#008779] font-mono">{{ goalLssYield }}%</span>
           </div>
         </div>
       </div>
@@ -132,7 +134,7 @@ const printReport = () => {
           <span>Measure Phase: Process Mapping & FMEA Cause Prioritization</span>
         </h2>
         <p>
-          The end-to-end processing pipeline was mapped into 28 standardized nodes. A 6-category Ishikawa Fishbone analysis identified 41 potential causes. FMEA RPN ranking identified the top critical failure modes:
+          The end-to-end processing pipeline was mapped into 28 standardized nodes. A 6-category Ishikawa Fishbone analysis identified potential causes. FMEA RPN ranking prioritized root cause countermeasures:
         </p>
         <div class="border border-gray-200 rounded-lg overflow-hidden">
           <table class="w-full text-left text-xs">
@@ -185,7 +187,7 @@ const printReport = () => {
           </div>
           <div class="flex justify-between items-center">
             <span class="font-bold text-gray-900">DOE Optimum Parameters:</span>
-            <span class="font-mono text-[#008779] font-bold">Weight: 10g | Drops: 1 drop &rarr; %Giveaway = 2.20%</span>
+            <span class="font-mono text-[#008779] font-bold">Weight: 10g | Drops: 1 drop &rarr; %Giveaway = {{ projectSummary.finalGiveaway }}</span>
           </div>
         </div>
       </div>
@@ -199,13 +201,13 @@ const printReport = () => {
         <div class="grid grid-cols-2 gap-4">
           <div class="border border-emerald-200 bg-emerald-50/50 rounded-lg p-4 space-y-1">
             <span class="text-[10px] font-bold text-emerald-800 uppercase block">FINAL %YIELD GAIN</span>
-            <p class="text-xl font-bold text-emerald-800 font-mono">87.70% (+3.95%)</p>
-            <span class="text-[11px] text-emerald-700">Process Capability Index Cpk = 1.45 (Stable)</span>
+            <p class="text-xl font-bold text-emerald-800 font-mono">{{ projectSummary.finalYield }} ({{ projectSummary.yieldImprovement }})</p>
+            <span class="text-[11px] text-emerald-700">Process Capability Index Cpk = {{ projectSummary.cpk }}</span>
           </div>
 
           <div class="border border-teal-200 bg-teal-50/50 rounded-lg p-4 space-y-1">
             <span class="text-[10px] font-bold text-teal-800 uppercase block">VERIFIED FINANCIAL BENEFIT</span>
-            <p class="text-xl font-bold text-[#008779] font-mono">{{ pfrWorkflow?.metricsSummary?.financialSavings || '4,250,000 THB / Year' }}</p>
+            <p class="text-xl font-bold text-[#008779] font-mono">{{ projectSummary.verifiedAnnualSavings }}</p>
             <span class="text-[11px] text-teal-700">Audited by Finance & CI Committee</span>
           </div>
         </div>

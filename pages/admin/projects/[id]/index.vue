@@ -1,16 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useApprovalWorkflow, type ApprovalWorkflow } from '~/composables/useApprovalWorkflow'
+import { useProjectData } from '~/composables/useProjectData'
 
 const route = useRoute()
 const projectId = (route.params.id as string) || 'example-total-yield'
 
-const projectName = ref('Example เพิ่ม %Total Yield สินค้าไก่ทอด')
-const owner = ref('Romteera Tadderm')
-const location = ref('โรงงานแปรรูปโชคชัย (Nakhon Ratchasima)')
-const year = ref('2025')
-const lastUpdated = ref('Feb 24, 2026')
-
+const { project } = useProjectData(projectId)
 const { getProjectWorkflow } = useApprovalWorkflow()
 
 const pcrWorkflow = computed<ApprovalWorkflow | undefined>(() => getProjectWorkflow(projectId, 'PCR') || getProjectWorkflow('p2', 'PCR'))
@@ -40,7 +36,7 @@ const openWorkflowDrawer = (wf: ApprovalWorkflow) => {
       </NuxtLink>
       <span>›</span>
       <span class="text-gray-900 font-bold truncate max-w-[280px]">
-        {{ projectName }}
+        {{ project.name }}
       </span>
     </div>
 
@@ -63,14 +59,14 @@ const openWorkflowDrawer = (wf: ApprovalWorkflow) => {
                   PROJECT OVERVIEW
                 </span>
                 <h1 class="text-xl font-bold text-gray-900">
-                  {{ projectName }}
+                  {{ project.name }}
                 </h1>
                 <div class="flex items-center gap-2 mt-2">
                   <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    Status: Active
+                    Status: {{ project.status }}
                   </span>
                   <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-[#008779] border border-teal-200">
-                    Phase: Improve
+                    Phase: {{ project.phase }}
                   </span>
                 </div>
               </div>
@@ -95,7 +91,7 @@ const openWorkflowDrawer = (wf: ApprovalWorkflow) => {
                 </div>
                 <div class="min-w-0">
                   <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">OWNER</span>
-                  <p class="text-xs font-bold text-gray-900 truncate">{{ owner }}</p>
+                  <p class="text-xs font-bold text-gray-900 truncate">{{ project.leader }}</p>
                 </div>
               </div>
 
@@ -106,7 +102,7 @@ const openWorkflowDrawer = (wf: ApprovalWorkflow) => {
                 </div>
                 <div class="min-w-0">
                   <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">LOCATION</span>
-                  <p class="text-xs font-bold text-gray-900 truncate">{{ location }}</p>
+                  <p class="text-xs font-bold text-gray-900 truncate">{{ project.plant }}</p>
                 </div>
               </div>
 
@@ -117,7 +113,7 @@ const openWorkflowDrawer = (wf: ApprovalWorkflow) => {
                 </div>
                 <div class="min-w-0">
                   <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">YEAR</span>
-                  <p class="text-xs font-bold text-gray-900">{{ year }}</p>
+                  <p class="text-xs font-bold text-gray-900">{{ project.year }}</p>
                 </div>
               </div>
 
@@ -128,7 +124,7 @@ const openWorkflowDrawer = (wf: ApprovalWorkflow) => {
                 </div>
                 <div class="min-w-0">
                   <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">LAST UPDATED</span>
-                  <p class="text-xs font-bold text-gray-900">{{ lastUpdated }}</p>
+                  <p class="text-xs font-bold text-gray-900">{{ project.lastUpdated }}</p>
                 </div>
               </div>
             </div>
@@ -177,7 +173,7 @@ const openWorkflowDrawer = (wf: ApprovalWorkflow) => {
                 <p class="text-2xl font-bold text-[#008779]">100%</p>
               </div>
               <span class="px-2.5 py-0.5 rounded text-xs font-semibold bg-teal-50 text-[#008779] border border-teal-200">
-                Improve
+                {{ project.phase }}
               </span>
             </div>
 
@@ -188,31 +184,46 @@ const openWorkflowDrawer = (wf: ApprovalWorkflow) => {
 
             <!-- 4 Phase Step Counters -->
             <div class="grid grid-cols-2 gap-3 text-center">
-              <div class="bg-gray-50/70 border border-gray-100 rounded-lg p-2.5">
+              <NuxtLink
+                :to="`/admin/projects/${projectId}/define/insight-data`"
+                class="bg-gray-50/70 hover:bg-teal-50/50 border border-gray-100 rounded-lg p-2.5 transition-colors cursor-pointer"
+              >
                 <span class="text-[11px] text-gray-500 font-medium block">Define</span>
                 <span class="text-xs font-bold text-gray-900 font-mono">2/2</span>
-              </div>
-              <div class="bg-gray-50/70 border border-gray-100 rounded-lg p-2.5">
+              </NuxtLink>
+
+              <NuxtLink
+                :to="`/admin/projects/${projectId}/measure/overview`"
+                class="bg-gray-50/70 hover:bg-teal-50/50 border border-gray-100 rounded-lg p-2.5 transition-colors cursor-pointer"
+              >
                 <span class="text-[11px] text-gray-500 font-medium block">Measure</span>
-                <span class="text-xs font-bold text-gray-900 font-mono">5/5</span>
-              </div>
-              <div class="bg-gray-50/70 border border-gray-100 rounded-lg p-2.5">
+                <span class="text-xs font-bold text-gray-900 font-mono">6/6</span>
+              </NuxtLink>
+
+              <NuxtLink
+                :to="`/admin/projects/${projectId}/analyze/hypothesis`"
+                class="bg-gray-50/70 hover:bg-teal-50/50 border border-gray-100 rounded-lg p-2.5 transition-colors cursor-pointer"
+              >
                 <span class="text-[11px] text-gray-500 font-medium block">Analyze</span>
-                <span class="text-xs font-bold text-gray-900 font-mono">4/4</span>
-              </div>
-              <div class="bg-gray-50/70 border border-gray-100 rounded-lg p-2.5">
+                <span class="text-xs font-bold text-gray-900 font-mono">5/5</span>
+              </NuxtLink>
+
+              <NuxtLink
+                :to="`/admin/projects/${projectId}/improve/simulation`"
+                class="bg-gray-50/70 hover:bg-teal-50/50 border border-gray-100 rounded-lg p-2.5 transition-colors cursor-pointer"
+              >
                 <span class="text-[11px] text-gray-500 font-medium block">Improve</span>
-                <span class="text-xs font-bold text-gray-900 font-mono">2/2</span>
-              </div>
+                <span class="text-xs font-bold text-gray-900 font-mono">4/4</span>
+              </NuxtLink>
             </div>
 
             <!-- Bottom All Steps Complete Button -->
             <NuxtLink
-              :to="`/admin/projects/${projectId}/improve/summary`"
+              :to="`/admin/projects/${projectId}/control/finish`"
               class="w-full bg-[#008779] hover:bg-[#007366] text-white text-xs font-semibold py-2.5 px-4 rounded-md flex items-center justify-center gap-1.5 shadow-xs transition-colors"
             >
-              <UIcon name="i-lucide-play" class="size-3.5 fill-white" />
-              <span>All steps complete</span>
+              <UIcon name="i-lucide-award" class="size-4 fill-white" />
+              <span>View Project Finish & PFR</span>
             </NuxtLink>
           </div>
         </div>
@@ -230,7 +241,7 @@ const openWorkflowDrawer = (wf: ApprovalWorkflow) => {
     <ProjectMemberVerifierModal
       v-if="isVerifierModalOpen"
       :project-id="projectId"
-      :project-name="projectName"
+      :project-name="project.name"
       @close="isVerifierModalOpen = false"
     />
   </div>
