@@ -16,135 +16,157 @@ const isActive = (path: string) => {
 </script>
 
 <template>
-  <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
-    <div class="max-w-[1600px] mx-auto px-6 h-14 flex items-center justify-between">
+  <header class="bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 select-none shadow-2xs">
+    <div class="max-w-[1800px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
       <!-- Left: Logo & Nav Items -->
-      <div class="flex items-center gap-8">
+      <div class="flex items-center gap-6 lg:gap-8">
         <!-- Logo -->
-        <NuxtLink to="/admin" class="flex items-center gap-1.5 select-none group">
-          <!-- Magic Lamp Logo Representation -->
-          <div class="flex items-center">
-            <span class="text-[#008779] font-black text-lg tracking-tight">IN</span>
-            <!-- Lamp Icon -->
-            <svg class="size-6 text-[#008779] inline-block mx-0.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 3C12.5 3 13 3.5 13 4C13 4.5 12.8 5 12.5 5.5L12 6C11 7.5 10 9 10 11H14C14.8 11 15.5 11.4 16 12L19 15C19.5 15.5 20 16 21 16H22V17C22 18.1 21.1 19 20 19H7C5.9 19 5 18.1 5 17V16H6C7 16 7.5 15.5 8 15L10 13V11C10 9 9 7.5 8 6L7.5 5.5C7.2 5 7 4.5 7 4C7 3.5 7.5 3 8 3C9 3 9.5 4 10 5L10.5 5.8C10.9 5.3 11.4 5 12 5C12.3 5 12.7 5.2 13 5.5L12 3Z" fill="url(#lampGrad)" />
-              <path d="M8 19V20C8 20.6 8.4 21 9 21H15C15.6 21 16 20.6 16 20V19H8Z" fill="#008779" />
+        <NuxtLink to="/admin" class="flex items-center select-none group cursor-pointer py-1">
+          <!-- IN in Brand Teal -->
+          <span class="text-[#008779] font-black text-xl tracking-tight leading-none">IN</span>
+
+          <!-- Magic Lamp & Smoke Emblem -->
+          <div class="relative mx-1 -mt-0.5 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <svg class="h-6 w-7" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Magic Lamp Body -->
+              <path d="M4 17.2C4 17.2 5.5 18.8 11 18.8C16.5 18.8 21.5 17.8 23.5 15.3C24.8 13.6 23.5 12 20.8 12C18.5 12 16.5 13.3 12 13.3C8 13.3 5.8 11.8 4.5 13.8C3.8 15.2 4 17.2 4 17.2Z" fill="url(#lampGrad)" />
+              <!-- Lamp Stand Base -->
+              <path d="M8 18.8C8 18.8 9.5 20.2 13.5 20.2C17.5 20.2 19 18.8 19 18.8H8Z" fill="#008779" />
+              <!-- Lamp Handle -->
+              <path d="M21 12.3C23.2 12.3 25.5 10.8 25.5 9.3C25.5 7.8 23.5 8.3 21.8 9.3C20.5 10 20.8 11.6 21 12.3Z" fill="#2563EB" />
+              <!-- Magic Smoke Rising from Spout -->
+              <path d="M6 13.8C5 11.8 5.5 9.6 7.5 7.8C9 6.3 8 4.6 9.2 3C9.8 2.3 10.8 2 11.5 2.6C12.2 3.2 11.2 4.8 12.5 6C13.5 7 12.8 9.3 10 11" stroke="url(#smokeGrad)" stroke-width="1.6" stroke-linecap="round" />
+              <!-- Sparkles / Magic Stars -->
+              <circle cx="12.5" cy="2" r="1.1" fill="#008779" />
+              <circle cx="15.2" cy="4.5" r="0.8" fill="#3B82F6" />
+              <path d="M7 5.8L7.6 7L8.8 7.6L7.6 8.2L7 9.4L6.4 8.2L5.2 7.6L6.4 7L7 5.8Z" fill="#00A896" />
               <defs>
-                <linearGradient id="lampGrad" x1="5" y1="3" x2="22" y2="19" gradientUnits="userSpaceOnUse">
+                <linearGradient id="lampGrad" x1="4" y1="12" x2="24" y2="19" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#008779" />
+                  <stop offset="0.5" stop-color="#0284C7" />
+                  <stop offset="1" stop-color="#1E40AF" />
+                </linearGradient>
+                <linearGradient id="smokeGrad" x1="6" y1="2" x2="12" y2="14" gradientUnits="userSpaceOnUse">
                   <stop stop-color="#00A896" />
-                  <stop offset="0.5" stop-color="#008779" />
-                  <stop offset="1" stop-color="#6366F1" />
+                  <stop offset="0.6" stop-color="#0284C7" />
+                  <stop offset="1" stop-color="#3B82F6" />
                 </linearGradient>
               </defs>
             </svg>
-            <span class="text-gray-800 font-black text-lg tracking-tight">IGHTGENIE</span>
           </div>
+
+          <!-- IGHTGENIE in Navy -->
+          <span class="text-[#071E3D] font-black text-xl tracking-tight leading-none">IGHTGENIE</span>
         </NuxtLink>
 
-        <!-- Navigation Tabs -->
-        <nav class="flex items-center gap-1 h-14">
+        <!-- Navigation Tabs (Pill Style like Gemini) -->
+        <nav class="flex items-center gap-1">
           <!-- Dashboard Tab -->
           <NuxtLink
             to="/admin"
-            class="flex items-center gap-2 px-3 h-14 text-sm font-medium transition-colors relative"
-            :class="isActive('/admin') ? 'text-[#008779]' : 'text-gray-600 hover:text-gray-900'"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+            :class="isActive('/admin')
+              ? 'bg-[#E3E8EF] text-[#008779] shadow-2xs font-bold'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
           >
-            <UIcon name="i-lucide-home" class="size-4" />
+            <UIcon name="i-lucide-layout-dashboard" class="size-3.5" />
             <span>Dashboard</span>
-            <div
-              v-if="isActive('/admin')"
-              class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#008779]"
-            />
           </NuxtLink>
 
           <!-- Projects Tab -->
           <NuxtLink
             to="/admin/projects"
-            class="flex items-center gap-2 px-3 h-14 text-sm font-medium transition-colors relative"
-            :class="isActive('/admin/projects') ? 'text-[#008779]' : 'text-gray-600 hover:text-gray-900'"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+            :class="isActive('/admin/projects')
+              ? 'bg-[#E3E8EF] text-[#008779] shadow-2xs font-bold'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
           >
-            <UIcon name="i-lucide-folder" class="size-4" />
+            <UIcon name="i-lucide-folder-kanban" class="size-3.5" />
             <span>Projects</span>
-            <div
-              v-if="isActive('/admin/projects')"
-              class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#008779]"
-            />
           </NuxtLink>
 
           <!-- Approvals Tab Direct Link -->
           <NuxtLink
             to="/admin/approvals"
-            class="flex items-center gap-1.5 px-3 h-14 text-sm font-medium transition-colors relative"
-            :class="isActive('/admin/approvals') ? 'text-[#008779]' : 'text-gray-600 hover:text-gray-900'"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all relative"
+            :class="isActive('/admin/approvals')
+              ? 'bg-[#E3E8EF] text-[#008779] shadow-2xs font-bold'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
           >
-            <UIcon name="i-lucide-clipboard-check" class="size-4" />
+            <UIcon name="i-lucide-clipboard-check" class="size-3.5" />
             <span>Approvals</span>
             <span
               v-if="pendingRequestsCount > 0"
-              class="size-2 rounded-full bg-amber-500 animate-pulse"
+              class="size-1.5 rounded-full bg-amber-500 animate-pulse"
               title="Pending approvals / requests"
             ></span>
-            <div
-              v-if="isActive('/admin/approvals')"
-              class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#008779]"
-            />
           </NuxtLink>
 
           <!-- KM Repository Tab -->
           <NuxtLink
             to="/admin/km-repository"
-            class="flex items-center gap-2 px-3 h-14 text-sm font-medium transition-colors relative"
-            :class="isActive('/admin/km-repository') ? 'text-[#008779]' : 'text-gray-600 hover:text-gray-900'"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+            :class="isActive('/admin/km-repository')
+              ? 'bg-[#E3E8EF] text-[#008779] shadow-2xs font-bold'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
           >
-            <UIcon name="i-lucide-book-open" class="size-4" />
+            <UIcon name="i-lucide-book-open" class="size-3.5" />
             <span>GenieWisdom (KM)</span>
-            <div
-              v-if="isActive('/admin/km-repository')"
-              class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#008779]"
-            />
           </NuxtLink>
 
-          <!-- Admin Tab with dropdown -->
+          <!-- Chatbot Tab -->
+          <NuxtLink
+            to="/admin/chatbot"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+            :class="isActive('/admin/chatbot')
+              ? 'bg-gradient-to-r from-teal-50 to-indigo-50 text-[#008779] border border-teal-200/80 shadow-2xs font-bold'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
+          >
+            <UIcon name="i-lucide-bot" class="size-3.5 text-[#008779]" />
+            <span class="bg-gradient-to-r from-[#008779] to-indigo-600 bg-clip-text text-transparent font-bold">Chatbot AI</span>
+          </NuxtLink>
+
+          <!-- Admin Dropdown Tab -->
           <div class="relative">
             <button
               type="button"
-              class="flex items-center gap-2 px-3 h-14 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors focus:outline-hidden cursor-pointer"
+              class="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all cursor-pointer"
               @click="isAdminDropdownOpen = !isAdminDropdownOpen"
             >
-              <UIcon name="i-lucide-settings" class="size-4" />
+              <UIcon name="i-lucide-settings" class="size-3.5" />
               <span>Admin</span>
-              <UIcon name="i-lucide-chevron-down" class="size-3.5 text-gray-400" />
+              <UIcon name="i-lucide-chevron-down" class="size-3 text-slate-400" />
             </button>
 
             <!-- Dropdown Menu -->
             <div
               v-if="isAdminDropdownOpen"
-              class="absolute top-full left-0 w-52 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50 text-sm animate-in fade-in zoom-in-95 duration-100"
+              class="absolute top-full left-0 mt-1 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-50 text-xs animate-in fade-in zoom-in-95 duration-100"
               @click="isAdminDropdownOpen = false"
             >
-              <NuxtLink to="/admin/users" class="flex items-center justify-between px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
+              <NuxtLink to="/admin/users" class="flex items-center justify-between px-3.5 py-2 text-slate-700 hover:bg-slate-50 hover:text-[#008779] rounded-lg mx-1">
                 <div class="flex items-center gap-2">
-                  <UIcon name="i-lucide-users" class="size-4" />
+                  <UIcon name="i-lucide-users" class="size-4 text-slate-500" />
                   <span>User Management</span>
                 </div>
                 <span v-if="pendingRequestsCount > 0" class="text-[10px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded-full">
                   {{ pendingRequestsCount }}
                 </span>
               </NuxtLink>
-              <NuxtLink to="/admin/approvals" class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
-                <UIcon name="i-lucide-check-square" class="size-4" />
+              <NuxtLink to="/admin/approvals" class="flex items-center gap-2 px-3.5 py-2 text-slate-700 hover:bg-slate-50 hover:text-[#008779] rounded-lg mx-1">
+                <UIcon name="i-lucide-check-square" class="size-4 text-slate-500" />
                 <span>Approval Center (PCR/PFR)</span>
               </NuxtLink>
-              <NuxtLink to="/admin/e-learning" class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
-                <UIcon name="i-lucide-graduation-cap" class="size-4" />
+              <NuxtLink to="/admin/e-learning" class="flex items-center gap-2 px-3.5 py-2 text-slate-700 hover:bg-slate-50 hover:text-[#008779] rounded-lg mx-1">
+                <UIcon name="i-lucide-graduation-cap" class="size-4 text-slate-500" />
                 <span>E-Learning</span>
               </NuxtLink>
-              <NuxtLink to="/admin/master-data" class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
-                <UIcon name="i-lucide-database" class="size-4" />
+              <NuxtLink to="/admin/master-data" class="flex items-center gap-2 px-3.5 py-2 text-slate-700 hover:bg-slate-50 hover:text-[#008779] rounded-lg mx-1">
+                <UIcon name="i-lucide-database" class="size-4 text-slate-500" />
                 <span>Master Data</span>
               </NuxtLink>
-              <NuxtLink to="/admin/data-migration" class="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-[#008779]">
-                <UIcon name="i-lucide-file-spreadsheet" class="size-4" />
+              <NuxtLink to="/admin/data-migration" class="flex items-center gap-2 px-3.5 py-2 text-slate-700 hover:bg-slate-50 hover:text-[#008779] rounded-lg mx-1">
+                <UIcon name="i-lucide-file-spreadsheet" class="size-4 text-slate-500" />
                 <span>Data Migration</span>
               </NuxtLink>
             </div>
@@ -152,43 +174,32 @@ const isActive = (path: string) => {
         </nav>
       </div>
 
-      <!-- Right: Actions & User Info -->
-      <div class="flex items-center gap-4">
-        <!-- Font Size Tool -->
-        <button class="text-xs font-semibold text-gray-500 hover:text-gray-800 px-1.5 py-0.5 rounded border border-gray-300 hover:border-gray-400 transition-colors">
-          Aa
-        </button>
-
-        <!-- Language Switcher Flag -->
-        <div class="flex items-center cursor-pointer hover:opacity-80">
-          <span class="text-base" title="English">🇺🇸</span>
-        </div>
-
-        <!-- Notification Bell with Red Badge -->
-        <NuxtLink to="/admin/approvals" class="relative p-1.5 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100 transition-colors" title="Pending Approvals & Notifications">
-          <UIcon name="i-lucide-bell" class="size-5" />
+      <!-- Right: Actions & User Info (Gemini Capsule) -->
+      <div class="flex items-center gap-3">
+        <!-- Notification Bell with Badge -->
+        <NuxtLink
+          to="/admin/approvals"
+          class="relative size-8 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+          title="Pending Approvals & Notifications"
+        >
+          <UIcon name="i-lucide-bell" class="size-4" />
           <span
             v-if="pendingRequestsCount > 0"
-            class="absolute top-0.5 right-0.5 size-4 bg-amber-500 text-gray-950 font-bold text-[10px] rounded-full flex items-center justify-center ring-2 ring-white"
-          >
-            {{ pendingRequestsCount }}
-          </span>
-          <span
-            v-else
-            class="absolute top-0.5 right-0.5 size-4 bg-teal-600 text-white font-bold text-[10px] rounded-full flex items-center justify-center ring-2 ring-white"
-          >
-            1
-          </span>
+            class="absolute top-1 right-1 size-2 bg-amber-500 rounded-full ring-2 ring-white"
+          ></span>
         </NuxtLink>
 
-        <!-- User Greeting -->
-        <div class="hidden sm:block text-sm text-gray-700">
-          Welcome, <span class="font-medium text-gray-900">Romteera Tadderm</span>
-        </div>
-
-        <!-- User Avatar Circle Initials -->
-        <div class="size-8 rounded-full bg-[#008779] text-white font-bold text-xs flex items-center justify-center shadow-xs cursor-pointer hover:ring-2 hover:ring-[#008779]/30 transition-all">
-          RT
+        <!-- User Profile Pill -->
+        <div class="flex items-center gap-2 bg-slate-100/90 hover:bg-slate-200/70 border border-slate-200/80 rounded-full pl-1 pr-3 py-1 transition-colors cursor-pointer shadow-2xs">
+          <div class="size-6 rounded-full bg-[#008779] text-white font-bold text-[10px] flex items-center justify-center shadow-2xs">
+            RT
+          </div>
+          <div class="hidden sm:flex items-center gap-1.5 text-xs">
+            <span class="font-semibold text-slate-800 text-[11px]">Romteera T.</span>
+            <span class="text-[9px] font-bold bg-purple-100 text-purple-800 px-1.5 py-0.2 rounded-full border border-purple-200">
+              Black Belt
+            </span>
+          </div>
         </div>
       </div>
     </div>

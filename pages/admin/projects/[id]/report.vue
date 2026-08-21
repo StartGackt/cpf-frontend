@@ -27,18 +27,18 @@ const printReport = () => {
     <!-- Action Bar (Hidden during Print) -->
     <div class="flex items-center justify-between print:hidden">
       <div>
-        <div class="flex items-center gap-2 text-xs text-gray-500 pb-1">
+        <div class="flex items-center gap-2 text-xs text-slate-500 pb-1">
           <NuxtLink to="/admin" class="hover:text-[#008779]">Home</NuxtLink>
           <span>›</span>
           <NuxtLink to="/admin/projects" class="hover:text-[#008779]">Projects</NuxtLink>
           <span>›</span>
           <NuxtLink :to="`/admin/projects/${projectId}`" class="hover:text-[#008779]">Overview</NuxtLink>
           <span>›</span>
-          <span class="text-gray-900 font-bold">Project Final Report (PFR)</span>
+          <span class="text-slate-900 font-bold">Project Final Report (PFR)</span>
         </div>
-        <h1 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 class="text-xl font-bold text-slate-900 flex items-center gap-2">
           <span>Project Final Report (PFR) Documentation</span>
-          <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold px-2 py-0.5 rounded-full">
+          <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold px-2.5 py-0.5 rounded-full">
             E-Sign Certified
           </span>
         </h1>
@@ -47,7 +47,7 @@ const printReport = () => {
       <div class="flex items-center gap-2">
         <button
           type="button"
-          class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-3 py-2 rounded-md flex items-center gap-1.5 transition-colors cursor-pointer"
+          class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
           @click="isWorkflowModalOpen = true"
         >
           <UIcon name="i-lucide-file-signature" class="size-3.5 text-[#008779]" />
@@ -56,15 +56,15 @@ const printReport = () => {
 
         <NuxtLink
           :to="`/admin/projects/${projectId}/presentation`"
-          class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-3 py-2 rounded-md flex items-center gap-1.5 transition-colors"
+          class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors shadow-2xs"
         >
-          <UIcon name="i-lucide-presentation" class="size-3.5" />
+          <UIcon name="i-lucide-presentation" class="size-3.5 text-purple-600" />
           <span>Presentation Mode</span>
         </NuxtLink>
 
         <button
           type="button"
-          class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-semibold px-4 py-2 rounded-md flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+          class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
           @click="printReport"
         >
           <UIcon name="i-lucide-printer" class="size-3.5" />
@@ -74,7 +74,7 @@ const printReport = () => {
     </div>
 
     <!-- PFR Printable Document Sheet (A4 Styled Container) -->
-    <div class="bg-white rounded-xl shadow-lg border border-gray-200 max-w-4xl mx-auto p-10 space-y-8 print:p-0 print:shadow-none print:border-none text-xs text-gray-800 leading-relaxed font-sans">
+    <div class="bg-white rounded-3xl shadow-xl border border-slate-200 max-w-4xl mx-auto p-10 space-y-8 print:p-0 print:shadow-none print:border-none text-xs text-slate-800 leading-relaxed font-sans">
       <!-- 1. Report Header -->
       <div class="border-b-2 border-[#008779] pb-6 flex items-start justify-between">
         <div class="space-y-1">

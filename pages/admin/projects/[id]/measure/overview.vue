@@ -54,9 +54,9 @@ const measureActivities = [
 </script>
 
 <template>
-  <div class="space-y-4 -mt-2">
+  <div class="space-y-6 animate-in fade-in duration-200 select-none">
     <!-- Breadcrumbs -->
-    <div class="flex items-center gap-2 text-xs text-gray-500 pb-2">
+    <div class="flex items-center gap-2 text-xs text-slate-500 pb-1">
       <NuxtLink to="/admin" class="hover:text-[#008779] flex items-center gap-1">
         <UIcon name="i-lucide-home" class="size-3.5" />
         <span>Home</span>
@@ -70,13 +70,13 @@ const measureActivities = [
         {{ project.name }}
       </NuxtLink>
       <span>›</span>
-      <span class="text-gray-700 font-medium">Measure</span>
+      <span class="text-slate-700 font-medium">Measure</span>
       <span>›</span>
-      <span class="text-gray-900 font-bold">Overview</span>
+      <span class="text-slate-900 font-bold">Overview</span>
     </div>
 
     <!-- Workspace Layout with DMAIC Sidebar -->
-    <div class="flex gap-6 items-start">
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
       <DmaicSidebar
         :project-id="projectId"
         active-phase="Measure"
@@ -84,21 +84,18 @@ const measureActivities = [
       />
 
       <!-- Main Content Area -->
-      <div class="flex-1 space-y-6 min-w-0">
+      <div class="flex-1 space-y-6 min-w-0 w-full">
         <!-- Header Banner -->
-        <div class="bg-white rounded-lg border border-gray-200/80 shadow-xs p-4 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <UIcon name="i-lucide-chevron-right" class="size-4 text-gray-400" />
-            <div>
-              <h2 class="text-sm font-bold text-gray-900">
-                Measure Phase Progress
-              </h2>
-              <p class="text-xs text-gray-500 mt-0.5">
-                Complete the overview and all 6 activities to understand and quantify baseline process performance
-              </p>
-            </div>
+        <div class="bg-gradient-to-r from-teal-950 via-[#008779] to-indigo-950 rounded-3xl text-white p-6 shadow-sm flex items-center justify-between relative overflow-hidden">
+          <div class="space-y-1 relative z-10">
+            <h2 class="text-xl font-bold tracking-tight">
+              Measure Phase Suite & Tool Registry
+            </h2>
+            <p class="text-xs text-teal-200">
+              Quantify baseline process variability, validate measurement systems, and prioritize root causes
+            </p>
           </div>
-          <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+          <span class="bg-white/10 backdrop-blur-md border border-white/20 text-teal-100 text-xs font-bold px-3 py-1.5 rounded-full relative z-10 shadow-2xs">
             Completed (6/6 Activities)
           </span>
         </div>
@@ -108,35 +105,35 @@ const measureActivities = [
           <div
             v-for="act in measureActivities"
             :key="act.title"
-            class="bg-white rounded-lg border border-gray-200 shadow-xs p-5 space-y-3 hover:border-teal-300 transition-all flex flex-col justify-between"
+            class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-3 hover:border-[#008779]/40 hover:shadow-xs transition-all flex flex-col justify-between group"
           >
-            <div class="space-y-2">
+            <div class="space-y-2.5">
               <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                  <div class="size-9 rounded-lg bg-teal-50 text-[#008779] flex items-center justify-center">
+                <div class="flex items-center gap-3">
+                  <div class="size-10 rounded-2xl bg-teal-50 text-[#008779] border border-teal-200/60 flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
                     <UIcon :name="act.icon" class="size-5" />
                   </div>
-                  <h3 class="text-sm font-bold text-gray-900">
+                  <h3 class="text-sm font-bold text-slate-900 group-hover:text-[#008779] transition-colors">
                     {{ act.title }}
                   </h3>
                 </div>
-                <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-                  <UIcon name="i-lucide-check-circle" class="size-3 text-emerald-500" />
+                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full shadow-2xs">
+                  <UIcon name="i-lucide-check-circle-2" class="size-3 text-emerald-500" />
                   <span>{{ act.status }}</span>
                 </span>
               </div>
 
-              <p class="text-xs text-gray-600 leading-relaxed">
+              <p class="text-xs text-slate-600 leading-relaxed">
                 {{ act.desc }}
               </p>
             </div>
 
-            <div class="pt-2 flex justify-end">
+            <div class="pt-3 border-t border-slate-100 flex justify-end">
               <NuxtLink
                 :to="act.link"
-                class="inline-flex items-center gap-1 text-xs font-bold text-[#008779] hover:underline"
+                class="inline-flex items-center gap-1.5 text-xs font-bold text-[#008779] hover:underline"
               >
-                <span>Open {{ act.title }}</span>
+                <span>Launch Workspace</span>
                 <UIcon name="i-lucide-arrow-right" class="size-3.5" />
               </NuxtLink>
             </div>

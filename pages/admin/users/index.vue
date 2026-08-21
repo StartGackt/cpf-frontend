@@ -119,52 +119,57 @@ const toggleStatus = (user: any) => {
   user.status = user.status === 'Active' ? 'Inactive' : 'Active'
   showToast(`User status set to ${user.status}`)
 }
-
-const handleQuickApproveProvisioning = (reqId: string) => {
-  const res = approveProvisioningRequest(reqId)
-  if (res.success) {
-    showToast(res.message)
-  }
-}
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 animate-in fade-in duration-200 select-none">
     <!-- Toast Notification -->
     <div
       v-if="toastMsg"
-      class="fixed top-5 right-5 z-50 bg-gray-900 border border-teal-500 text-white px-4 py-2.5 rounded-lg shadow-2xl flex items-center gap-2 text-xs font-semibold animate-in fade-in"
+      class="fixed top-5 right-5 z-50 bg-slate-900 border border-teal-500 text-white px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 text-xs font-semibold animate-in fade-in"
     >
       <UIcon name="i-lucide-check-circle-2" class="size-4 text-teal-400" />
       <span>{{ toastMsg }}</span>
     </div>
 
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900 tracking-tight">
-          User Management
-        </h1>
-        <p class="text-xs text-gray-500 mt-1">
-          Manage system users, define Role-Based Access Control (RBAC), and approve account provisioning requests
+    <!-- ========================================================= -->
+    <!-- HERO HEADER: User Management & RBAC Directory -->
+    <!-- ========================================================= -->
+    <div class="bg-gradient-to-r from-teal-950 via-[#008779] to-indigo-950 rounded-3xl text-white p-6 sm:p-8 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative overflow-hidden">
+      <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-teal-400/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="space-y-2 relative z-10 max-w-2xl">
+        <div class="flex items-center gap-2.5">
+          <div class="size-10 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-xs">
+            <UIcon name="i-lucide-users" class="size-5 text-amber-300" />
+          </div>
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">
+              User Management & Directory
+            </h1>
+            <span class="text-xs text-teal-200">Role-Based Access Control (RBAC), Belt Certifications, and Provisioning</span>
+          </div>
+        </div>
+        <p class="text-xs sm:text-sm text-teal-100/90 leading-relaxed pt-1">
+          ระบบจัดการผู้ใช้งานและสิทธิ์การเข้าถึง (System Admin, MBB, Project Leader, Champion) ทั่วทั้งองค์กร
         </p>
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2.5 relative z-10 shrink-0">
         <NuxtLink
           to="/admin/approvals"
-          class="border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold px-3.5 py-2 rounded-md flex items-center gap-1.5 shadow-xs transition-colors"
+          class="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
         >
-          <UIcon name="i-lucide-clipboard-check" class="size-4 text-[#008779]" />
+          <UIcon name="i-lucide-clipboard-check" class="size-4 text-teal-200" />
           <span>Approval Center</span>
         </NuxtLink>
 
         <button
           type="button"
-          class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-semibold px-4 py-2 rounded-md flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+          class="bg-white hover:bg-teal-50 text-[#008779] text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md cursor-pointer group"
           @click="openAddUser"
         >
-          <UIcon name="i-lucide-user-plus" class="size-4" />
+          <UIcon name="i-lucide-user-plus" class="size-4 text-[#008779]" />
           <span>Add New User</span>
         </button>
       </div>
@@ -173,10 +178,10 @@ const handleQuickApproveProvisioning = (reqId: string) => {
     <!-- Alert for Pending Auto-Provisioning Requests -->
     <div
       v-if="pendingRequestsCount > 0"
-      class="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center justify-between text-xs animate-in slide-in-from-top duration-150"
+      class="bg-amber-50/80 border border-amber-200/80 rounded-2xl p-4 flex items-center justify-between text-xs shadow-2xs animate-in slide-in-from-top duration-150"
     >
       <div class="flex items-center gap-3">
-        <div class="size-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+        <div class="size-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
           <UIcon name="i-lucide-user-plus" class="size-4" />
         </div>
         <div>
@@ -184,77 +189,77 @@ const handleQuickApproveProvisioning = (reqId: string) => {
             {{ pendingRequestsCount }} Pending Account Auto-Provisioning Requests
           </span>
           <span class="text-amber-800 text-[11px]">
-            New team members and approvers requested by project leaders requiring Admin approval and automated email invites.
+            New team members and approvers requested by project leaders requiring Admin approval.
           </span>
         </div>
       </div>
 
       <NuxtLink
         to="/admin/approvals"
-        class="bg-amber-500 hover:bg-amber-600 text-gray-950 font-bold text-xs px-3.5 py-1.5 rounded-md flex items-center gap-1 transition-colors"
+        class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs px-3.5 py-1.5 rounded-xl flex items-center gap-1 transition-colors shadow-2xs"
       >
         <span>Review in Approval Center</span>
         <UIcon name="i-lucide-arrow-right" class="size-3.5" />
       </NuxtLink>
     </div>
 
-    <!-- 4 Stats Cards Bar -->
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-      <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-3.5 space-y-1">
-        <span class="text-[11px] text-gray-500 font-medium">Total Directory Users</span>
-        <p class="text-xl font-bold text-gray-900 font-mono">{{ users.length }}</p>
+    <!-- 5 Stats Cards Bar -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3.5">
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 space-y-1 hover:shadow-xs transition-shadow">
+        <span class="text-[10px] text-slate-400 font-bold uppercase block">TOTAL USERS</span>
+        <p class="text-2xl font-bold text-slate-900 font-mono">{{ users.length }}</p>
       </div>
 
-      <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-3.5 space-y-1">
-        <span class="text-[11px] text-purple-700 font-medium">System Admins</span>
-        <p class="text-xl font-bold text-purple-700 font-mono">
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 space-y-1 hover:shadow-xs transition-shadow">
+        <span class="text-[10px] text-purple-600 font-bold uppercase block">SYSTEM ADMINS</span>
+        <p class="text-2xl font-bold text-purple-700 font-mono">
           {{ users.filter(u => u.role === 'System Admin').length }}
         </p>
       </div>
 
-      <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-3.5 space-y-1">
-        <span class="text-[11px] text-red-700 font-medium">Master Black Belts (MBB)</span>
-        <p class="text-xl font-bold text-red-700 font-mono">
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 space-y-1 hover:shadow-xs transition-shadow">
+        <span class="text-[10px] text-rose-600 font-bold uppercase block">MASTER BLACK BELTS</span>
+        <p class="text-2xl font-bold text-rose-700 font-mono">
           {{ users.filter(u => u.belt === 'Master Black Belt' || u.role.includes('MBB')).length }}
         </p>
       </div>
 
-      <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-3.5 space-y-1">
-        <span class="text-[11px] text-[#008779] font-medium">Project Owners (BB/GB)</span>
-        <p class="text-xl font-bold text-[#008779] font-mono">
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 space-y-1 hover:shadow-xs transition-shadow">
+        <span class="text-[10px] text-[#008779] font-bold uppercase block">PROJECT LEADS (BB/GB)</span>
+        <p class="text-2xl font-bold text-[#008779] font-mono">
           {{ users.filter(u => u.role === 'Project Owner' || u.belt === 'Black Belt' || u.belt === 'Green Belt').length }}
         </p>
       </div>
 
-      <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-3.5 space-y-1">
-        <span class="text-[11px] text-amber-700 font-medium">Champions / Sponsors</span>
-        <p class="text-xl font-bold text-amber-700 font-mono">
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 space-y-1 hover:shadow-xs transition-shadow">
+        <span class="text-[10px] text-amber-600 font-bold uppercase block">CHAMPIONS / SPONSORS</span>
+        <p class="text-2xl font-bold text-amber-700 font-mono">
           {{ users.filter(u => u.role.includes('Champion')).length }}
         </p>
       </div>
     </div>
 
     <!-- Table Card with Search & Filters -->
-    <div class="bg-white rounded-lg border border-gray-200 shadow-xs overflow-hidden">
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
       <!-- Toolbar -->
-      <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div class="relative flex-1 max-w-sm">
-          <UIcon name="i-lucide-search" class="size-4 text-gray-400 absolute left-3 top-2.5" />
+          <UIcon name="i-lucide-search" class="size-4 text-slate-400 absolute left-3.5 top-3" />
           <input
             v-model="searchQuery"
             type="text"
             placeholder="Search by name, email, plant..."
-            class="w-full bg-gray-50/70 border border-gray-200 rounded-md pl-9 pr-3 py-1.5 text-xs text-gray-900 focus:outline-hidden focus:bg-white focus:border-[#008779]"
+            class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3 py-2 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#008779] transition-all"
           />
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
           <!-- Role Filter -->
           <div class="flex items-center gap-1.5 text-xs">
-            <span class="text-gray-500">Role:</span>
+            <span class="text-slate-500">Role:</span>
             <select
               v-model="selectedRole"
-              class="bg-white border border-gray-200 rounded px-2.5 py-1 text-xs text-gray-700 focus:outline-hidden focus:border-[#008779]"
+              class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-[#008779] cursor-pointer"
             >
               <option value="all">All Roles</option>
               <option value="System Admin">System Admin</option>
@@ -267,10 +272,10 @@ const handleQuickApproveProvisioning = (reqId: string) => {
 
           <!-- Status Filter -->
           <div class="flex items-center gap-1.5 text-xs">
-            <span class="text-gray-500">Status:</span>
+            <span class="text-slate-500">Status:</span>
             <select
               v-model="selectedStatus"
-              class="bg-white border border-gray-200 rounded px-2.5 py-1 text-xs text-gray-700 focus:outline-hidden focus:border-[#008779]"
+              class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-[#008779] cursor-pointer"
             >
               <option value="all">All Status</option>
               <option value="Active">Active</option>
@@ -284,75 +289,75 @@ const handleQuickApproveProvisioning = (reqId: string) => {
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs">
           <thead>
-            <tr class="bg-gray-50/70 border-b border-gray-200 text-gray-400 uppercase text-[10px] font-semibold tracking-wider">
-              <th class="py-3 px-4 font-semibold">USER</th>
-              <th class="py-3 px-4 font-semibold">ROLE & BELT</th>
-              <th class="py-3 px-4 font-semibold">ORGANIZATION / LOCATION</th>
-              <th class="py-3 px-3 font-semibold text-center">EMP ID</th>
-              <th class="py-3 px-3 font-semibold text-center">STATUS</th>
-              <th class="py-3 px-4 font-semibold text-center">ACTIONS</th>
+            <tr class="bg-slate-50/80 border-b border-slate-200 text-slate-400 uppercase text-[10px] font-semibold tracking-wider">
+              <th class="py-3.5 px-4 font-semibold">USER</th>
+              <th class="py-3.5 px-4 font-semibold">ROLE & BELT</th>
+              <th class="py-3.5 px-4 font-semibold">ORGANIZATION / LOCATION</th>
+              <th class="py-3.5 px-3 font-semibold text-center">EMP ID</th>
+              <th class="py-3.5 px-3 font-semibold text-center">STATUS</th>
+              <th class="py-3.5 px-4 font-semibold text-center">ACTIONS</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
-            <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-gray-50/50">
+          <tbody class="divide-y divide-slate-100">
+            <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-slate-50/70 transition-colors">
               <!-- User Name & Email -->
-              <td class="py-3.5 px-4">
+              <td class="py-4 px-4">
                 <div class="flex items-center gap-3">
-                  <div class="size-8 rounded-full bg-[#008779] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                  <div class="size-8 rounded-full bg-[#008779] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
                     {{ user.initials }}
                   </div>
                   <div>
-                    <span class="font-bold text-gray-900 block text-xs">{{ user.name }}</span>
-                    <span class="text-[10px] text-gray-400 font-mono">{{ user.email }}</span>
+                    <span class="font-bold text-slate-900 block text-xs">{{ user.name }}</span>
+                    <span class="text-[10px] text-slate-400 font-mono">{{ user.email }}</span>
                   </div>
                 </div>
               </td>
 
               <!-- Role & Belt -->
-              <td class="py-3.5 px-4">
+              <td class="py-4 px-4">
                 <span
-                  class="text-[11px] font-medium px-2 py-0.5 rounded border inline-block"
+                  class="text-[11px] font-medium px-2.5 py-0.5 rounded-full border inline-block shadow-2xs"
                   :class="getRoleColor(user.role)"
                 >
                   {{ user.role }}
                 </span>
-                <span class="text-[10px] text-gray-500 block mt-0.5 font-medium">{{ user.belt }}</span>
+                <span class="text-[10px] text-slate-500 block mt-0.5 font-medium">{{ user.belt }}</span>
               </td>
 
               <!-- Location -->
-              <td class="py-3.5 px-4">
-                <span class="font-medium text-gray-800 block truncate max-w-xs">{{ user.location }}</span>
-                <span class="text-[10px] text-gray-400 block">{{ user.business }} &rsaquo; {{ user.bu || user.department }}</span>
+              <td class="py-4 px-4">
+                <span class="font-medium text-slate-800 block truncate max-w-xs">{{ user.location }}</span>
+                <span class="text-[10px] text-slate-400 block">{{ user.business }} &rsaquo; {{ user.bu || user.department }}</span>
               </td>
 
               <!-- Emp ID -->
-              <td class="py-3.5 px-3 text-center font-mono text-gray-600">
+              <td class="py-4 px-3 text-center font-mono text-slate-600">
                 {{ user.employeeId }}
               </td>
 
               <!-- Status -->
-              <td class="py-3.5 px-3 text-center">
+              <td class="py-4 px-3 text-center">
                 <button
                   type="button"
-                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border transition-colors cursor-pointer"
-                  :class="user.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'"
+                  class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition-colors cursor-pointer shadow-2xs"
+                  :class="user.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'"
                   @click="toggleStatus(user)"
                 >
-                  <span class="size-1.5 rounded-full" :class="user.status === 'Active' ? 'bg-emerald-500' : 'bg-gray-400'"></span>
+                  <span class="size-1.5 rounded-full" :class="user.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-400'"></span>
                   <span>{{ user.status }}</span>
                 </button>
               </td>
 
               <!-- Actions -->
-              <td class="py-3.5 px-4 text-center">
+              <td class="py-4 px-4 text-center">
                 <div class="flex items-center justify-center gap-1.5">
                   <button
                     type="button"
-                    class="text-gray-400 hover:text-[#008779] p-1 rounded hover:bg-gray-100 transition-colors"
-                    title="Edit user"
+                    class="size-8 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
+                    title="Edit User"
                     @click="openEditUser(user)"
                   >
-                    <UIcon name="i-lucide-edit-3" class="size-3.5" />
+                    <UIcon name="i-lucide-edit-2" class="size-3.5" />
                   </button>
                 </div>
               </td>
@@ -362,134 +367,91 @@ const handleQuickApproveProvisioning = (reqId: string) => {
       </div>
     </div>
 
-    <!-- Add / Edit User Modal -->
+    <!-- ADD/EDIT USER MODAL -->
     <div
       v-if="isAddUserModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-xs p-4"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4"
     >
-      <div class="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-md w-full overflow-hidden text-xs animate-in zoom-in-95 duration-150">
-        <!-- Header -->
-        <div class="p-4 bg-gradient-to-r from-teal-900 to-[#008779] text-white flex items-center justify-between">
-          <h2 class="text-sm font-bold text-white">
-            {{ modalMode === 'add' ? 'Add New User to Directory' : 'Edit User Profile' }}
-          </h2>
-          <button
-            type="button"
-            class="text-white/80 hover:text-white"
-            @click="isAddUserModalOpen = false"
-          >
+      <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+          <h3 class="text-sm font-bold text-slate-900">
+            {{ modalMode === 'add' ? 'Add New Directory User' : 'Edit User Profile' }}
+          </h3>
+          <button type="button" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg" @click="isAddUserModalOpen = false">
             <UIcon name="i-lucide-x" class="size-4" />
           </button>
         </div>
 
-        <!-- Form Body -->
-        <div class="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
-          <div class="space-y-1">
-            <label class="font-semibold text-gray-700 block">Full Name *</label>
+        <div class="p-6 space-y-3.5 text-xs">
+          <div>
+            <label class="font-semibold text-slate-700 block mb-1">Full Name *</label>
             <input
               v-model="formName"
               type="text"
-              placeholder="e.g. Somsak Prasert"
-              class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-900 focus:outline-hidden focus:border-[#008779]"
+              placeholder="e.g. Romteera Tadderm"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#008779] focus:bg-white"
             />
           </div>
 
-          <div class="space-y-1">
-            <label class="font-semibold text-gray-700 block">Email Address (CPF Domain) *</label>
+          <div>
+            <label class="font-semibold text-slate-700 block mb-1">Email Address *</label>
             <input
               v-model="formEmail"
               type="email"
-              placeholder="e.g. name@cpf.co.th"
-              class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-900 focus:outline-hidden focus:border-[#008779]"
+              placeholder="e.g. romteera.t@cpf.co.th"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-mono focus:outline-none focus:border-[#008779] focus:bg-white"
             />
           </div>
 
-          <div class="space-y-1">
-            <label class="font-semibold text-gray-700 block">Assigned Role *</label>
-            <select
-              v-model="formRole"
-              class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 focus:outline-hidden focus:border-[#008779]"
-            >
-              <option value="System Admin">System Admin (Full Access)</option>
-              <option value="Master Black Belt (MBB)">Master Black Belt (Reviewer / Methodology)</option>
-              <option value="Champion / Sponsor">Champion / Sponsor (Project Approver)</option>
-              <option value="Project Owner">Project Owner (Project Leader / Six Sigma)</option>
-              <option value="Member / Viewer">Member / Viewer (Read-only)</option>
-            </select>
-          </div>
-
-          <div class="space-y-1">
-            <label class="font-semibold text-gray-700 block">Six Sigma Belt Level</label>
-            <select
-              v-model="formBelt"
-              class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 focus:outline-hidden focus:border-[#008779]"
-            >
-              <option value="None">None</option>
-              <option value="Yellow Belt">Yellow Belt (YB)</option>
-              <option value="Green Belt">Green Belt (GB)</option>
-              <option value="Black Belt">Black Belt (BB)</option>
-              <option value="Master Black Belt">Master Black Belt (MBB)</option>
-              <option value="Champion">Champion</option>
-            </select>
-          </div>
-
           <div class="grid grid-cols-2 gap-3">
-            <div class="space-y-1">
-              <label class="font-semibold text-gray-700 block">Business</label>
-              <select
-                v-model="formBusiness"
-                class="w-full bg-white border border-gray-200 rounded-md px-2.5 py-2 text-xs text-gray-700 focus:outline-hidden focus:border-[#008779]"
-              >
-                <option value="Food">Food Business</option>
-                <option value="Farm">Farm Business</option>
-                <option value="Feed">Feed Business</option>
-                <option value="Corporate">Corporate HQ</option>
+            <div>
+              <label class="font-semibold text-slate-700 block mb-1">System Role *</label>
+              <select v-model="formRole" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-[#008779]">
+                <option value="Project Owner">Project Owner</option>
+                <option value="Master Black Belt (MBB)">Master Black Belt</option>
+                <option value="Champion / Sponsor">Champion / Sponsor</option>
+                <option value="System Admin">System Admin</option>
+                <option value="Member / Viewer">Member / Viewer</option>
               </select>
             </div>
 
-            <div class="space-y-1">
-              <label class="font-semibold text-gray-700 block">Business Unit</label>
-              <select
-                v-model="formBu"
-                class="w-full bg-white border border-gray-200 rounded-md px-2.5 py-2 text-xs text-gray-700 focus:outline-hidden focus:border-[#008779]"
-              >
-                <option value="Chicken Processing">Chicken Processing</option>
-                <option value="Swine Processing">Swine Processing</option>
-                <option value="Food Processing Division">Food Processing</option>
-                <option value="Quality Excellence & CI">Quality Excellence</option>
+            <div>
+              <label class="font-semibold text-slate-700 block mb-1">Belt Level *</label>
+              <select v-model="formBelt" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-[#008779]">
+                <option value="Master Black Belt">Master Black Belt (MBB)</option>
+                <option value="Black Belt">Black Belt (BB)</option>
+                <option value="Green Belt">Green Belt (GB)</option>
+                <option value="Yellow Belt">Yellow Belt (YB)</option>
+                <option value="None">None / Management</option>
               </select>
             </div>
           </div>
 
-          <div class="space-y-1">
-            <label class="font-semibold text-gray-700 block">Plant / Factory Location</label>
-            <select
-              v-model="formLocation"
-              class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 focus:outline-hidden focus:border-[#008779]"
-            >
-              <option value="โรงงานแปรรูปโชคชัย (Nakhon Ratchasima)">โรงงานแปรรูปโชคชัย (Nakhon Ratchasima)</option>
-              <option value="โรงงานแปรรูปอาหาร 2 (นครราชสีมา)">โรงงานแปรรูปอาหาร 2 (นครราชสีมา)</option>
+          <div>
+            <label class="font-semibold text-slate-700 block mb-1">Plant Location *</label>
+            <select v-model="formLocation" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-[#008779]">
+              <option value="โรงงานแปรรูปโชคชัย (Nakhon Ratchasima)">โรงงานแปรรูปโชคชัย</option>
+              <option value="โรงงานแปรรูปอาหาร 2 (นครราชสีมา)">โรงงานแปรรูปอาหาร 2</option>
               <option value="โรงงานแปรรูปสระบุรี">โรงงานแปรรูปสระบุรี</option>
-              <option value="Corporate HQ (Bangkok)">Corporate HQ (Bangkok)</option>
+              <option value="โรงงานอาหารสำเร็จรูป หนองจอก">โรงงานอาหารสำเร็จรูป หนองจอก</option>
             </select>
           </div>
         </div>
 
-        <!-- Footer -->
-        <div class="p-4 border-t border-gray-100 flex justify-end gap-2">
+        <div class="p-4 border-t border-slate-100 flex justify-end gap-2">
           <button
             type="button"
-            class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2 rounded-md transition-colors"
+            class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-4 py-2 rounded-xl transition-colors"
             @click="isAddUserModalOpen = false"
           >
             Cancel
           </button>
           <button
             type="button"
-            class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-semibold px-4 py-2 rounded-md transition-colors cursor-pointer"
+            class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer shadow-xs"
             @click="saveUser"
           >
-            {{ modalMode === 'add' ? 'Add User' : 'Save Changes' }}
+            Save User
           </button>
         </div>
       </div>

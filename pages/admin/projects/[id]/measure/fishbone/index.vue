@@ -660,13 +660,13 @@ const resetToDefaults = () => {
 
       <div class="flex-1 space-y-4 min-w-0">
         <!-- Phase 2: Incoming Auto-Feed Inbox Banner (Draggable Items) -->
-        <div v-if="incomingUnassignedFactors.length > 0" class="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2 text-xs shadow-xs">
+        <div v-if="incomingUnassignedFactors.length > 0" class="bg-amber-50/80 border border-amber-200/80 rounded-2xl p-4 space-y-2 text-xs shadow-2xs">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2 font-bold text-amber-900">
               <UIcon name="i-lucide-inbox" class="size-4 text-amber-600" />
               <span>Auto-Feed Factors from Capability & MSA ({{ incomingUnassignedFactors.length }} รายการ - ลากไปปล่อยบนก้างปลาได้เลย)</span>
             </div>
-            <span class="text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded font-semibold flex items-center gap-1">
+            <span class="text-[10px] text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-full font-semibold flex items-center gap-1">
               <UIcon name="i-lucide-grip-vertical" class="size-3" />
               <span>Drag & Drop Enabled</span>
             </span>
@@ -677,21 +677,21 @@ const resetToDefaults = () => {
               v-for="item in incomingUnassignedFactors"
               :key="item.id"
               draggable="true"
-              class="bg-white border-2 border-dashed border-amber-300 hover:border-amber-500 rounded-md p-2.5 flex items-center justify-between text-xs cursor-grab active:cursor-grabbing hover:shadow-sm transition-all"
+              class="bg-white border-2 border-dashed border-amber-300 hover:border-amber-500 rounded-xl p-3 flex items-center justify-between text-xs cursor-grab active:cursor-grabbing hover:shadow-sm transition-all"
               @dragstart="onDragStartInbox($event, item)"
               @dragend="onDragEnd"
             >
               <div class="flex items-center gap-2">
                 <UIcon name="i-lucide-grip-vertical" class="size-4 text-amber-400" />
                 <div>
-                  <span class="font-bold text-gray-900 block">{{ item.factorName }}</span>
-                  <span class="text-[10px] text-gray-500">{{ item.source }}</span>
+                  <span class="font-bold text-slate-900 block">{{ item.factorName }}</span>
+                  <span class="text-[10px] text-slate-500">{{ item.source }}</span>
                 </div>
               </div>
               <div class="flex items-center gap-1.5">
                 <button
                   type="button"
-                  class="bg-[#008779] hover:bg-[#007366] text-white text-[11px] font-semibold px-2.5 py-1 rounded shadow-xs flex items-center gap-1 transition-colors cursor-pointer"
+                  class="bg-[#008779] hover:bg-[#007366] text-white text-[11px] font-semibold px-3 py-1.5 rounded-xl shadow-xs flex items-center gap-1 transition-colors cursor-pointer"
                   @click="addIncomingFactorDirectly(item)"
                 >
                   <UIcon name="i-lucide-plus" class="size-3" />
@@ -703,20 +703,20 @@ const resetToDefaults = () => {
         </div>
 
         <!-- Main Fishbone Container Card -->
-        <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-6 space-y-6">
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-2xs p-6 space-y-6">
           <!-- Card Header & Action Toolbar -->
-          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-gray-100">
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-slate-100">
             <div>
               <div class="flex items-center gap-2">
-                <h2 class="text-base font-bold text-gray-900">
+                <h2 class="text-base font-bold text-slate-900">
                   Ishikawa Fishbone Diagram (ผังก้างปลา 5M1E)
                 </h2>
-                <span class="bg-teal-50 text-[#008779] border border-teal-200 text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
+                <span class="bg-teal-50 text-[#008779] border border-teal-200 text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
                   <UIcon name="i-lucide-plus-circle" class="size-3.5 text-[#008779]" />
                   <span>กดปุ่ม "+ เพิ่มในก้างปลา" บนรูปได้โดยตรง</span>
                 </span>
               </div>
-              <p class="text-xs text-gray-500 mt-0.5">
+              <p class="text-xs text-slate-500 mt-0.5">
                 คลิกปุ่ม <strong>[+ เพิ่มสาเหตุ]</strong> บนก้างปลาแต่ละเส้น เพื่อเพิ่มก้างย่อยได้ทันทีบนรูป หรือคลิกที่สาเหตุเพื่อแก้ไข
               </p>
             </div>
@@ -725,16 +725,16 @@ const resetToDefaults = () => {
             <div class="flex items-center gap-2 flex-wrap">
               <button
                 type="button"
-                class="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-md flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
                 @click="openEffectModal"
               >
-                <UIcon name="i-lucide-edit-3" class="size-3.5 text-gray-500" />
-                <span>แก้ไขหัวข้อเป้าหมาย</span>
+                <UIcon name="i-lucide-edit-3" class="size-3.5 text-slate-500" />
+                <span>แก้ไขเป้าหมาย</span>
               </button>
 
               <NuxtLink
                 :to="`/admin/projects/${projectId}/measure/fmea`"
-                class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold px-3 py-1.5 rounded-md flex items-center gap-1.5 shadow-xs transition-colors"
+                class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors"
               >
                 <UIcon name="i-lucide-arrow-right" class="size-3.5" />
                 <span>ส่งต่อไปยัง FMEA ({{ controlCount }} Control)</span>
@@ -742,7 +742,7 @@ const resetToDefaults = () => {
 
               <button
                 type="button"
-                class="text-gray-400 hover:text-gray-600 p-1.5 rounded hover:bg-gray-100 transition-colors"
+                class="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100 transition-colors"
                 title="รีเซ็ตเป็นค่าเริ่มต้น"
                 @click="resetToDefaults"
               >
@@ -752,28 +752,28 @@ const resetToDefaults = () => {
           </div>
 
           <!-- Summary Badges Bar -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2 text-xs">
-            <div class="bg-gray-50 border border-gray-200 rounded-lg p-2.5 flex items-center justify-between">
-              <span class="text-gray-600 font-medium">สาเหตุทั้งหมด:</span>
-              <span class="font-bold text-gray-900 bg-white border border-gray-200 px-2 py-0.5 rounded text-xs">
+          <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2.5 text-xs">
+            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 flex items-center justify-between shadow-2xs">
+              <span class="text-slate-600 font-medium">สาเหตุทั้งหมด:</span>
+              <span class="font-bold text-slate-900 bg-white border border-slate-200 px-2 py-0.5 rounded-full text-xs">
                 {{ totalCausesCount }}
               </span>
             </div>
-            <div class="bg-emerald-50/60 border border-emerald-200 rounded-lg p-2.5 flex items-center justify-between">
+            <div class="bg-emerald-50/60 border border-emerald-200/80 rounded-2xl p-3 flex items-center justify-between shadow-2xs">
               <span class="text-emerald-800 font-medium">[ C ] Control:</span>
-              <span class="font-bold text-emerald-700 bg-white border border-emerald-200 px-2 py-0.5 rounded text-xs">
+              <span class="font-bold text-emerald-700 bg-white border border-emerald-200 px-2 py-0.5 rounded-full text-xs">
                 {{ controlCount }}
               </span>
             </div>
-            <div class="bg-slate-50 border border-slate-200 rounded-lg p-2.5 flex items-center justify-between">
+            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 flex items-center justify-between shadow-2xs">
               <span class="text-slate-700 font-medium">[ N ] Noise:</span>
-              <span class="font-bold text-slate-700 bg-white border border-slate-200 px-2 py-0.5 rounded text-xs">
+              <span class="font-bold text-slate-700 bg-white border border-slate-200 px-2 py-0.5 rounded-full text-xs">
                 {{ noiseCount }}
               </span>
             </div>
-            <div class="bg-rose-50/60 border border-rose-200 rounded-lg p-2.5 flex items-center justify-between">
+            <div class="bg-rose-50/60 border border-rose-200/80 rounded-2xl p-3 flex items-center justify-between shadow-2xs">
               <span class="text-rose-800 font-medium">⭐ Key Causes:</span>
-              <span class="font-bold text-rose-700 bg-white border border-rose-200 px-2 py-0.5 rounded text-xs">
+              <span class="font-bold text-rose-700 bg-white border border-rose-200 px-2 py-0.5 rounded-full text-xs">
                 {{ keyCausesCount }}
               </span>
             </div>

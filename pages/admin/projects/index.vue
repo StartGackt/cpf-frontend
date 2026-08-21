@@ -88,129 +88,128 @@ const confirmDuplicateRun = () => {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <!-- Top Header & Action Buttons -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900 tracking-tight">
-          Project Dashboard
-        </h1>
-        <p class="text-xs text-gray-500 mt-1">
-          Manage, duplicate, and track your Six Sigma DMAIC projects
+  <div class="space-y-6 animate-in fade-in duration-200 select-none">
+    
+    <!-- ========================================================= -->
+    <!-- HERO HEADER: Project Management & DMAIC Portfolio -->
+    <!-- ========================================================= -->
+    <div class="bg-gradient-to-r from-teal-950 via-[#008779] to-indigo-950 rounded-3xl text-white p-6 sm:p-8 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative overflow-hidden">
+      <!-- Ambient Sparkle Glow in Background -->
+      <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-teal-400/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="space-y-2 relative z-10 max-w-2xl">
+        <div class="flex items-center gap-2.5">
+          <div class="size-10 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-xs">
+            <UIcon name="i-lucide-folder-kanban" class="size-5 text-amber-300" />
+          </div>
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">
+              Project Dashboard & Portfolio
+            </h1>
+            <span class="text-xs text-teal-200">Manage, Duplicate Runs, and Track DMAIC Phase Roadmaps</span>
+          </div>
+        </div>
+        <p class="text-xs sm:text-sm text-teal-100/90 leading-relaxed pt-1">
+          ระบบบริหารจัดการโครงการ Lean Six Sigma ติดตามความก้าวหน้าข้าม 5 เฟส DMAIC พร้อมระบบ Selective Run Duplication
         </p>
       </div>
 
-      <div class="flex items-center gap-2 flex-wrap">
-        <!-- Export Button -->
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2.5 flex-wrap relative z-10 shrink-0">
         <button
           type="button"
-          class="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold px-3 py-2 rounded-md flex items-center gap-1.5 shadow-xs transition-colors"
+          class="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
         >
-          <UIcon name="i-lucide-download" class="size-3.5 text-gray-500" />
+          <UIcon name="i-lucide-download" class="size-4 text-emerald-300" />
           <span>Export</span>
         </button>
 
-        <!-- Refresh Button -->
         <button
           type="button"
-          class="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold px-3 py-2 rounded-md flex items-center gap-1.5 shadow-xs transition-colors"
-        >
-          <UIcon name="i-lucide-rotate-cw" class="size-3.5 text-gray-500" />
-          <span>Refresh</span>
-        </button>
-
-        <!-- Deleted Projects Button -->
-        <button
-          type="button"
-          class="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold px-3 py-2 rounded-md flex items-center gap-1.5 shadow-xs transition-colors"
-        >
-          <UIcon name="i-lucide-trash" class="size-3.5 text-gray-500" />
-          <span>Deleted Projects (0)</span>
-        </button>
-
-        <!-- Create Project Button (Teal) -->
-        <button
-          type="button"
-          class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-semibold px-4 py-2 rounded-md flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+          class="bg-white hover:bg-teal-50 text-[#008779] text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md cursor-pointer group"
           @click="isNewProjectModalOpen = true"
         >
-          <UIcon name="i-lucide-plus" class="size-3.5" />
+          <UIcon name="i-lucide-plus" class="size-4 text-[#008779] group-hover:rotate-90 transition-transform" />
           <span>New Project</span>
         </button>
       </div>
     </div>
 
-    <!-- 4 Stats Cards Bar -->
+    <!-- ========================================================= -->
+    <!-- 4 STATS CARDS -->
+    <!-- ========================================================= -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <!-- Total Projects -->
-      <div class="bg-white rounded-lg border border-gray-200/80 shadow-xs p-4 flex items-center gap-3">
-        <div class="size-10 rounded-lg bg-teal-50 text-[#008779] flex items-center justify-center">
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 flex items-center gap-3.5 hover:shadow-xs transition-shadow">
+        <div class="size-11 rounded-2xl bg-teal-50 text-[#008779] border border-teal-200/60 flex items-center justify-center shadow-2xs">
           <UIcon name="i-lucide-folder" class="size-5" />
         </div>
         <div>
-          <span class="text-xs text-gray-500 font-medium block">Total Projects</span>
-          <span class="text-xl font-bold text-gray-900 font-mono">{{ projects.length }}</span>
+          <span class="text-[10px] text-slate-400 font-bold uppercase block">TOTAL PROJECTS</span>
+          <span class="text-2xl font-bold text-slate-900 font-mono">{{ projects.length }}</span>
         </div>
       </div>
 
       <!-- Active Projects -->
-      <div class="bg-white rounded-lg border border-gray-200/80 shadow-xs p-4 flex items-center gap-3">
-        <div class="size-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 flex items-center gap-3.5 hover:shadow-xs transition-shadow">
+        <div class="size-11 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shadow-2xs">
           <UIcon name="i-lucide-activity" class="size-5" />
         </div>
         <div>
-          <span class="text-xs text-gray-500 font-medium block">Active Projects</span>
-          <span class="text-xl font-bold text-blue-600 font-mono">{{ projects.length }}</span>
+          <span class="text-[10px] text-blue-600 font-bold uppercase block">ACTIVE PIPELINE</span>
+          <span class="text-2xl font-bold text-blue-700 font-mono">{{ projects.length }}</span>
         </div>
       </div>
 
       <!-- Completed Projects -->
-      <div class="bg-white rounded-lg border border-gray-200/80 shadow-xs p-4 flex items-center gap-3">
-        <div class="size-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 flex items-center gap-3.5 hover:shadow-xs transition-shadow">
+        <div class="size-11 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shadow-2xs">
           <UIcon name="i-lucide-check-circle" class="size-5" />
         </div>
         <div>
-          <span class="text-xs text-gray-500 font-medium block">Completed Projects</span>
-          <span class="text-xl font-bold text-emerald-600 font-mono">0</span>
+          <span class="text-[10px] text-emerald-600 font-bold uppercase block">VERIFIED PFR</span>
+          <span class="text-2xl font-bold text-emerald-700 font-mono">0</span>
         </div>
       </div>
 
       <!-- Projects by Phase -->
-      <div class="bg-white rounded-lg border border-gray-200/80 shadow-xs p-4 flex items-center gap-3">
-        <div class="size-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 flex items-center gap-3.5 hover:shadow-xs transition-shadow">
+        <div class="size-11 rounded-2xl bg-purple-50 text-purple-600 border border-purple-200/60 flex items-center justify-center shadow-2xs">
           <UIcon name="i-lucide-layers" class="size-5" />
         </div>
         <div>
-          <span class="text-xs text-gray-500 font-medium block">Projects by Phase</span>
-          <span class="text-xs font-bold text-gray-800 font-mono">
-            Measure: 1, Improve: 1
+          <span class="text-[10px] text-purple-600 font-bold uppercase block">PHASE DISTRIBUTION</span>
+          <span class="text-xs font-bold text-slate-800 font-mono">
+            Measure: 1 • Improve: 1
           </span>
         </div>
       </div>
     </div>
 
-    <!-- Filter & Table Card -->
-    <div class="bg-white rounded-lg border border-gray-200/80 shadow-xs overflow-hidden">
+    <!-- ========================================================= -->
+    <!-- FILTER & DATA TABLE CARD -->
+    <!-- ========================================================= -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
       <!-- Search and Sort Controls -->
-      <div class="p-4 border-b border-gray-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <!-- Search Input -->
         <div class="relative max-w-sm w-full">
-          <UIcon name="i-lucide-search" class="size-4 text-gray-400 absolute left-3 top-2.5 pointer-events-none" />
+          <UIcon name="i-lucide-search" class="size-4 text-slate-400 absolute left-3.5 top-3 pointer-events-none" />
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search projects by name, location, owner..."
-            class="w-full bg-white border border-gray-200 rounded-md pl-9 pr-3 py-1.5 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#008779]"
+            placeholder="Search projects by name, location, leader..."
+            class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#008779] focus:bg-white transition-all"
           />
         </div>
 
         <!-- Sort Selects -->
         <div class="flex items-center gap-2 flex-wrap">
-          <div class="flex items-center gap-1.5 text-xs text-gray-500">
+          <div class="flex items-center gap-1.5 text-xs text-slate-500">
             <span>Sort by</span>
             <select
               v-model="sortBy"
-              class="bg-white border border-gray-200 rounded px-2 py-1 text-xs text-gray-700 focus:outline-none focus:border-[#008779]"
+              class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-[#008779] cursor-pointer"
             >
               <option value="name">Name</option>
               <option value="location">Location</option>
@@ -222,7 +221,7 @@ const confirmDuplicateRun = () => {
 
           <select
             v-model="sortOrder"
-            class="bg-white border border-gray-200 rounded px-2 py-1 text-xs text-gray-700 focus:outline-none focus:border-[#008779]"
+            class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-[#008779] cursor-pointer"
           >
             <option value="asc">Ascending</option>
             <option value="desc">Descending</option>
@@ -234,41 +233,41 @@ const confirmDuplicateRun = () => {
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs">
           <thead>
-            <tr class="bg-gray-50/70 border-b border-gray-200 text-gray-400 uppercase text-[10px] font-semibold tracking-wider">
-              <th class="py-3 px-4 font-semibold">NAME</th>
-              <th class="py-3 px-4 font-semibold">LOCATION</th>
-              <th class="py-3 px-4 font-semibold">MANAGER</th>
-              <th class="py-3 px-4 font-semibold">YEAR</th>
-              <th class="py-3 px-4 font-semibold">PHASE</th>
-              <th class="py-3 px-4 font-semibold">STATUS</th>
-              <th class="py-3 px-4 font-semibold">LAST UPDATE</th>
-              <th class="py-3 px-4 font-semibold text-center">ACTIONS</th>
+            <tr class="bg-slate-50/80 border-b border-slate-200 text-slate-400 uppercase text-[10px] font-semibold tracking-wider">
+              <th class="py-3.5 px-4 font-semibold">PROJECT NAME</th>
+              <th class="py-3.5 px-4 font-semibold">LOCATION</th>
+              <th class="py-3.5 px-4 font-semibold">LEADER</th>
+              <th class="py-3.5 px-4 font-semibold">YEAR</th>
+              <th class="py-3.5 px-4 font-semibold">DMAIC PHASE</th>
+              <th class="py-3.5 px-4 font-semibold">STATUS</th>
+              <th class="py-3.5 px-4 font-semibold">LAST UPDATE</th>
+              <th class="py-3.5 px-4 font-semibold text-center">ACTIONS</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
+          <tbody class="divide-y divide-slate-100">
             <tr
               v-for="project in filteredProjects"
               :key="project.id"
-              class="hover:bg-gray-50/50 transition-colors"
+              class="hover:bg-slate-50/70 transition-colors group"
             >
               <!-- Name -->
               <td class="py-4 px-4">
                 <div class="flex items-center gap-2">
                   <NuxtLink
                     :to="`/admin/projects/${project.id}`"
-                    class="font-bold text-gray-900 hover:text-[#008779]"
+                    class="font-bold text-slate-900 group-hover:text-[#008779] transition-colors"
                   >
                     {{ project.name }}
                   </NuxtLink>
                   <span
                     v-if="project.isOriginal"
-                    class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    class="inline-flex items-center px-2 py-0.2 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200"
                   >
                     Original
                   </span>
                   <span
                     v-else
-                    class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200"
+                    class="inline-flex items-center px-2 py-0.2 rounded-full text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200"
                   >
                     Project Run
                   </span>
@@ -276,17 +275,17 @@ const confirmDuplicateRun = () => {
               </td>
 
               <!-- Location -->
-              <td class="py-4 px-4 text-gray-600">
+              <td class="py-4 px-4 text-slate-600">
                 {{ project.location }}
               </td>
 
               <!-- Manager -->
-              <td class="py-4 px-4 font-medium text-gray-800">
+              <td class="py-4 px-4 font-medium text-slate-800">
                 {{ project.manager }}
               </td>
 
               <!-- Year -->
-              <td class="py-4 px-4 text-gray-600 font-mono">
+              <td class="py-4 px-4 text-slate-600 font-mono">
                 {{ project.year }}
               </td>
 
@@ -302,51 +301,52 @@ const confirmDuplicateRun = () => {
 
               <!-- Status -->
               <td class="py-4 px-4">
-                <span class="text-emerald-600 font-semibold">
-                  {{ project.status }}
+                <span class="text-emerald-600 font-semibold flex items-center gap-1">
+                  <span class="size-1.5 rounded-full bg-emerald-500"></span>
+                  <span>{{ project.status }}</span>
                 </span>
               </td>
 
               <!-- Last Update -->
-              <td class="py-4 px-4 text-gray-600">
+              <td class="py-4 px-4 text-slate-500 font-mono text-[11px]">
                 {{ project.lastUpdate }}
               </td>
 
-              <!-- Actions (Run, Duplicate Run, Presentation, Edit, Delete) -->
+              <!-- Actions (Run, Duplicate Run, Presentation, Delete) -->
               <td class="py-4 px-4">
                 <div class="flex items-center justify-center gap-1.5">
-                  <!-- Run/Detail Action Button (Teal) -->
+                  <!-- Run/Detail Action Button -->
                   <NuxtLink
                     :to="`/admin/projects/${project.id}`"
-                    class="size-7 bg-[#008779] hover:bg-[#007366] text-white rounded flex items-center justify-center shadow-xs transition-colors"
+                    class="size-8 bg-[#008779] hover:bg-[#007366] text-white rounded-lg flex items-center justify-center shadow-2xs transition-colors"
                     title="Open DMAIC Workflow"
                   >
                     <UIcon name="i-lucide-play" class="size-3.5 fill-white" />
                   </NuxtLink>
 
-                  <!-- Create Project Run / Duplicate (Blue) -->
+                  <!-- Create Project Run / Duplicate -->
                   <button
                     type="button"
-                    class="size-7 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded flex items-center justify-center transition-colors cursor-pointer"
+                    class="size-8 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
                     title="Create Project Run (Duplicate with Module Scope)"
                     @click="openDuplicateModal(project)"
                   >
                     <UIcon name="i-lucide-copy" class="size-3.5" />
                   </button>
 
-                  <!-- Presentation Mode (Purple) -->
+                  <!-- Presentation Mode -->
                   <NuxtLink
                     :to="`/admin/projects/${project.id}/presentation`"
-                    class="size-7 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded flex items-center justify-center transition-colors"
+                    class="size-8 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200/80 rounded-lg flex items-center justify-center transition-colors"
                     title="Presentation Mode"
                   >
                     <UIcon name="i-lucide-presentation" class="size-3.5" />
                   </NuxtLink>
 
-                  <!-- Delete Action Button (Red) -->
+                  <!-- Delete Action Button -->
                   <button
                     type="button"
-                    class="size-7 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded flex items-center justify-center transition-colors"
+                    class="size-8 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
                     title="Delete Project"
                   >
                     <UIcon name="i-lucide-trash-2" class="size-3.5" />
@@ -359,22 +359,22 @@ const confirmDuplicateRun = () => {
       </div>
     </div>
 
-    <!-- CREATE PROJECT RUN / SELECTIVE DUPLICATION MODAL (Module 2 Feature) -->
+    <!-- CREATE PROJECT RUN / SELECTIVE DUPLICATION MODAL -->
     <div
       v-if="isDuplicateRunModalOpen && selectedSourceProject"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-xs p-4"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4"
     >
-      <div class="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+      <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h3 class="text-sm font-bold text-gray-900">
+            <h3 class="text-sm font-bold text-slate-900">
               Create Project Run (Selective Module Duplication)
             </h3>
-            <p class="text-[11px] text-gray-500">Source: {{ selectedSourceProject.name }}</p>
+            <p class="text-[11px] text-slate-500">Source: {{ selectedSourceProject.name }}</p>
           </div>
           <button
             type="button"
-            class="text-gray-400 hover:text-gray-600 p-1"
+            class="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
             @click="isDuplicateRunModalOpen = false"
           >
             <UIcon name="i-lucide-x" class="size-4" />
@@ -384,20 +384,20 @@ const confirmDuplicateRun = () => {
         <div class="p-6 space-y-4 text-xs">
           <!-- New Title -->
           <div class="space-y-1">
-            <label class="font-semibold text-gray-700 block">New Run Title *</label>
+            <label class="font-semibold text-slate-700 block">New Run Title *</label>
             <input
               v-model="duplicateProjectTitle"
               type="text"
-              class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#008779]"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#008779] focus:bg-white"
             />
           </div>
 
           <!-- Target Plant Location -->
           <div class="space-y-1">
-            <label class="font-semibold text-gray-700 block">Target Plant / Production Line *</label>
+            <label class="font-semibold text-slate-700 block">Target Plant / Production Line *</label>
             <select
               v-model="duplicateLocation"
-              class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#008779]"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-[#008779]"
             >
               <option value="loc-1">โรงงานแปรรูปโชคชัย (Line B)</option>
               <option value="loc-2">โรงงานแปรรูปอาหาร 2 (Line 1)</option>
@@ -405,65 +405,65 @@ const confirmDuplicateRun = () => {
             </select>
           </div>
 
-          <!-- Module Scope Selection (Phase 1 & Phase 2) -->
-          <div class="space-y-2 pt-2 border-t border-gray-100">
+          <!-- Module Scope Selection -->
+          <div class="space-y-2 pt-2 border-t border-slate-100">
             <div class="flex items-center justify-between">
-              <label class="font-bold text-gray-900 block">Select Scope of Modules to Copy:</label>
-              <span class="text-[10px] text-teal-700 font-semibold bg-teal-50 px-2 py-0.5 rounded">
+              <label class="font-bold text-slate-900 block">Select Scope of Modules to Copy:</label>
+              <span class="text-[10px] text-teal-700 font-semibold bg-teal-50 px-2 py-0.5 rounded-full">
                 Customizable Run
               </span>
             </div>
 
-            <div class="space-y-2 bg-gray-50/70 border border-gray-200 rounded-lg p-3">
+            <div class="space-y-2 bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5">
               <label class="flex items-center gap-2 cursor-pointer">
                 <input v-model="copyScope.define" type="checkbox" class="accent-[#008779]" />
-                <span class="font-medium text-gray-800">Define Phase: Copy Project Charter & BEG Formulation Targets</span>
+                <span class="font-medium text-slate-800">Define Phase: Copy Project Charter & Targets</span>
               </label>
 
               <label class="flex items-center gap-2 cursor-pointer">
                 <input v-model="copyScope.processMap" type="checkbox" class="accent-[#008779]" />
-                <span class="font-medium text-gray-800">Measure Phase: Copy 28-Node Process Flowchart Canvas</span>
+                <span class="font-medium text-slate-800">Measure Phase: Copy Process Flowchart Canvas</span>
               </label>
 
               <label class="flex items-center gap-2 cursor-pointer">
                 <input v-model="copyScope.fishbone" type="checkbox" class="accent-[#008779]" />
-                <span class="font-medium text-gray-800">Measure Phase: Copy 41 Causes Ishikawa Diagram</span>
+                <span class="font-medium text-slate-800">Measure Phase: Copy Ishikawa Fishbone Diagram</span>
               </label>
 
               <label class="flex items-center gap-2 cursor-pointer">
                 <input v-model="copyScope.fmea" type="checkbox" class="accent-[#008779]" />
-                <span class="font-medium text-gray-800">Measure Phase: Copy FMEA Failure Modes & Scoring Rubrics</span>
+                <span class="font-medium text-slate-800">Measure Phase: Copy FMEA Failure Modes</span>
               </label>
 
               <label class="flex items-center gap-2 cursor-pointer">
                 <input v-model="copyScope.hypothesis" type="checkbox" class="accent-[#008779]" />
-                <span class="font-medium text-gray-800">Analyze Phase: Copy 7-Factor Hypothesis Test Framework</span>
+                <span class="font-medium text-slate-800">Analyze Phase: Copy Hypothesis Test Framework</span>
               </label>
 
               <label class="flex items-center gap-2 cursor-pointer">
                 <input v-model="copyScope.doe" type="checkbox" class="accent-[#008779]" />
-                <span class="font-medium text-gray-800">Improve Phase: Copy DOE Experimental Factors (Uncheck for fresh trials)</span>
+                <span class="font-medium text-slate-800">Improve Phase: Copy DOE Experimental Factors</span>
               </label>
 
               <label class="flex items-center gap-2 cursor-pointer">
                 <input v-model="copyScope.controlPlan" type="checkbox" class="accent-[#008779]" />
-                <span class="font-medium text-gray-800">Control Phase: Copy Standardized Control Plan Matrix</span>
+                <span class="font-medium text-slate-800">Control Phase: Copy Control Plan Matrix</span>
               </label>
             </div>
           </div>
         </div>
 
-        <div class="p-4 border-t border-gray-100 flex justify-end gap-2">
+        <div class="p-4 border-t border-slate-100 flex justify-end gap-2">
           <button
             type="button"
-            class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2 rounded-md transition-colors"
+            class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-4 py-2 rounded-xl transition-colors"
             @click="isDuplicateRunModalOpen = false"
           >
             Cancel
           </button>
           <button
             type="button"
-            class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-semibold px-4 py-2 rounded-md transition-colors cursor-pointer flex items-center gap-1.5"
+            class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
             @click="confirmDuplicateRun"
           >
             <UIcon name="i-lucide-rocket" class="size-3.5" />
@@ -476,16 +476,16 @@ const confirmDuplicateRun = () => {
     <!-- CREATE PROJECT MODAL -->
     <div
       v-if="isNewProjectModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-xs p-4"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4"
     >
-      <div class="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div class="p-4 border-b border-gray-100 flex items-center justify-between">
-          <h3 class="text-sm font-bold text-gray-900">
-            Create Project
+      <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+          <h3 class="text-sm font-bold text-slate-900">
+            Create New Project
           </h3>
           <button
             type="button"
-            class="text-gray-400 hover:text-gray-600 p-1"
+            class="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
             @click="isNewProjectModalOpen = false"
           >
             <UIcon name="i-lucide-x" class="size-4" />
@@ -495,30 +495,29 @@ const confirmDuplicateRun = () => {
         <div class="p-6 space-y-4 text-xs">
           <!-- Project Name -->
           <div class="space-y-1">
-            <label class="font-semibold text-gray-700 block">Project Name *</label>
+            <label class="font-semibold text-slate-700 block">Project Name *</label>
             <input
               type="text"
               placeholder="Enter project name"
-              class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#008779]"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#008779] focus:bg-white"
             />
           </div>
 
           <!-- Project Belt / Type Selection -->
           <div class="space-y-1">
-            <label class="font-semibold text-gray-700 block">Project Belt / Type *</label>
-            <select class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#008779]">
+            <label class="font-semibold text-slate-700 block">Project Belt / Type *</label>
+            <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-[#008779]">
               <option value="bb">Black Belt (BB)</option>
               <option value="gb" selected>Green Belt (GB)</option>
               <option value="yb">Yellow Belt (YB)</option>
               <option value="sme">SME / Automation Innovation</option>
-              <option value="kaizen">Kaizen / Quick Win</option>
             </select>
           </div>
 
           <!-- Business -->
           <div class="space-y-1">
-            <label class="font-semibold text-gray-700 block">Business *</label>
-            <select class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#008779]">
+            <label class="font-semibold text-slate-700 block">Business *</label>
+            <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-[#008779]">
               <option value="food">Food Business</option>
               <option value="feed">Feed Business</option>
               <option value="farm">Farm Business</option>
@@ -527,8 +526,8 @@ const confirmDuplicateRun = () => {
 
           <!-- Business Unit -->
           <div class="space-y-1">
-            <label class="font-semibold text-gray-700 block">Business Unit *</label>
-            <select class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#008779]">
+            <label class="font-semibold text-slate-700 block">Business Unit *</label>
+            <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-[#008779]">
               <option value="chicken">Chicken Processing</option>
               <option value="swine">Swine Processing</option>
               <option value="rte">Ready-to-Eat Food Division</option>
@@ -537,27 +536,26 @@ const confirmDuplicateRun = () => {
 
           <!-- Plant / Location -->
           <div class="space-y-1">
-            <label class="font-semibold text-gray-700 block">Plant / Location *</label>
-            <select class="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#008779]">
+            <label class="font-semibold text-slate-700 block">Plant / Location *</label>
+            <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-[#008779]">
               <option value="loc-1">โรงงานแปรรูปโชคชัย (Nakhon Ratchasima)</option>
               <option value="loc-2">โรงงานแปรรูปอาหาร 2 (นครราชสีมา)</option>
               <option value="loc-3">โรงงานแปรรูปสระบุรี</option>
-              <option value="loc-4">โรงงานแปรรูปมีนบุรี</option>
             </select>
           </div>
         </div>
 
-        <div class="p-4 border-t border-gray-100 flex justify-end gap-2">
+        <div class="p-4 border-t border-slate-100 flex justify-end gap-2">
           <button
             type="button"
-            class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2 rounded-md transition-colors"
+            class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-4 py-2 rounded-xl transition-colors"
             @click="isNewProjectModalOpen = false"
           >
             Cancel
           </button>
           <button
             type="button"
-            class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-semibold px-4 py-2 rounded-md transition-colors cursor-pointer"
+            class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer shadow-xs"
             @click="isNewProjectModalOpen = false"
           >
             Save
@@ -565,5 +563,6 @@ const confirmDuplicateRun = () => {
         </div>
       </div>
     </div>
+
   </div>
 </template>

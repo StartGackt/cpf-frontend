@@ -107,12 +107,12 @@ const removeTest = (idx: number) => {
       />
 
       <div class="flex-1 min-w-0 space-y-4">
-        <!-- Sub Navigation Tabs -->
-        <div class="flex items-center border-b border-gray-200 space-x-6 text-xs font-semibold">
+        <!-- Sub Navigation Tabs (Pill Style) -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-2 flex items-center gap-1.5 flex-wrap text-xs">
           <button
             type="button"
-            class="pb-3 flex items-center gap-1.5 transition-colors relative cursor-pointer"
-            :class="activeSubTab === 'standard' ? 'text-[#008779] border-b-2 border-[#008779]' : 'text-gray-500 hover:text-gray-800'"
+            class="px-4 py-2 rounded-full font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            :class="activeSubTab === 'standard' ? 'bg-[#008779] text-white shadow-2xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'"
             @click="activeSubTab = 'standard'"
           >
             <UIcon name="i-lucide-test-tube-2" class="size-4" />
@@ -121,8 +121,8 @@ const removeTest = (idx: number) => {
 
           <button
             type="button"
-            class="pb-3 flex items-center gap-1.5 transition-colors relative cursor-pointer"
-            :class="activeSubTab === 'counterbalance' ? 'text-[#008779] border-b-2 border-[#008779]' : 'text-gray-500 hover:text-gray-800'"
+            class="px-4 py-2 rounded-full font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            :class="activeSubTab === 'counterbalance' ? 'bg-[#008779] text-white shadow-2xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'"
             @click="activeSubTab = 'counterbalance'"
           >
             <UIcon name="i-lucide-scale" class="size-4" />
@@ -131,8 +131,8 @@ const removeTest = (idx: number) => {
 
           <button
             type="button"
-            class="pb-3 flex items-center gap-1.5 transition-colors relative cursor-pointer"
-            :class="activeSubTab === 'samplesize' ? 'text-[#008779] border-b-2 border-[#008779]' : 'text-gray-500 hover:text-gray-800'"
+            class="px-4 py-2 rounded-full font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            :class="activeSubTab === 'samplesize' ? 'bg-[#008779] text-white shadow-2xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'"
             @click="activeSubTab = 'samplesize'"
           >
             <UIcon name="i-lucide-calculator" class="size-4" />
@@ -141,20 +141,20 @@ const removeTest = (idx: number) => {
         </div>
 
         <!-- 1. Standard Hypothesis Tests View -->
-        <div v-if="activeSubTab === 'standard'" class="bg-white rounded-lg border border-gray-200 shadow-xs p-6 space-y-4">
-          <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+        <div v-if="activeSubTab === 'standard'" class="bg-white rounded-3xl border border-slate-200/80 shadow-2xs p-6 space-y-4">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100">
             <div>
-              <h2 class="text-sm font-bold text-gray-900">
+              <h2 class="text-sm font-bold text-slate-900">
                 Root Cause Hypothesis Testing Battery (Statistically Verified)
               </h2>
-              <p class="text-xs text-gray-500 mt-0.5">
+              <p class="text-xs text-slate-500 mt-0.5">
                 Evaluates significance against &alpha; = 0.05. Statistically confirmed factors feed directly into Improve DOE.
               </p>
             </div>
 
             <button
               type="button"
-              class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-semibold px-4 py-2 rounded-md flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+              class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
               @click="openAddTestModal"
             >
               <UIcon name="i-lucide-plus" class="size-3.5" />

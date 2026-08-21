@@ -8,7 +8,6 @@ const selectedPlant = ref('all')
 const selectedYear = ref('2025-2026')
 const selectedBelt = ref('all')
 const selectedPhase = ref('all')
-const selectedStatus = ref('all')
 
 const statSummary = ref({
   totalProjects: 200,
@@ -31,71 +30,87 @@ const exportToPdf = () => {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <!-- Page Header & Export Actions Toolbar -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900 tracking-tight">
-          Executive Project Visualize Dashboard
-        </h1>
-        <p class="text-xs text-gray-500 mt-1">
-          Multi-dimensional portfolio analytics across CPF Business Units, Six Sigma Belt Levels, and DMAIC stages
+  <div class="space-y-6 animate-in fade-in duration-200 select-none">
+    
+    <!-- ========================================================= -->
+    <!-- HERO HEADER: Executive Portfolio & AI Analytics Hub -->
+    <!-- ========================================================= -->
+    <div class="bg-gradient-to-r from-teal-950 via-[#008779] to-indigo-950 rounded-3xl text-white p-6 sm:p-8 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative overflow-hidden">
+      <!-- Ambient Glow in Background -->
+      <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-teal-400/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="space-y-2 relative z-10 max-w-2xl">
+        <div class="flex items-center gap-2.5">
+          <div class="size-10 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-xs">
+            <UIcon name="i-lucide-layout-dashboard" class="size-5 text-amber-300" />
+          </div>
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">
+              Executive Project Visualize Dashboard
+            </h1>
+            <span class="text-xs text-teal-200">Portfolio Performance, Six Sigma Belt Analytics & Stage Gate Telemetry</span>
+          </div>
+        </div>
+        <p class="text-xs sm:text-sm text-teal-100/90 leading-relaxed pt-1">
+          ศูนย์รวมการวิเคราะห์ข้อมูลความคืบหน้าโครงการ DMAIC, ดัชนีความสามารถกระบวนการ (Cpk), และผลตอบแทนทางการเงินที่ได้รับการรับรองทั่วทั้งเครือ CPF
         </p>
       </div>
 
-      <!-- Export Toolbar (Excel, PDF, Image) -->
-      <div class="flex items-center gap-2 flex-wrap">
+      <!-- Action Toolbar -->
+      <div class="flex items-center gap-2.5 flex-wrap relative z-10 shrink-0">
         <button
           type="button"
-          class="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold px-3 py-2 rounded-md flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+          class="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
           @click="exportToExcel"
         >
-          <UIcon name="i-lucide-file-spreadsheet" class="size-3.5 text-emerald-600" />
-          <span>Export Excel (.xlsx)</span>
+          <UIcon name="i-lucide-file-spreadsheet" class="size-4 text-emerald-300" />
+          <span>Export Excel</span>
         </button>
 
         <button
           type="button"
-          class="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold px-3 py-2 rounded-md flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+          class="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
           @click="exportToPdf"
         >
-          <UIcon name="i-lucide-file-text" class="size-3.5 text-red-600" />
-          <span>Export PDF Report</span>
+          <UIcon name="i-lucide-file-text" class="size-4 text-rose-300" />
+          <span>Export PDF</span>
         </button>
 
         <NuxtLink
-          to="/admin/projects"
-          class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-semibold px-4 py-2 rounded-md flex items-center gap-1.5 shadow-xs transition-colors"
+          to="/admin/chatbot"
+          class="bg-white hover:bg-teal-50 text-[#008779] text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md cursor-pointer group"
         >
-          <UIcon name="i-lucide-folder" class="size-3.5" />
-          <span>View All Projects</span>
+          <UIcon name="i-lucide-sparkles" class="size-4 text-amber-500 group-hover:rotate-12 transition-transform" />
+          <span>Analyze with AI</span>
         </NuxtLink>
       </div>
     </div>
 
-    <!-- Multi-Dimensional Dynamic Filter Bar -->
-    <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-4 space-y-3">
+    <!-- ========================================================= -->
+    <!-- FILTER BAR CAPSULE -->
+    <!-- ========================================================= -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 space-y-3">
       <div class="flex items-center justify-between">
-        <span class="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+        <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
           <UIcon name="i-lucide-filter" class="size-3.5 text-[#008779]" />
           <span>Portfolio Filters & Criteria</span>
         </span>
         <button
           type="button"
-          class="text-[11px] text-teal-700 hover:text-teal-900 font-semibold"
+          class="text-[11px] text-[#008779] hover:underline font-semibold cursor-pointer"
           @click="selectedBusiness = 'all'; selectedBu = 'all'; selectedPlant = 'all'; selectedBelt = 'all'; selectedPhase = 'all'"
         >
-          Reset All Filters
+          Reset Filters
         </button>
       </div>
 
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 text-xs">
         <!-- Business -->
         <div class="space-y-1">
-          <label class="text-[10px] text-gray-500 font-bold block uppercase">Business</label>
+          <label class="text-[10px] text-slate-400 font-bold block uppercase">Business</label>
           <select
             v-model="selectedBusiness"
-            class="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-[#008779]"
+            class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-[#008779] cursor-pointer"
           >
             <option value="all">All Businesses</option>
             <option value="food">Food Business</option>
@@ -106,10 +121,10 @@ const exportToPdf = () => {
 
         <!-- Business Unit -->
         <div class="space-y-1">
-          <label class="text-[10px] text-gray-500 font-bold block uppercase">Business Unit</label>
+          <label class="text-[10px] text-slate-400 font-bold block uppercase">Business Unit</label>
           <select
             v-model="selectedBu"
-            class="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-[#008779]"
+            class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-[#008779] cursor-pointer"
           >
             <option value="all">All Business Units</option>
             <option value="chicken">Chicken Processing</option>
@@ -120,10 +135,10 @@ const exportToPdf = () => {
 
         <!-- Plant / Location -->
         <div class="space-y-1">
-          <label class="text-[10px] text-gray-500 font-bold block uppercase">Plant / Plant</label>
+          <label class="text-[10px] text-slate-400 font-bold block uppercase">Plant Location</label>
           <select
             v-model="selectedPlant"
-            class="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-[#008779]"
+            class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-[#008779] cursor-pointer"
           >
             <option value="all">All Plants (12)</option>
             <option value="chokchai">โรงงานแปรรูปโชคชัย</option>
@@ -134,25 +149,24 @@ const exportToPdf = () => {
 
         <!-- Belt Level -->
         <div class="space-y-1">
-          <label class="text-[10px] text-gray-500 font-bold block uppercase">Belt Type</label>
+          <label class="text-[10px] text-slate-400 font-bold block uppercase">Belt Type</label>
           <select
             v-model="selectedBelt"
-            class="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-[#008779]"
+            class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-[#008779] cursor-pointer"
           >
             <option value="all">All Belt Levels</option>
             <option value="bb">Black Belt (BB)</option>
             <option value="gb">Green Belt (GB)</option>
             <option value="yb">Yellow Belt (YB)</option>
-            <option value="sme">SME / Innovation</option>
           </select>
         </div>
 
         <!-- Phase -->
         <div class="space-y-1">
-          <label class="text-[10px] text-gray-500 font-bold block uppercase">DMAIC Phase</label>
+          <label class="text-[10px] text-slate-400 font-bold block uppercase">DMAIC Phase</label>
           <select
             v-model="selectedPhase"
-            class="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-[#008779]"
+            class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-[#008779] cursor-pointer"
           >
             <option value="all">All Phases</option>
             <option value="define">Define</option>
@@ -165,73 +179,79 @@ const exportToPdf = () => {
 
         <!-- Fiscal Year -->
         <div class="space-y-1">
-          <label class="text-[10px] text-gray-500 font-bold block uppercase">Fiscal Year</label>
+          <label class="text-[10px] text-slate-400 font-bold block uppercase">Fiscal Year</label>
           <select
             v-model="selectedYear"
-            class="w-full bg-gray-50 border border-gray-200 rounded px-2 py-1.5 text-xs text-gray-800 focus:outline-none focus:bg-white focus:border-[#008779]"
+            class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-[#008779] cursor-pointer"
           >
             <option value="2025-2026">2025 - 2026 (Current)</option>
             <option value="2024">2024</option>
             <option value="2023">2023</option>
-            <option value="all">All Historical Archive</option>
           </select>
         </div>
       </div>
     </div>
 
-    <!-- 6 Executive KPI Stat Cards -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-      <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-3.5 space-y-1">
-        <span class="text-[11px] text-gray-500 font-medium">Total Projects</span>
-        <p class="text-xl font-bold text-gray-900 font-mono">{{ statSummary.totalProjects }}</p>
-        <span class="text-[10px] text-gray-400">All CPF Units</span>
+    <!-- ========================================================= -->
+    <!-- 6 EXECUTIVE KPI STAT CAPSULES -->
+    <!-- ========================================================= -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 space-y-1 hover:shadow-xs transition-shadow">
+        <span class="text-[10px] text-slate-400 font-bold uppercase block">TOTAL PROJECTS</span>
+        <p class="text-2xl font-bold text-slate-900 font-mono">{{ statSummary.totalProjects }}</p>
+        <span class="text-[10px] text-slate-500 font-medium">All CPF Units</span>
       </div>
 
-      <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-3.5 space-y-1">
-        <span class="text-[11px] text-blue-700 font-medium">Active Pipeline</span>
-        <p class="text-xl font-bold text-blue-700 font-mono">{{ statSummary.activeProjects }}</p>
-        <span class="text-[10px] text-blue-500">In Progress</span>
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 space-y-1 hover:shadow-xs transition-shadow">
+        <span class="text-[10px] text-blue-600 font-bold uppercase block">ACTIVE PIPELINE</span>
+        <p class="text-2xl font-bold text-blue-700 font-mono">{{ statSummary.activeProjects }}</p>
+        <span class="text-[10px] text-blue-500 font-medium">In Progress</span>
       </div>
 
-      <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-3.5 space-y-1">
-        <span class="text-[11px] text-emerald-700 font-medium">Completed Projects</span>
-        <p class="text-xl font-bold text-emerald-700 font-mono">{{ statSummary.completedProjects }}</p>
-        <span class="text-[10px] text-emerald-600">Phase 1 & Historical</span>
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 space-y-1 hover:shadow-xs transition-shadow">
+        <span class="text-[10px] text-emerald-600 font-bold uppercase block">COMPLETED</span>
+        <p class="text-2xl font-bold text-emerald-700 font-mono">{{ statSummary.completedProjects }}</p>
+        <span class="text-[10px] text-emerald-600 font-medium">Verified PFR</span>
       </div>
 
-      <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-3.5 space-y-1">
-        <span class="text-[11px] text-[#008779] font-medium">Financial Cost Savings</span>
-        <p class="text-xl font-bold text-[#008779] font-mono">{{ statSummary.totalSavings }}</p>
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 space-y-1 hover:shadow-xs transition-shadow">
+        <span class="text-[10px] text-[#008779] font-bold uppercase block">TOTAL SAVINGS</span>
+        <p class="text-2xl font-bold text-[#008779] font-mono">{{ statSummary.totalSavings }}</p>
         <span class="text-[10px] text-emerald-600 font-semibold">Audited ROI</span>
       </div>
 
-      <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-3.5 space-y-1">
-        <span class="text-[11px] text-purple-700 font-medium">Avg Yield Gain</span>
-        <p class="text-xl font-bold text-purple-700 font-mono">{{ statSummary.avgYieldGain }}</p>
-        <span class="text-[10px] text-purple-500">Above Baseline</span>
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 space-y-1 hover:shadow-xs transition-shadow">
+        <span class="text-[10px] text-purple-600 font-bold uppercase block">AVG YIELD GAIN</span>
+        <p class="text-2xl font-bold text-purple-700 font-mono">{{ statSummary.avgYieldGain }}</p>
+        <span class="text-[10px] text-purple-500 font-medium">Above Baseline</span>
       </div>
 
-      <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-3.5 space-y-1">
-        <span class="text-[11px] text-amber-700 font-medium">Process Capability (Cpk)</span>
-        <p class="text-xl font-bold text-amber-700 font-mono">{{ statSummary.avgCpk }}</p>
-        <span class="text-[10px] text-amber-600">Stable & Sustained</span>
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 space-y-1 hover:shadow-xs transition-shadow">
+        <span class="text-[10px] text-amber-600 font-bold uppercase block">PROCESS CPK</span>
+        <p class="text-2xl font-bold text-amber-700 font-mono">{{ statSummary.avgCpk }}</p>
+        <span class="text-[10px] text-amber-600 font-medium">Stable (&ge;1.33)</span>
       </div>
     </div>
 
-    <!-- 4 Visual Analytics Charts Grid -->
+    <!-- ========================================================= -->
+    <!-- VISUAL ANALYTICS CHARTS GRID -->
+    <!-- ========================================================= -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       <!-- 1. Pipeline by DMAIC Phase (8 Cols) -->
-      <div class="lg:col-span-8 bg-white rounded-lg border border-gray-200 shadow-xs p-5 space-y-4">
-        <div class="flex items-center justify-between pb-2 border-b border-gray-100">
+      <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
           <div>
-            <h2 class="text-sm font-bold text-gray-900">
-              DMAIC Phase Progression & Active Funnel
+            <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <UIcon name="i-lucide-bar-chart-2" class="size-4 text-[#008779]" />
+              <span>DMAIC Phase Progression & Active Funnel</span>
             </h2>
-            <p class="text-xs text-gray-500 mt-0.5">
+            <p class="text-xs text-slate-500 mt-0.5">
               Active projects distributed across Define, Measure, Analyze, Improve, and Control
             </p>
           </div>
-          <span class="text-xs text-gray-500 font-mono font-semibold">42 Active</span>
+          <span class="text-xs text-[#008779] bg-teal-50 border border-teal-200/80 px-2.5 py-0.5 rounded-full font-mono font-bold">
+            42 Active
+          </span>
         </div>
 
         <div class="h-56 flex items-center justify-center p-2">
@@ -250,27 +270,27 @@ const exportToPdf = () => {
 
             <!-- Bars: Define (8), Measure (14), Analyze (9), Improve (7), Control (4) -->
             <!-- Define -->
-            <rect x="80" y="80" width="50" height="60" rx="4" fill="#60a5fa" />
+            <rect x="80" y="80" width="50" height="60" rx="8" fill="#60a5fa" />
             <text x="105" y="74" font-size="10" fill="#1e40af" font-weight="bold" text-anchor="middle">8</text>
             <text x="105" y="158" font-size="10" fill="#475569" font-weight="bold" text-anchor="middle">Define</text>
 
             <!-- Measure -->
-            <rect x="180" y="32" width="50" height="108" rx="4" fill="#38bdf8" />
+            <rect x="180" y="32" width="50" height="108" rx="8" fill="#38bdf8" />
             <text x="205" y="26" font-size="10" fill="#0369a1" font-weight="bold" text-anchor="middle">14</text>
             <text x="205" y="158" font-size="10" fill="#475569" font-weight="bold" text-anchor="middle">Measure</text>
 
             <!-- Analyze -->
-            <rect x="280" y="72" width="50" height="68" rx="4" fill="#a78bfa" />
+            <rect x="280" y="72" width="50" height="68" rx="8" fill="#a78bfa" />
             <text x="305" y="66" font-size="10" fill="#6d28d9" font-weight="bold" text-anchor="middle">9</text>
             <text x="305" y="158" font-size="10" fill="#475569" font-weight="bold" text-anchor="middle">Analyze</text>
 
             <!-- Improve -->
-            <rect x="380" y="88" width="50" height="52" rx="4" fill="#008779" />
+            <rect x="380" y="88" width="50" height="52" rx="8" fill="#008779" />
             <text x="405" y="82" font-size="10" fill="#007366" font-weight="bold" text-anchor="middle">7</text>
-            <text x="405" y="158" font-size="10" fill="#475569" font-weight="bold" text-anchor="middle">Improve</text>
+            <text x="405" y="158" font-size="10" fill="#008779" font-weight="bold" text-anchor="middle">Improve</text>
 
             <!-- Control -->
-            <rect x="480" y="112" width="50" height="28" rx="4" fill="#34d399" />
+            <rect x="480" y="112" width="50" height="28" rx="8" fill="#34d399" />
             <text x="505" y="106" font-size="10" fill="#065f46" font-weight="bold" text-anchor="middle">4</text>
             <text x="505" y="158" font-size="10" fill="#475569" font-weight="bold" text-anchor="middle">Control</text>
           </svg>
@@ -278,37 +298,39 @@ const exportToPdf = () => {
       </div>
 
       <!-- 2. Six Sigma Belt Distribution (4 Cols) -->
-      <div class="lg:col-span-4 bg-white rounded-lg border border-gray-200 shadow-xs p-5 space-y-4">
-        <div class="flex items-center justify-between pb-2 border-b border-gray-100">
-          <h2 class="text-sm font-bold text-gray-900">
-            Belt Level Certification
+      <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <UIcon name="i-lucide-award" class="size-4 text-purple-600" />
+            <span>Belt Level Certification</span>
           </h2>
-          <span class="text-xs text-gray-500 font-mono">100%</span>
+          <span class="text-xs text-slate-500 font-mono font-bold">100% Total</span>
         </div>
 
         <div class="h-44 flex items-center justify-center">
           <svg class="size-40" viewBox="0 0 100 100">
             <!-- Donut Segments (BB 35%, GB 45%, YB 15%, SME 5%) -->
-            <circle cx="50" cy="50" r="35" fill="none" stroke="#e2e8f0" stroke-width="16" />
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#f1f5f9" stroke-width="14" />
             <!-- BB (35%) - Black / Dark Slate -->
-            <circle cx="50" cy="50" r="35" fill="none" stroke="#1e293b" stroke-width="16" stroke-dasharray="77 220" stroke-dashoffset="0" />
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#1e293b" stroke-width="14" stroke-dasharray="77 220" stroke-dashoffset="0" />
             <!-- GB (45%) - Green / Emerald -->
-            <circle cx="50" cy="50" r="35" fill="none" stroke="#059669" stroke-width="16" stroke-dasharray="99 220" stroke-dashoffset="-77" />
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#008779" stroke-width="14" stroke-dasharray="99 220" stroke-dashoffset="-77" />
             <!-- YB (15%) - Amber / Yellow -->
-            <circle cx="50" cy="50" r="35" fill="none" stroke="#f59e0b" stroke-width="16" stroke-dasharray="33 220" stroke-dashoffset="-176" />
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#f59e0b" stroke-width="14" stroke-dasharray="33 220" stroke-dashoffset="-176" />
             <!-- SME (5%) - Purple -->
-            <circle cx="50" cy="50" r="35" fill="none" stroke="#8b5cf6" stroke-width="16" stroke-dasharray="11 220" stroke-dashoffset="-209" />
+            <circle cx="50" cy="50" r="35" fill="none" stroke="#8b5cf6" stroke-width="14" stroke-dasharray="11 220" stroke-dashoffset="-209" />
           </svg>
         </div>
 
         <!-- Legend -->
-        <div class="grid grid-cols-2 gap-2 text-[11px]">
-          <div class="flex items-center gap-1.5"><span class="size-2.5 rounded-full bg-slate-900"></span><span>Black Belt (35%)</span></div>
-          <div class="flex items-center gap-1.5"><span class="size-2.5 rounded-full bg-emerald-600"></span><span>Green Belt (45%)</span></div>
-          <div class="flex items-center gap-1.5"><span class="size-2.5 rounded-full bg-amber-500"></span><span>Yellow Belt (15%)</span></div>
-          <div class="flex items-center gap-1.5"><span class="size-2.5 rounded-full bg-purple-500"></span><span>SME (5%)</span></div>
+        <div class="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-slate-100">
+          <div class="flex items-center gap-1.5"><span class="size-2.5 rounded-full bg-slate-900"></span><span class="font-medium text-slate-700">Black Belt (35%)</span></div>
+          <div class="flex items-center gap-1.5"><span class="size-2.5 rounded-full bg-[#008779]"></span><span class="font-medium text-slate-700">Green Belt (45%)</span></div>
+          <div class="flex items-center gap-1.5"><span class="size-2.5 rounded-full bg-amber-500"></span><span class="font-medium text-slate-700">Yellow Belt (15%)</span></div>
+          <div class="flex items-center gap-1.5"><span class="size-2.5 rounded-full bg-purple-500"></span><span class="font-medium text-slate-700">SME (5%)</span></div>
         </div>
       </div>
     </div>
+
   </div>
 </template>

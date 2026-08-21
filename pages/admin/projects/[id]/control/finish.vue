@@ -47,26 +47,26 @@ const pfrWorkflow = computed<ApprovalWorkflow | undefined>(() => {
 
       <div class="flex-1 min-w-0 space-y-4">
         <!-- 1. Close-out Congratulation Banner -->
-        <div class="bg-gradient-to-r from-teal-900 to-emerald-900 text-white rounded-xl p-6 shadow-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div class="space-y-1">
+        <div class="bg-gradient-to-r from-teal-950 via-[#008779] to-indigo-950 text-white rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 relative overflow-hidden">
+          <div class="space-y-1.5 relative z-10">
             <div class="flex items-center gap-2">
-              <span class="bg-amber-400 text-gray-950 text-[10px] font-black px-2 py-0.5 rounded tracking-wide">
+              <span class="bg-amber-300 text-slate-950 text-[10px] font-black px-2.5 py-0.5 rounded-full tracking-wide">
                 PROJECT CLOSED & CERTIFIED
               </span>
               <span class="text-xs text-teal-200 font-mono">Doc: {{ projectSummary.pfrDocId }}</span>
             </div>
-            <h1 class="text-xl font-bold tracking-tight text-white">
+            <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white">
               {{ projectSummary.name }}
             </h1>
-            <p class="text-xs text-teal-100">
+            <p class="text-xs text-teal-100/90">
               PFR Workflow Approved. Project documentation has been automatically synced to CPF KM Repository.
             </p>
           </div>
 
-          <div class="flex items-center gap-2 flex-wrap">
+          <div class="flex items-center gap-2.5 flex-wrap relative z-10 shrink-0">
             <NuxtLink
               :to="`/admin/projects/${projectId}/presentation`"
-              class="bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3 py-2 rounded-md flex items-center gap-1.5 transition-colors border border-white/20"
+              class="bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors border border-white/20 shadow-2xs"
             >
               <UIcon name="i-lucide-presentation" class="size-3.5" />
               <span>Presentation Mode</span>
@@ -74,7 +74,7 @@ const pfrWorkflow = computed<ApprovalWorkflow | undefined>(() => {
 
             <button
               type="button"
-              class="bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3 py-2 rounded-md flex items-center gap-1.5 transition-colors border border-white/20 cursor-pointer"
+              class="bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors border border-white/20 cursor-pointer shadow-2xs"
               @click="isWorkflowModalOpen = true"
             >
               <UIcon name="i-lucide-file-signature" class="size-3.5 text-teal-300" />
@@ -83,7 +83,7 @@ const pfrWorkflow = computed<ApprovalWorkflow | undefined>(() => {
 
             <NuxtLink
               :to="`/admin/projects/${projectId}/report`"
-              class="bg-white text-[#008779] hover:bg-gray-100 text-xs font-bold px-4 py-2 rounded-md flex items-center gap-1.5 shadow-sm transition-colors"
+              class="bg-white text-[#008779] hover:bg-teal-50 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
             >
               <UIcon name="i-lucide-file-check" class="size-4" />
               <span>Export Signed PFR (PDF)</span>
@@ -92,39 +92,39 @@ const pfrWorkflow = computed<ApprovalWorkflow | undefined>(() => {
         </div>
 
         <!-- 2. Final Verified Metrics Grid (Dynamic from Live Project Data) -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-4 text-center space-y-1">
-            <span class="text-[10px] text-gray-500 font-bold uppercase">FINAL YIELD GAIN</span>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 text-center space-y-1">
+            <span class="text-[10px] text-slate-400 font-bold uppercase">FINAL YIELD GAIN</span>
             <p class="text-2xl font-bold text-emerald-700 font-mono">{{ projectSummary.finalYield }}</p>
             <span class="text-[10px] text-emerald-600 font-semibold font-mono">{{ projectSummary.yieldImprovement }} vs Baseline</span>
           </div>
 
-          <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-4 text-center space-y-1">
-            <span class="text-[10px] text-gray-500 font-bold uppercase">GIVEAWAY REDUCTION</span>
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 text-center space-y-1">
+            <span class="text-[10px] text-slate-400 font-bold uppercase">GIVEAWAY REDUCTION</span>
             <p class="text-2xl font-bold text-[#008779] font-mono">{{ projectSummary.finalGiveaway }}</p>
             <span class="text-[10px] text-teal-600 font-mono">From 4.25% &rarr; {{ projectSummary.finalGiveaway }}</span>
           </div>
 
-          <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-4 text-center space-y-1">
-            <span class="text-[10px] text-gray-500 font-bold uppercase">FINANCIAL BENEFIT</span>
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 text-center space-y-1">
+            <span class="text-[10px] text-slate-400 font-bold uppercase">FINANCIAL BENEFIT</span>
             <p class="text-xl font-bold text-teal-800 font-mono">{{ projectSummary.verifiedAnnualSavings }}</p>
             <span class="text-[10px] text-emerald-600 font-semibold">Audited Cost Savings</span>
           </div>
 
-          <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-4 text-center space-y-1">
-            <span class="text-[10px] text-gray-500 font-bold uppercase">CAPABILITY STABILITY</span>
-            <p class="text-2xl font-bold text-gray-900 font-mono">{{ projectSummary.cpk }}</p>
-            <span class="text-[10px] text-gray-500">Six Sigma Sustained</span>
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 text-center space-y-1">
+            <span class="text-[10px] text-slate-400 font-bold uppercase">CAPABILITY STABILITY</span>
+            <p class="text-2xl font-bold text-slate-900 font-mono">{{ projectSummary.cpk }}</p>
+            <span class="text-[10px] text-slate-400">Six Sigma Sustained</span>
           </div>
         </div>
 
         <!-- 3. Four-Step E-Signature Close-out Approval Chain -->
-        <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-6 space-y-4">
-          <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-2xs p-6 space-y-4">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100">
             <div>
-              <h2 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+              <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <span>PFR Electronic Sign-off Chain (E-Signature Verified)</span>
-                <span class="text-[10px] bg-teal-50 text-[#008779] border border-teal-200 font-bold px-2 py-0.5 rounded">
+                <span class="text-[10px] bg-teal-50 text-[#008779] border border-teal-200 font-bold px-2.5 py-0.5 rounded-full">
                   CPF E-Sign Security Standards
                 </span>
               </h2>

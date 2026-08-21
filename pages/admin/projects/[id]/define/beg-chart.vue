@@ -128,12 +128,12 @@ const polylinePoints = computed(() => {
       />
 
       <div class="flex-1 min-w-0 space-y-4">
-        <!-- Sub Navigation Tabs -->
-        <div class="flex items-center border-b border-gray-200 space-x-6 text-xs font-semibold">
+        <!-- Sub Navigation Tabs (Pill Style) -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-2 flex items-center gap-1.5 flex-wrap text-xs">
           <button
             type="button"
-            class="pb-3 flex items-center gap-1.5 transition-colors relative cursor-pointer"
-            :class="activeSubTab === 'chart' ? 'text-[#008779] border-b-2 border-[#008779]' : 'text-gray-500 hover:text-gray-800'"
+            class="px-4 py-2 rounded-full font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            :class="activeSubTab === 'chart' ? 'bg-[#008779] text-white shadow-2xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'"
             @click="activeSubTab = 'chart'"
           >
             <UIcon name="i-lucide-line-chart" class="size-4" />
@@ -142,8 +142,8 @@ const polylinePoints = computed(() => {
 
           <button
             type="button"
-            class="pb-3 flex items-center gap-1.5 transition-colors relative cursor-pointer"
-            :class="activeSubTab === 'charter' ? 'text-[#008779] border-b-2 border-[#008779]' : 'text-gray-500 hover:text-gray-800'"
+            class="px-4 py-2 rounded-full font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            :class="activeSubTab === 'charter' ? 'bg-[#008779] text-white shadow-2xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'"
             @click="activeSubTab = 'charter'"
           >
             <UIcon name="i-lucide-file-text" class="size-4" />
@@ -152,8 +152,8 @@ const polylinePoints = computed(() => {
 
           <button
             type="button"
-            class="pb-3 flex items-center gap-1.5 transition-colors relative cursor-pointer"
-            :class="activeSubTab === 'counterbalance' ? 'text-[#008779] border-b-2 border-[#008779]' : 'text-gray-500 hover:text-gray-800'"
+            class="px-4 py-2 rounded-full font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            :class="activeSubTab === 'counterbalance' ? 'bg-[#008779] text-white shadow-2xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'"
             @click="activeSubTab = 'counterbalance'"
           >
             <UIcon name="i-lucide-scale" class="size-4" />
@@ -162,8 +162,8 @@ const polylinePoints = computed(() => {
 
           <button
             type="button"
-            class="pb-3 flex items-center gap-1.5 transition-colors relative cursor-pointer"
-            :class="activeSubTab === 'versions' ? 'text-[#008779] border-b-2 border-[#008779]' : 'text-gray-500 hover:text-gray-800'"
+            class="px-4 py-2 rounded-full font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            :class="activeSubTab === 'versions' ? 'bg-[#008779] text-white shadow-2xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'"
             @click="activeSubTab = 'versions'"
           >
             <UIcon name="i-lucide-history" class="size-4" />
@@ -172,18 +172,18 @@ const polylinePoints = computed(() => {
         </div>
 
         <!-- 1. BEG Analysis Chart View -->
-        <div v-if="activeSubTab === 'chart'" class="bg-white rounded-lg border border-gray-200 shadow-xs p-5 space-y-6">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-gray-100 gap-3">
+        <div v-if="activeSubTab === 'chart'" class="bg-white rounded-3xl border border-slate-200/80 shadow-2xs p-6 space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-slate-100 gap-3">
             <div>
               <div class="flex items-center gap-2">
-                <h2 class="text-sm font-bold text-gray-900">
+                <h2 class="text-sm font-bold text-slate-900">
                   BEG Statistical Time-Series Chart (Interactive Real-Time)
                 </h2>
-                <span class="text-[10px] bg-teal-50 text-[#008779] border border-teal-200 px-2 py-0.5 rounded font-mono font-bold">
+                <span class="text-[10px] bg-teal-50 text-[#008779] border border-teal-200 px-2.5 py-0.5 rounded-full font-mono font-bold">
                   {{ loadedData.length }} Data Points
                 </span>
               </div>
-              <p class="text-xs text-gray-500 mt-0.5">
+              <p class="text-xs text-slate-500 mt-0.5">
                 คลิกที่จุดในกราฟเพื่อแก้ไขค่าแบบทันที หรือไปที่หน้า Insight Data เพื่อจัดการชุดข้อมูลทั้งหมด
               </p>
             </div>
@@ -191,13 +191,13 @@ const polylinePoints = computed(() => {
             <div class="flex items-center gap-3">
               <NuxtLink
                 :to="`/admin/projects/${projectId}/define/insight-data`"
-                class="border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-md flex items-center gap-1 shadow-xs transition-colors"
+                class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors"
               >
-                <UIcon name="i-lucide-edit" class="size-3.5" />
+                <UIcon name="i-lucide-edit" class="size-3.5 text-[#008779]" />
                 <span>Manage All Data Rows</span>
               </NuxtLink>
 
-              <span class="text-xs font-mono font-bold text-[#008779] bg-teal-50 border border-teal-200 px-2.5 py-1 rounded">
+              <span class="text-xs font-mono font-bold text-[#008779] bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-xl shadow-2xs">
                 Entitlement Gap Closure: 80.0%
               </span>
             </div>

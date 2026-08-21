@@ -104,7 +104,8 @@ const allSignedAuditLogs = computed(() => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 animate-in fade-in duration-200 select-none">
+    
     <!-- Toast Feedback Notification -->
     <Transition
       enter-active-class="transition duration-300 ease-out"
@@ -116,70 +117,86 @@ const allSignedAuditLogs = computed(() => {
     >
       <div
         v-if="toastMsg"
-        class="fixed top-5 right-5 z-50 bg-gray-900 border border-teal-500 text-white px-4 py-2.5 rounded-lg shadow-2xl flex items-center gap-2 text-xs font-semibold"
+        class="fixed top-5 right-5 z-50 bg-slate-900 border border-teal-500 text-white px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 text-xs font-semibold"
       >
         <UIcon name="i-lucide-check-circle-2" class="size-4 text-teal-400" />
         <span>{{ toastMsg }}</span>
       </div>
     </Transition>
 
-    <!-- Top Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <div>
-        <div class="flex items-center gap-2 text-xs text-gray-500 pb-1">
-          <NuxtLink to="/admin" class="hover:text-[#008779]">Home</NuxtLink>
-          <span>›</span>
-          <span class="text-gray-900 font-bold">Enterprise Approval Center</span>
+    <!-- ========================================================= -->
+    <!-- HERO HEADER: Enterprise Approval & Provisioning Center -->
+    <!-- ========================================================= -->
+    <div class="bg-gradient-to-r from-teal-950 via-[#008779] to-indigo-950 rounded-3xl text-white p-6 sm:p-8 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative overflow-hidden">
+      <!-- Ambient Sparkle Glow in Background -->
+      <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-teal-400/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="space-y-2 relative z-10 max-w-2xl">
+        <div class="flex items-center gap-2.5">
+          <div class="size-10 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-xs">
+            <UIcon name="i-lucide-clipboard-check" class="size-5 text-amber-300" />
+          </div>
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">
+              Enterprise Approval & Provisioning Center
+            </h1>
+            <span class="text-xs text-teal-200">Multi-level Sign-offs for PCR & PFR, E-Signature Audit, and Admin Queue</span>
+          </div>
         </div>
-        <h1 class="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
-          <span>Enterprise Approval & Provisioning Center</span>
-          <span class="text-xs bg-teal-50 text-[#008779] border border-teal-200 px-2.5 py-0.5 rounded-full font-bold">
-            CPF E-Sign & API Integrated
-          </span>
-        </h1>
-        <p class="text-xs text-gray-500 mt-1">
-          Multi-level sign-offs for Project Charter (PCR) & Final Report (PFR), E-Signature authorization, and Admin User Provisioning.
+        <p class="text-xs sm:text-sm text-teal-100/90 leading-relaxed pt-1">
+          ระบบทบทวนและอนุมัติข้ามเฟส (Stage Gate Tollgate Review) พร้อมลายเซ็นดิจิทัล E-Signature ที่ได้รับการรับรองตามมาตรฐาน Six Sigma
         </p>
       </div>
 
-      <div class="flex items-center gap-2">
+      <!-- Quick Action Navigation -->
+      <div class="flex items-center gap-2.5 relative z-10 shrink-0">
         <NuxtLink
           to="/admin/projects"
-          class="border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold px-3.5 py-2 rounded-lg flex items-center gap-1.5 shadow-xs transition-colors"
+          class="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
         >
-          <UIcon name="i-lucide-folder-kanban" class="size-3.5" />
-          <span>Projects Dashboard</span>
+          <UIcon name="i-lucide-folder-kanban" class="size-4 text-teal-200" />
+          <span>Projects Portfolio</span>
+        </NuxtLink>
+
+        <NuxtLink
+          to="/admin/chatbot"
+          class="bg-white hover:bg-teal-50 text-[#008779] text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-md cursor-pointer group"
+        >
+          <UIcon name="i-lucide-sparkles" class="size-4 text-amber-500 group-hover:rotate-12 transition-transform" />
+          <span>AI Gate Advisor</span>
         </NuxtLink>
       </div>
     </div>
 
-    <!-- Navigation Tabs Bar -->
-    <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-1.5 flex items-center gap-1 flex-wrap text-xs">
+    <!-- ========================================================= -->
+    <!-- NAVIGATION TABS (Pill Style) -->
+    <!-- ========================================================= -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-2 flex items-center gap-1.5 flex-wrap text-xs">
       <button
         type="button"
-        class="px-4 py-2 rounded-md font-bold transition-all flex items-center gap-2 cursor-pointer"
-        :class="activeTab === 'workflows' ? 'bg-[#008779] text-white shadow-xs' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'"
+        class="px-4 py-2 rounded-full font-bold transition-all flex items-center gap-2 cursor-pointer"
+        :class="activeTab === 'workflows' ? 'bg-[#008779] text-white shadow-2xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'"
         @click="activeTab = 'workflows'"
       >
         <UIcon name="i-lucide-clipboard-check" class="size-4" />
         <span>Project Sign-offs (PCR & PFR)</span>
-        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono" :class="activeTab === 'workflows' ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'">
+        <span class="px-2 py-0.2 rounded-full text-[10px] font-mono" :class="activeTab === 'workflows' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'">
           {{ workflows.length }}
         </span>
       </button>
 
       <button
         type="button"
-        class="px-4 py-2 rounded-md font-bold transition-all flex items-center gap-2 cursor-pointer"
-        :class="activeTab === 'provisioning' ? 'bg-[#008779] text-white shadow-xs' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'"
+        class="px-4 py-2 rounded-full font-bold transition-all flex items-center gap-2 cursor-pointer"
+        :class="activeTab === 'provisioning' ? 'bg-[#008779] text-white shadow-2xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'"
         @click="activeTab = 'provisioning'"
       >
         <UIcon name="i-lucide-user-plus" class="size-4" />
-        <span>Pending Account Provisioning & Auto-Invite</span>
+        <span>Account Provisioning Queue</span>
         <span
           v-if="pendingProvisioningCount > 0"
-          class="px-1.5 py-0.2 rounded-full text-[10px] font-bold"
-          :class="activeTab === 'provisioning' ? 'bg-amber-400 text-gray-950' : 'bg-amber-100 text-amber-800'"
+          class="px-2 py-0.2 rounded-full text-[10px] font-bold"
+          :class="activeTab === 'provisioning' ? 'bg-amber-400 text-slate-950' : 'bg-amber-100 text-amber-800'"
         >
           {{ pendingProvisioningCount }}
         </span>
@@ -187,8 +204,8 @@ const allSignedAuditLogs = computed(() => {
 
       <button
         type="button"
-        class="px-4 py-2 rounded-md font-bold transition-all flex items-center gap-2 cursor-pointer"
-        :class="activeTab === 'audit' ? 'bg-[#008779] text-white shadow-xs' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'"
+        class="px-4 py-2 rounded-full font-bold transition-all flex items-center gap-2 cursor-pointer"
+        :class="activeTab === 'audit' ? 'bg-[#008779] text-white shadow-2xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'"
         @click="activeTab = 'audit'"
       >
         <UIcon name="i-lucide-shield-check" class="size-4" />
@@ -199,14 +216,14 @@ const allSignedAuditLogs = computed(() => {
     <!-- TAB 1: Project Sign-offs (PCR & PFR Workflows) -->
     <div v-show="activeTab === 'workflows'" class="space-y-4">
       <!-- Search & Filters -->
-      <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+      <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
         <div class="flex items-center gap-2 flex-1 max-w-md">
           <div class="relative w-full">
-            <UIcon name="i-lucide-search" class="size-4 text-gray-400 absolute left-3 top-2.5" />
+            <UIcon name="i-lucide-search" class="size-4 text-slate-400 absolute left-3.5 top-3" />
             <input
               v-model="searchQuery"
               type="text"
-              class="w-full bg-gray-50 border border-gray-200 rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-hidden focus:border-[#008779] focus:bg-white"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3 py-2 text-xs focus:outline-none focus:border-[#008779] focus:bg-white transition-all"
               placeholder="Search projects, leader, or plant location..."
             />
           </div>
@@ -214,37 +231,37 @@ const allSignedAuditLogs = computed(() => {
 
         <div class="flex items-center gap-2">
           <!-- Report Type Filter -->
-          <div class="flex items-center bg-gray-100 p-0.5 rounded-lg border border-gray-200">
+          <div class="flex items-center bg-slate-100 p-1 rounded-full border border-slate-200">
             <button
               type="button"
-              class="px-2.5 py-1 rounded text-xs font-semibold transition-colors"
-              :class="filterType === 'ALL' ? 'bg-white text-gray-900 shadow-2xs font-bold' : 'text-gray-600 hover:text-gray-900'"
+              class="px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer"
+              :class="filterType === 'ALL' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
               @click="filterType = 'ALL'"
             >
               All Types
             </button>
             <button
               type="button"
-              class="px-2.5 py-1 rounded text-xs font-semibold transition-colors"
-              :class="filterType === 'PCR' ? 'bg-white text-[#008779] shadow-2xs font-bold' : 'text-gray-600 hover:text-gray-900'"
+              class="px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer"
+              :class="filterType === 'PCR' ? 'bg-white text-[#008779] shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
               @click="filterType = 'PCR'"
             >
-              PCR (Charter)
+              PCR
             </button>
             <button
               type="button"
-              class="px-2.5 py-1 rounded text-xs font-semibold transition-colors"
-              :class="filterType === 'PFR' ? 'bg-white text-amber-700 shadow-2xs font-bold' : 'text-gray-600 hover:text-gray-900'"
+              class="px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer"
+              :class="filterType === 'PFR' ? 'bg-white text-amber-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
               @click="filterType = 'PFR'"
             >
-              PFR (Final)
+              PFR
             </button>
           </div>
 
           <!-- Status Filter -->
           <select
             v-model="filterStatus"
-            class="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs font-medium focus:outline-hidden"
+            class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none cursor-pointer"
           >
             <option value="ALL">All Statuses</option>
             <option value="Under Review">Under Review</option>
@@ -255,41 +272,41 @@ const allSignedAuditLogs = computed(() => {
       </div>
 
       <!-- Workflows List Table Card -->
-      <div class="bg-white rounded-lg border border-gray-200 shadow-xs overflow-hidden">
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
         <table class="w-full text-left text-xs">
           <thead>
-            <tr class="bg-gray-50/80 border-b border-gray-200 text-gray-500 uppercase text-[10px] font-semibold tracking-wider">
-              <th class="py-3.5 px-4">Project & Location</th>
-              <th class="py-3.5 px-4">Document Type</th>
-              <th class="py-3.5 px-4">Sequential Progress</th>
-              <th class="py-3.5 px-4">Target Savings / Gain</th>
-              <th class="py-3.5 px-4 text-center">Status</th>
-              <th class="py-3.5 px-4 text-center">Actions</th>
+            <tr class="bg-slate-50/80 border-b border-slate-200 text-slate-400 uppercase text-[10px] font-semibold tracking-wider">
+              <th class="py-3.5 px-4 font-semibold">PROJECT & LOCATION</th>
+              <th class="py-3.5 px-4 font-semibold">DOCUMENT TYPE</th>
+              <th class="py-3.5 px-4 font-semibold">SEQUENTIAL PROGRESS</th>
+              <th class="py-3.5 px-4 font-semibold">TARGET SAVINGS / GAIN</th>
+              <th class="py-3.5 px-4 text-center font-semibold">STATUS</th>
+              <th class="py-3.5 px-4 text-center font-semibold">ACTIONS</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
-            <tr v-for="wf in filteredWorkflows" :key="wf.id" class="hover:bg-gray-50/60 transition-colors">
+          <tbody class="divide-y divide-slate-100">
+            <tr v-for="wf in filteredWorkflows" :key="wf.id" class="hover:bg-slate-50/70 transition-colors group">
               <!-- Project Name & Location -->
-              <td class="py-3.5 px-4">
-                <span class="font-bold text-gray-900 block text-xs">{{ wf.projectName }}</span>
-                <span class="text-[11px] text-gray-500 block">{{ wf.location }}</span>
-                <span class="text-[10px] text-gray-400 font-mono mt-0.5 block">Leader: {{ wf.submittedBy }}</span>
+              <td class="py-4 px-4">
+                <span class="font-bold text-slate-900 block text-xs group-hover:text-[#008779] transition-colors">{{ wf.projectName }}</span>
+                <span class="text-[11px] text-slate-500 block">{{ wf.location }}</span>
+                <span class="text-[10px] text-slate-400 font-mono mt-0.5 block">Leader: {{ wf.submittedBy }}</span>
               </td>
 
               <!-- Document Type Badge -->
-              <td class="py-3.5 px-4">
+              <td class="py-4 px-4">
                 <span
-                  class="font-black text-[10px] uppercase px-2 py-0.5 rounded font-mono block w-fit"
-                  :class="wf.reportType === 'PCR' ? 'bg-blue-50 text-blue-800 border border-blue-200' : 'bg-amber-50 text-amber-800 border border-amber-200'"
+                  class="font-black text-[10px] uppercase px-2.5 py-0.5 rounded-full font-mono block w-fit border shadow-2xs"
+                  :class="wf.reportType === 'PCR' ? 'bg-blue-50 text-blue-800 border-blue-200' : 'bg-amber-50 text-amber-800 border-amber-200'"
                 >
-                  {{ wf.reportType === 'PCR' ? 'PCR (Project Charter)' : 'PFR (Project Final)' }}
+                  {{ wf.reportType === 'PCR' ? 'PCR (Charter)' : 'PFR (Final)' }}
                 </span>
-                <span class="text-[10px] text-gray-400 font-mono mt-0.5 block">{{ wf.metricsSummary.pfrDocId }}</span>
+                <span class="text-[10px] text-slate-400 font-mono mt-0.5 block">{{ wf.metricsSummary.pfrDocId }}</span>
               </td>
 
               <!-- Sequential Progress Steps -->
-              <td class="py-3.5 px-4 min-w-[200px]">
-                <div class="flex items-center gap-1 mb-1">
+              <td class="py-4 px-4 min-w-[200px]">
+                <div class="flex items-center gap-1.5 mb-1.5">
                   <div
                     v-for="(st, sIdx) in wf.steps"
                     :key="st.id"
@@ -298,27 +315,27 @@ const allSignedAuditLogs = computed(() => {
                       st.status === 'Approved' ? 'bg-emerald-500' :
                       st.status === 'Pending' ? 'bg-amber-400 animate-pulse' :
                       st.status === 'Needs Revision' ? 'bg-rose-500' :
-                      'bg-gray-200'
+                      'bg-slate-200'
                     ]"
                     :title="`Step ${sIdx + 1}: ${st.role} (${st.status})`"
                   ></div>
                 </div>
-                <div class="flex items-center justify-between text-[10px] text-gray-500">
+                <div class="flex items-center justify-between text-[10px] text-slate-500 font-medium">
                   <span>Step {{ wf.currentStepNumber }} of {{ wf.steps.length }}</span>
-                  <span class="font-medium text-gray-700">Next: {{ wf.steps.find(s => s.status === 'Pending')?.role || 'Complete' }}</span>
+                  <span class="font-bold text-slate-800">Next: {{ wf.steps.find(s => s.status === 'Pending')?.role || 'Complete' }}</span>
                 </div>
               </td>
 
               <!-- Financial Metric -->
-              <td class="py-3.5 px-4">
-                <span class="font-bold text-[#008779] block text-xs">{{ wf.metricsSummary.financialSavings }}</span>
-                <span class="text-[10px] text-gray-500">Target: {{ wf.metricsSummary.targetGoal }}</span>
+              <td class="py-4 px-4">
+                <span class="font-bold text-[#008779] block text-xs font-mono">{{ wf.metricsSummary.financialSavings }}</span>
+                <span class="text-[10px] text-slate-500">Target: {{ wf.metricsSummary.targetGoal }}</span>
               </td>
 
               <!-- Status Badge -->
-              <td class="py-3.5 px-4 text-center">
+              <td class="py-4 px-4 text-center">
                 <span
-                  class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border"
+                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border shadow-2xs"
                   :class="[
                     wf.status === 'Approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                     wf.status === 'Under Review' ? 'bg-amber-50 text-amber-700 border-amber-200' :
@@ -330,12 +347,12 @@ const allSignedAuditLogs = computed(() => {
                 </span>
               </td>
 
-              <!-- Actions: Review, E-Sign, Email Simulate -->
-              <td class="py-3.5 px-4 text-center">
+              <!-- Actions -->
+              <td class="py-4 px-4 text-center">
                 <div class="flex items-center justify-center gap-1.5">
                   <button
                     type="button"
-                    class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-bold px-3 py-1.5 rounded-md transition-colors shadow-xs flex items-center gap-1 cursor-pointer"
+                    class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-bold px-3 py-1.5 rounded-xl transition-colors shadow-2xs flex items-center gap-1 cursor-pointer"
                     @click="openWorkflowModal(wf)"
                   >
                     <UIcon name="i-lucide-file-signature" class="size-3.5" />
@@ -344,7 +361,7 @@ const allSignedAuditLogs = computed(() => {
 
                   <button
                     type="button"
-                    class="bg-gray-100 hover:bg-gray-200 text-gray-700 p-1.5 rounded-md transition-colors cursor-pointer"
+                    class="bg-slate-100 hover:bg-slate-200 text-slate-700 p-1.5 rounded-xl transition-colors cursor-pointer"
                     title="Simulate Approver Email Link Action"
                     @click="openSimulatorForWorkflow(wf)"
                   >
@@ -360,80 +377,74 @@ const allSignedAuditLogs = computed(() => {
 
     <!-- TAB 2: Pending Account Provisioning & Auto-Invite -->
     <div v-show="activeTab === 'provisioning'" class="space-y-4">
-      <div class="bg-amber-50/60 border border-amber-200 rounded-lg p-4 flex items-start gap-3 text-xs">
+      <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 flex items-start gap-3 text-xs">
         <UIcon name="i-lucide-info" class="size-4 text-amber-700 shrink-0 mt-0.5" />
         <div class="space-y-1">
           <h3 class="font-bold text-amber-950 text-xs">
             Admin Account Creation & Email Auto-Invite Queue
           </h3>
           <p class="text-amber-800 leading-relaxed">
-            When Project Leaders assign new team members, external consultants, or stakeholders not found in the CPF Master Directory, a provisioning request is queued here. Click <strong>"Approve & Auto-Invite"</strong> to create their account and dispatch an automated invitation email with an activation link.
+            เมื่อ Project Leader มีการมอบหมายสมาชิกทีมหรือผู้เชี่ยวชาญภายนอกที่ยังไม่มีใน Master Directory คำขอจะถูกนำมารวมที่นี่ กด <strong>"Approve & Auto-Invite"</strong> เพื่อสร้างบัญชีและส่งอีเมลแจ้งเตือน
           </p>
         </div>
       </div>
 
-      <div class="bg-white rounded-lg border border-gray-200 shadow-xs overflow-hidden">
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
         <table class="w-full text-left text-xs">
           <thead>
-            <tr class="bg-gray-50/80 border-b border-gray-200 text-gray-500 uppercase text-[10px] font-semibold tracking-wider">
-              <th class="py-3 px-4">Candidate & Email</th>
-              <th class="py-3 px-4">Project & Requested By</th>
-              <th class="py-3 px-4">Requested Role / Belt</th>
-              <th class="py-3 px-4">Department / Plant</th>
-              <th class="py-3 px-4 text-center">Status</th>
-              <th class="py-3 px-4 text-center">Admin Actions</th>
+            <tr class="bg-slate-50/80 border-b border-slate-200 text-slate-400 uppercase text-[10px] font-semibold tracking-wider">
+              <th class="py-3 px-4">CANDIDATE & EMAIL</th>
+              <th class="py-3 px-4">PROJECT & REQUESTED BY</th>
+              <th class="py-3 px-4">REQUESTED ROLE / BELT</th>
+              <th class="py-3 px-4">DEPARTMENT / PLANT</th>
+              <th class="py-3 px-4 text-center">STATUS</th>
+              <th class="py-3 px-4 text-center">ADMIN ACTIONS</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
-            <tr v-for="req in pendingProvisioningList" :key="req.id" class="hover:bg-gray-50/60 transition-colors">
-              <td class="py-3 px-4">
-                <span class="font-bold text-gray-900 block text-xs">{{ req.name }}</span>
-                <span class="text-[11px] text-gray-600 block font-mono">{{ req.email }}</span>
+          <tbody class="divide-y divide-slate-100">
+            <tr v-for="req in pendingProvisioningList" :key="req.id" class="hover:bg-slate-50/70 transition-colors">
+              <td class="py-3.5 px-4">
+                <span class="font-bold text-slate-900 block text-xs">{{ req.name }}</span>
+                <span class="text-[11px] text-slate-500 block font-mono">{{ req.email }}</span>
               </td>
-              <td class="py-3 px-4">
-                <span class="font-medium text-gray-900 block truncate max-w-xs">{{ req.projectName }}</span>
-                <span class="text-[10px] text-gray-400 block">By: {{ req.requestedBy }} • {{ req.requestedAt }}</span>
+              <td class="py-3.5 px-4">
+                <span class="font-medium text-slate-900 block truncate max-w-xs">{{ req.projectName }}</span>
+                <span class="text-[10px] text-slate-400 block">By: {{ req.requestedBy }} • {{ req.requestedAt }}</span>
               </td>
-              <td class="py-3 px-4">
-                <span class="bg-teal-50 text-[#008779] border border-teal-200 text-[11px] font-semibold px-2 py-0.5 rounded block w-fit">
+              <td class="py-3.5 px-4">
+                <span class="bg-teal-50 text-[#008779] border border-teal-200 text-[11px] font-semibold px-2.5 py-0.5 rounded-full block w-fit">
                   {{ req.requestedRole }}
                 </span>
-                <span class="text-[10px] text-gray-500 block mt-0.5">{{ req.requestedBelt }}</span>
               </td>
-              <td class="py-3 px-4 text-gray-600">
-                <span class="block">{{ req.department }}</span>
-                <span class="text-[10px] text-gray-400">{{ req.location }}</span>
+              <td class="py-3.5 px-4 text-slate-600">
+                <span>{{ req.department }}</span>
               </td>
-              <td class="py-3 px-4 text-center">
+              <td class="py-3.5 px-4 text-center">
                 <span
-                  class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border"
+                  class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border"
                   :class="req.status === 'Approved & Invited' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'"
                 >
                   {{ req.status }}
                 </span>
               </td>
-              <td class="py-3 px-4 text-center">
+              <td class="py-3.5 px-4 text-center">
                 <div v-if="req.status === 'Pending Admin Approval'" class="flex items-center justify-center gap-1.5">
                   <button
                     type="button"
-                    class="bg-[#008779] hover:bg-[#007366] text-white text-[11px] font-bold px-2.5 py-1.5 rounded-md shadow-xs transition-colors flex items-center gap-1 cursor-pointer"
+                    class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-bold px-3 py-1.5 rounded-xl transition-colors cursor-pointer shadow-2xs"
                     @click="handleApproveProvisioning(req)"
                   >
-                    <UIcon name="i-lucide-user-check" class="size-3" />
-                    <span>Approve & Auto-Invite</span>
+                    Approve & Invite
                   </button>
                   <button
                     type="button"
-                    class="text-red-500 hover:text-red-700 text-xs font-semibold px-2 py-1"
+                    class="bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 text-xs font-semibold px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer"
                     @click="handleRejectProvisioning(req)"
                   >
                     Reject
                   </button>
                 </div>
-                <div v-else class="text-[11px] text-emerald-600 font-mono flex items-center justify-center gap-1">
-                  <UIcon name="i-lucide-mail-check" class="size-3.5" />
-                  <span>Email Sent (Token: {{ req.inviteToken?.slice(0, 14) }})</span>
-                </div>
+                <span v-else class="text-slate-400 text-xs italic">Approved</span>
               </td>
             </tr>
           </tbody>
@@ -441,70 +452,62 @@ const allSignedAuditLogs = computed(() => {
       </div>
     </div>
 
-    <!-- TAB 3: E-Signature Registry & Audit Trail -->
+    <!-- TAB 3: E-Signature Registry Audit Logs -->
     <div v-show="activeTab === 'audit'" class="space-y-4">
-      <div class="bg-white rounded-lg border border-gray-200 shadow-xs overflow-hidden">
-        <div class="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <UIcon name="i-lucide-fingerprint" class="size-4 text-[#008779]" />
-            <h3 class="font-bold text-xs text-gray-900">
-              Cryptographic E-Signature Audit Log Registry
-            </h3>
-          </div>
-          <span class="text-[10px] text-gray-500 font-mono">Governed under CPF Digital Authentication Standards</span>
-        </div>
-
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
         <table class="w-full text-left text-xs">
           <thead>
-            <tr class="bg-gray-50/80 border-b border-gray-200 text-gray-500 uppercase text-[10px] font-semibold tracking-wider">
-              <th class="py-3 px-4">Certificate ID</th>
-              <th class="py-3 px-4">Signer Identity</th>
-              <th class="py-3 px-4">Project & Milestone</th>
-              <th class="py-3 px-4">Signature Mode</th>
-              <th class="py-3 px-4">IP / Verified Location</th>
-              <th class="py-3 px-4 text-center">Timestamp</th>
+            <tr class="bg-slate-50/80 border-b border-slate-200 text-slate-400 uppercase text-[10px] font-semibold tracking-wider">
+              <th class="py-3 px-4">CERTIFICATE ID</th>
+              <th class="py-3 px-4">SIGNER NAME & ROLE</th>
+              <th class="py-3 px-4">PROJECT & DOC TYPE</th>
+              <th class="py-3 px-4">TIMESTAMP & IP ADDRESS</th>
+              <th class="py-3 px-4 text-center">SIGNATURE TYPE</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100 font-mono text-[11px]">
-            <tr v-for="(cert, cIdx) in allSignedAuditLogs" :key="cIdx" class="hover:bg-gray-50/60">
-              <td class="py-3 px-4 font-bold text-teal-700">{{ cert.certificateId }}</td>
-              <td class="py-3 px-4 font-sans font-medium text-gray-900">
-                <span class="block font-bold">{{ cert.signerName }}</span>
-                <span class="text-[10px] text-gray-500 font-mono">{{ cert.signerEmail }} ({{ cert.role }})</span>
-              </td>
-              <td class="py-3 px-4 font-sans text-gray-800">
-                <span class="font-bold block truncate max-w-xs">{{ cert.projectName }}</span>
-                <span class="text-[10px] text-[#008779] font-mono">{{ cert.reportType }} Sign-off</span>
+          <tbody class="divide-y divide-slate-100 font-mono text-[11px]">
+            <tr v-for="(log, lIdx) in allSignedAuditLogs" :key="lIdx" class="hover:bg-slate-50/70">
+              <td class="py-3 px-4 font-bold text-[#008779]">
+                {{ log.certificateId }}
               </td>
               <td class="py-3 px-4 font-sans">
-                <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px] font-semibold uppercase">
-                  {{ cert.type }}
+                <span class="font-bold text-slate-900 block">{{ log.signerName }}</span>
+                <span class="text-slate-500 text-[10px] block font-mono">{{ log.role }}</span>
+              </td>
+              <td class="py-3 px-4 font-sans">
+                <span class="font-medium text-slate-800">{{ log.projectName }}</span>
+                <span class="text-slate-400 text-[10px] block font-mono">{{ log.reportType }}</span>
+              </td>
+              <td class="py-3 px-4 text-slate-600">
+                <span>{{ log.signedAt }}</span>
+                <span class="text-slate-400 text-[10px] block">{{ log.ipAddress }}</span>
+              </td>
+              <td class="py-3 px-4 text-center font-sans">
+                <span class="bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                  {{ log.type }}
                 </span>
               </td>
-              <td class="py-3 px-4 text-gray-500">{{ cert.ipAddress }}</td>
-              <td class="py-3 px-4 text-center text-gray-600">{{ cert.signedAt }}</td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- Active Full Workflow Review Modal -->
+    <!-- Modals -->
     <ApprovalWorkflowModal
-      v-if="isWorkflowModalOpen && selectedWorkflow"
+      v-if="selectedWorkflow"
+      v-model="isWorkflowModalOpen"
       :workflow="selectedWorkflow"
-      @close="isWorkflowModalOpen = false"
-      @updated="showToast('Workflow updated successfully!')"
+      @signed="showToast('E-Signature certificate issued successfully!')"
     />
 
-    <!-- Active Email Simulator Modal -->
     <EmailApprovalSimulatorModal
-      v-if="isSimModalOpen && selectedSimWorkflow && selectedSimStep"
+      v-if="selectedSimWorkflow && selectedSimStep"
+      v-model="isSimModalOpen"
       :workflow="selectedSimWorkflow"
       :step="selectedSimStep"
-      @close="isSimModalOpen = false"
-      @approved="showToast('Approved via email token simulation!')"
-      @revised="showToast('Revision sent via email simulation!')"
+      @approved="showToast('Email approval link action executed successfully!')"
     />
+
   </div>
 </template>

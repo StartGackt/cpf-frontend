@@ -81,17 +81,20 @@ const dmaicPhases = [
 
 <template>
   <aside
-    class="bg-white rounded-lg border border-gray-200/80 shadow-xs shrink-0 transition-all duration-300 overflow-hidden select-none"
-    :class="isSidebarCollapsed ? 'w-14' : 'w-64'"
+    class="bg-white rounded-3xl border border-slate-200/80 shadow-2xs shrink-0 transition-all duration-300 overflow-hidden select-none"
+    :class="isSidebarCollapsed ? 'w-16' : 'w-68'"
   >
     <!-- Project Title Header -->
-    <div class="p-3.5 bg-[#008779] text-white flex items-center justify-between">
-      <span v-if="!isSidebarCollapsed" class="font-bold text-xs truncate" :title="projectName">
-        {{ projectName }}
-      </span>
+    <div class="p-4 bg-gradient-to-r from-teal-950 via-[#008779] to-indigo-950 text-white flex items-center justify-between">
+      <div v-if="!isSidebarCollapsed" class="min-w-0 pr-2">
+        <span class="text-[10px] text-teal-200 uppercase font-bold tracking-wider block">DMAIC ROADMAP</span>
+        <NuxtLink :to="`/admin/projects/${projectId}`" class="font-bold text-xs truncate block hover:text-amber-300 transition-colors" :title="projectName">
+          {{ projectName }}
+        </NuxtLink>
+      </div>
       <button
         type="button"
-        class="text-white hover:opacity-80 transition-opacity p-0.5 cursor-pointer"
+        class="text-white hover:bg-white/10 p-1.5 rounded-xl transition-colors cursor-pointer shrink-0"
         @click="isSidebarCollapsed = !isSidebarCollapsed"
       >
         <UIcon :name="isSidebarCollapsed ? 'i-lucide-chevrons-right' : 'i-lucide-chevrons-left'" class="size-4" />
@@ -99,55 +102,49 @@ const dmaicPhases = [
     </div>
 
     <!-- Phases List -->
-    <div class="divide-y divide-gray-100 p-2 space-y-3">
+    <div class="divide-y divide-slate-100 p-2.5 space-y-2">
       <div v-for="phase in dmaicPhases" :key="phase.name" class="pt-2 first:pt-0">
         <!-- Phase Header -->
         <div
-          class="flex items-center justify-between px-2 py-1.5 rounded text-xs font-bold"
-          :class="activePhase === phase.name ? 'text-[#008779] bg-teal-50/70' : 'text-gray-700'"
+          class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-bold transition-colors"
+          :class="activePhase === phase.name ? 'text-[#008779] bg-teal-50/80' : 'text-slate-800'"
         >
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-2">
             <UIcon
-              :name="phase.status === 'Complete' ? 'i-lucide-check-circle' : 'i-lucide-circle'"
+              :name="phase.status === 'Complete' ? 'i-lucide-check-circle-2' : 'i-lucide-circle'"
               class="size-3.5"
-              :class="phase.status === 'Complete' ? 'text-emerald-500' : 'text-gray-400'"
+              :class="phase.status === 'Complete' ? 'text-emerald-500' : 'text-slate-400'"
             />
             <span v-if="!isSidebarCollapsed">{{ phase.name }}</span>
           </div>
           <span
             v-if="!isSidebarCollapsed && phase.status"
-            class="text-[10px] font-normal"
-            :class="phase.status === 'Complete' ? 'text-emerald-600' : 'text-gray-400'"
+            class="text-[10px] font-semibold"
+            :class="phase.status === 'Complete' ? 'text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded-full' : 'text-slate-400'"
           >
             {{ phase.status }}
           </span>
         </div>
 
-        <!-- Progress bar (for active improve phase) -->
-        <div v-if="!isSidebarCollapsed && phase.progress" class="px-2 py-1">
-          <div class="h-1 bg-[#008779] rounded-full w-full"></div>
-          <span class="text-[10px] text-gray-500 mt-0.5 block">{{ phase.progress }}</span>
-        </div>
-
         <!-- Steps under Phase -->
-        <div v-if="!isSidebarCollapsed" class="mt-1 space-y-0.5 pl-4">
+        <div v-if="!isSidebarCollapsed" class="mt-1 space-y-0.5 pl-3">
           <NuxtLink
             v-for="step in phase.steps"
             :key="step.name"
             :to="`/admin/projects/${projectId}/${step.path}`"
-            class="w-full flex items-center justify-between px-2 py-1.5 rounded text-[11px] font-medium transition-colors"
+            class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-[11px] font-medium transition-all"
             :class="activePhase === phase.name && activeStep === step.name
-              ? 'text-[#008779] bg-teal-50/70 font-bold'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'"
+              ? 'text-[#008779] bg-[#E3E8EF] font-bold shadow-2xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'"
           >
             <div class="flex items-center gap-2 truncate">
-              <UIcon :name="step.icon" class="size-3 text-gray-400" />
+              <UIcon :name="step.icon" class="size-3.5 text-slate-400" />
               <span class="truncate">{{ step.name }}</span>
             </div>
             <UIcon
               v-if="step.completed"
-              name="i-lucide-check-circle-2"
-              class="size-3 text-emerald-500 shrink-0"
+              name="i-lucide-check"
+              class="size-3 text-emerald-600 shrink-0 font-bold"
             />
           </NuxtLink>
         </div>

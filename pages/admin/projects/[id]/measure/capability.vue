@@ -118,16 +118,16 @@ const histBars = computed(() => {
 
       <div class="flex-1 min-w-0 space-y-4">
         <!-- Warning Banner for Cpk < 1 -->
-        <div v-if="capabilityMetrics.isWarning" class="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center justify-between text-xs">
+        <div v-if="capabilityMetrics.isWarning" class="bg-rose-50/80 border border-rose-200/80 rounded-2xl p-4 flex items-center justify-between text-xs shadow-2xs">
           <div class="flex items-center gap-3">
-            <div class="size-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold">
+            <div class="size-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold">
               !
             </div>
             <div>
-              <h3 class="font-bold text-red-900">
+              <h3 class="font-bold text-rose-900">
                 Process Capability Below Standard (Cpk = {{ capabilityMetrics.cpk }} &lt; 1.0)
               </h3>
-              <p class="text-red-700 mt-0.5">
+              <p class="text-rose-700 mt-0.5">
                 The current process produces excessive variation and fails specification limits. Requires root cause investigation.
               </p>
             </div>
@@ -135,7 +135,7 @@ const histBars = computed(() => {
 
           <button
             type="button"
-            class="bg-red-600 hover:bg-red-700 text-white font-semibold px-3 py-1.5 rounded-md flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
+            class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3.5 py-1.5 rounded-xl flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
             :disabled="isExportedToFishbone"
             @click="exportToFishbone"
           >
@@ -144,7 +144,7 @@ const histBars = computed(() => {
           </button>
         </div>
 
-        <div v-else class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-center justify-between text-xs">
+        <div v-else class="bg-emerald-50/80 border border-emerald-200/80 rounded-2xl p-4 flex items-center justify-between text-xs shadow-2xs">
           <div class="flex items-center gap-3">
             <div class="size-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
               ✓
@@ -161,16 +161,16 @@ const histBars = computed(() => {
         </div>
 
         <!-- Interactive Parameter Tuning Bar -->
-        <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-4 space-y-3">
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-3.5">
           <div class="flex items-center justify-between">
-            <h2 class="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
+            <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
               <UIcon name="i-lucide-sliders" class="size-4 text-[#008779]" />
               <span>Interactive Specification & Parameter Inputs</span>
             </h2>
 
             <button
               type="button"
-              class="border border-teal-300 bg-teal-50 hover:bg-teal-100 text-[#008779] text-xs font-semibold px-2.5 py-1 rounded flex items-center gap-1 transition-colors cursor-pointer"
+              class="border border-teal-200 bg-teal-50 hover:bg-teal-100 text-[#008779] text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 transition-colors cursor-pointer shadow-2xs"
               @click="syncBaselineToCapability"
             >
               <UIcon name="i-lucide-refresh-cw" class="size-3" />
@@ -180,61 +180,61 @@ const histBars = computed(() => {
 
           <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
             <div>
-              <label class="font-semibold text-gray-700 block text-[11px] mb-1">Lower Spec Limit (LSL %)</label>
+              <label class="font-semibold text-slate-700 block text-[11px] mb-1">Lower Spec Limit (LSL %)</label>
               <input
                 v-model.number="cap.lsl"
                 type="number"
                 step="0.1"
-                class="w-full bg-gray-50 border border-gray-300 rounded px-2.5 py-1.5 font-mono text-center font-bold focus:border-[#008779] focus:outline-hidden"
+                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 font-mono text-center font-bold focus:border-[#008779] focus:outline-none focus:bg-white"
               />
             </div>
 
             <div>
-              <label class="font-semibold text-gray-700 block text-[11px] mb-1">Target Value (%)</label>
+              <label class="font-semibold text-slate-700 block text-[11px] mb-1">Target Value (%)</label>
               <input
                 v-model.number="cap.targetVal"
                 type="number"
                 step="0.05"
-                class="w-full bg-gray-50 border border-gray-300 rounded px-2.5 py-1.5 font-mono text-center font-bold text-[#008779] focus:border-[#008779] focus:outline-hidden"
+                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 font-mono text-center font-bold text-[#008779] focus:border-[#008779] focus:outline-none focus:bg-white"
               />
             </div>
 
             <div>
-              <label class="font-semibold text-gray-700 block text-[11px] mb-1">Upper Spec Limit (USL %)</label>
+              <label class="font-semibold text-slate-700 block text-[11px] mb-1">Upper Spec Limit (USL %)</label>
               <input
                 v-model.number="cap.usl"
                 type="number"
                 step="0.1"
-                class="w-full bg-gray-50 border border-gray-300 rounded px-2.5 py-1.5 font-mono text-center font-bold focus:border-[#008779] focus:outline-hidden"
+                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 font-mono text-center font-bold focus:border-[#008779] focus:outline-none focus:bg-white"
               />
             </div>
 
             <div>
-              <label class="font-semibold text-gray-700 block text-[11px] mb-1">Sample Mean (X̄ %)</label>
+              <label class="font-semibold text-slate-700 block text-[11px] mb-1">Sample Mean (X̄ %)</label>
               <input
                 v-model.number="cap.sampleMean"
                 type="number"
                 step="0.05"
-                class="w-full bg-gray-50 border border-gray-300 rounded px-2.5 py-1.5 font-mono text-center font-bold text-blue-700 focus:border-[#008779] focus:outline-hidden"
+                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 font-mono text-center font-bold text-blue-700 focus:border-[#008779] focus:outline-none focus:bg-white"
               />
             </div>
 
             <div>
-              <label class="font-semibold text-gray-700 block text-[11px] mb-1">Sample Std Dev (&sigma;)</label>
+              <label class="font-semibold text-slate-700 block text-[11px] mb-1">Sample Std Dev (&sigma;)</label>
               <input
                 v-model.number="cap.sampleStdDev"
                 type="number"
                 step="0.05"
-                class="w-full bg-gray-50 border border-gray-300 rounded px-2.5 py-1.5 font-mono text-center font-bold focus:border-[#008779] focus:outline-hidden"
+                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 font-mono text-center font-bold focus:border-[#008779] focus:outline-none focus:bg-white"
               />
             </div>
           </div>
         </div>
 
         <!-- Capability Stat Cards Grid -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-4 space-y-1 text-center">
-            <span class="text-[10px] text-gray-500 font-bold uppercase">Potential Capability (Cp)</span>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 space-y-1 text-center">
+            <span class="text-[10px] text-slate-400 font-bold uppercase">Potential Capability (Cp)</span>
             <p class="text-2xl font-bold font-mono" :class="capabilityMetrics.cp >= 1.33 ? 'text-emerald-600' : 'text-amber-600'">
               {{ capabilityMetrics.cp }}
             </p>
@@ -243,41 +243,41 @@ const histBars = computed(() => {
             </span>
           </div>
 
-          <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-4 space-y-1 text-center">
-            <span class="text-[10px] text-gray-500 font-bold uppercase">Actual Capability (Cpk)</span>
-            <p class="text-2xl font-bold font-mono" :class="capabilityMetrics.cpk >= 1.33 ? 'text-emerald-600' : 'text-red-600'">
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 space-y-1 text-center">
+            <span class="text-[10px] text-slate-400 font-bold uppercase">Actual Capability (Cpk)</span>
+            <p class="text-2xl font-bold font-mono" :class="capabilityMetrics.cpk >= 1.33 ? 'text-emerald-600' : 'text-rose-600'">
               {{ capabilityMetrics.cpk }}
             </p>
-            <span class="text-[10px] font-semibold" :class="capabilityMetrics.cpk >= 1.33 ? 'text-emerald-600' : 'text-red-600'">
+            <span class="text-[10px] font-semibold" :class="capabilityMetrics.cpk >= 1.33 ? 'text-emerald-600' : 'text-rose-600'">
               {{ capabilityMetrics.cpk >= 1.33 ? 'Six Sigma Stable' : 'Critical Defect Risk' }}
             </span>
           </div>
 
-          <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-4 space-y-1 text-center">
-            <span class="text-[10px] text-gray-500 font-bold uppercase">Overall Capability (Pp)</span>
-            <p class="text-2xl font-bold font-mono text-gray-700">{{ capabilityMetrics.pp }}</p>
-            <span class="text-[10px] text-gray-400">Total Variation</span>
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 space-y-1 text-center">
+            <span class="text-[10px] text-slate-400 font-bold uppercase">Overall Capability (Pp)</span>
+            <p class="text-2xl font-bold font-mono text-slate-700">{{ capabilityMetrics.pp }}</p>
+            <span class="text-[10px] text-slate-400">Total Variation</span>
           </div>
 
-          <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-4 space-y-1 text-center">
-            <span class="text-[10px] text-gray-500 font-bold uppercase">Overall Index (Ppk)</span>
-            <p class="text-2xl font-bold font-mono text-gray-700">{{ capabilityMetrics.ppk }}</p>
-            <span class="text-[10px] text-gray-400">Long-term Performance</span>
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 space-y-1 text-center">
+            <span class="text-[10px] text-slate-400 font-bold uppercase">Overall Index (Ppk)</span>
+            <p class="text-2xl font-bold font-mono text-slate-700">{{ capabilityMetrics.ppk }}</p>
+            <span class="text-[10px] text-slate-400">Long-term Performance</span>
           </div>
         </div>
 
         <!-- Capability Histogram & Normal Distribution Curve -->
-        <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-6 space-y-4">
-          <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-2xs p-6 space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
-              <h2 class="text-sm font-bold text-gray-900">
+              <h2 class="text-sm font-bold text-slate-900">
                 Dynamic Capability Histogram & Specification Limits
               </h2>
-              <p class="text-xs text-gray-500 mt-0.5">
+              <p class="text-xs text-slate-500 mt-0.5">
                 LSL = {{ cap.lsl }}%, Target = {{ cap.targetVal }}%, USL = {{ cap.usl }}% | Mean = {{ cap.sampleMean }}%, StDev = {{ cap.sampleStdDev }}
               </p>
             </div>
-            <span class="text-xs font-mono font-bold text-gray-700 bg-gray-100 px-2.5 py-1 rounded">
+            <span class="text-xs font-mono font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-full">
               PPM Total: {{ capabilityMetrics.ppmTotal.toLocaleString() }}
             </span>
           </div>

@@ -560,7 +560,7 @@ const importJsonBackup = () => {
     </div>
 
     <!-- Breadcrumbs (hidden in fullscreen & print) -->
-    <div v-if="!isFullscreen" class="flex items-center justify-between text-xs text-gray-500 pb-1 print:hidden">
+    <div v-if="!isFullscreen" class="flex items-center justify-between text-xs text-slate-500 pb-1 print:hidden">
       <div class="flex items-center gap-2">
         <NuxtLink to="/admin" class="hover:text-[#008779] flex items-center gap-1">
           <UIcon name="i-lucide-home" class="size-3.5" />
@@ -572,15 +572,15 @@ const importJsonBackup = () => {
         </NuxtLink>
         <span>›</span>
         <NuxtLink :to="`/admin/projects/${projectId}`" class="hover:text-[#008779] truncate max-w-[200px]">
-          Example เพิ่ม %Total Yield สินค้าไก่ทอด
+          {{ project.name }}
         </NuxtLink>
         <span>›</span>
-        <span class="text-gray-900 font-bold">Presentation Mode & Slide Builder</span>
+        <span class="text-slate-900 font-bold">Presentation Mode & Slide Builder</span>
       </div>
 
       <!-- Quick mode info indicator -->
       <div class="flex items-center gap-2">
-        <span v-if="isEditMode" class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+        <span v-if="isEditMode" class="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full shadow-2xs">
           <UIcon name="i-lucide-edit-3" class="size-3" />
           <span>Edit Mode Active (Changes Auto-Saved)</span>
         </span>
@@ -589,7 +589,7 @@ const importJsonBackup = () => {
 
     <!-- Presentation Canvas & Controls Container -->
     <div
-      class="bg-gray-900 rounded-xl overflow-hidden shadow-2xl flex flex-col transition-all print:border-none print:shadow-none print:bg-white print:rounded-none"
+      class="bg-gray-900 rounded-3xl overflow-hidden shadow-2xl flex flex-col transition-all print:border-none print:shadow-none print:bg-white print:rounded-none"
       :class="isFullscreen ? 'fixed inset-0 z-50 rounded-none h-screen' : 'border border-gray-800 min-h-[760px]'"
     >
       <!-- Top Slide Presentation Toolbar (Hidden in Print) -->

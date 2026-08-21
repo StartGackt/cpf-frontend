@@ -213,23 +213,23 @@ const handlePasteImport = () => {
       <!-- Main Content Area -->
       <div class="flex-1 min-w-0 space-y-4">
         <!-- PCR Approval Status Banner -->
-        <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div class="flex items-center gap-3">
-            <div class="size-9 rounded-full bg-teal-50 text-[#008779] flex items-center justify-center font-bold text-xs shrink-0">
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex items-center gap-3.5">
+            <div class="size-10 rounded-2xl bg-teal-50 text-[#008779] border border-teal-200/80 flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
               PCR
             </div>
             <div>
               <div class="flex items-center gap-2">
-                <h2 class="text-sm font-bold text-gray-900">
+                <h2 class="text-sm font-bold text-slate-900">
                   Project Charter Report (PCR) Status
                 </h2>
                 <span
-                  class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs"
                 >
                   Active Approved
                 </span>
               </div>
-              <p class="text-xs text-gray-500 mt-0.5">
+              <p class="text-xs text-slate-500 mt-0.5">
                 Baseline and Outlier points update live and dynamically feed all DMAIC phases.
               </p>
             </div>
@@ -238,7 +238,7 @@ const handlePasteImport = () => {
           <div class="flex items-center gap-2">
             <NuxtLink
               :to="`/admin/projects/${projectId}/define/beg-chart`"
-              class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-semibold px-4 py-2 rounded-md flex items-center gap-1.5 shadow-xs transition-colors"
+              class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
             >
               <span>Go to BEG Chart</span>
               <UIcon name="i-lucide-arrow-right" class="size-3.5" />
@@ -247,9 +247,9 @@ const handlePasteImport = () => {
         </div>
 
         <!-- Freedom of Row Count Guarantee Banner -->
-        <div class="bg-gradient-to-r from-teal-50 via-emerald-50 to-teal-50/50 border border-teal-200/80 rounded-xl p-4 flex items-center justify-between text-xs shadow-2xs">
+        <div class="bg-gradient-to-r from-teal-50 via-emerald-50 to-teal-50/50 border border-teal-200/80 rounded-2xl p-4 flex items-center justify-between text-xs shadow-2xs">
           <div class="flex items-center gap-3">
-            <div class="size-8 rounded-lg bg-[#008779] text-white flex items-center justify-center font-bold shrink-0">
+            <div class="size-9 rounded-xl bg-[#008779] text-white flex items-center justify-center font-bold shrink-0 shadow-2xs">
               <UIcon name="i-lucide-sliders-horizontal" class="size-4" />
             </div>
             <div>
@@ -262,40 +262,40 @@ const handlePasteImport = () => {
             </div>
           </div>
 
-          <span class="bg-white/80 text-teal-900 border border-teal-300 font-mono font-bold text-[11px] px-3 py-1 rounded-lg shrink-0">
+          <span class="bg-white/90 text-teal-900 border border-teal-200 font-mono font-bold text-[11px] px-3 py-1 rounded-full shrink-0 shadow-2xs">
             บันทึกแล้ว: {{ monthlyData.length }} แถว
           </span>
         </div>
 
         <!-- Live Computed BEG Metrics Grid -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div class="bg-white rounded-lg border border-gray-200 p-3.5 text-center shadow-xs space-y-1">
-            <span class="text-[10px] text-gray-500 font-bold uppercase block">TOTAL ENTERED POINTS</span>
-            <p class="text-xl font-bold font-mono text-gray-900">{{ monthlyData.length }} <span class="text-xs font-normal text-gray-500">Rows</span></p>
-            <span class="text-[10px] text-emerald-600 font-medium font-mono">{{ validInsightRows.length }} Valid (Excl. Outliers)</span>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+          <div class="bg-white rounded-2xl border border-slate-200/80 p-4 text-center shadow-2xs space-y-1">
+            <span class="text-[10px] text-slate-400 font-bold uppercase block">TOTAL ENTERED POINTS</span>
+            <p class="text-2xl font-bold font-mono text-slate-900">{{ monthlyData.length }} <span class="text-xs font-normal text-slate-400">Rows</span></p>
+            <span class="text-[10px] text-emerald-600 font-bold font-mono">{{ validInsightRows.length }} Valid (Excl. Outliers)</span>
           </div>
 
-          <div class="bg-white rounded-lg border border-red-200 p-3.5 text-center shadow-xs space-y-1 bg-red-50/20">
-            <span class="text-[10px] text-red-600 font-bold uppercase block">LIVE BASELINE (X̄)</span>
-            <p class="text-xl font-bold font-mono text-red-600">{{ baselineYield }}%</p>
-            <span class="text-[10px] text-gray-500">Mean of Valid Rows</span>
+          <div class="bg-white rounded-2xl border border-rose-200/80 p-4 text-center shadow-2xs space-y-1 bg-rose-50/20">
+            <span class="text-[10px] text-rose-600 font-bold uppercase block">LIVE BASELINE (X̄)</span>
+            <p class="text-2xl font-bold font-mono text-rose-600">{{ baselineYield }}%</p>
+            <span class="text-[10px] text-slate-400">Mean of Valid Rows</span>
           </div>
 
-          <div class="bg-white rounded-lg border border-amber-200 p-3.5 text-center shadow-xs space-y-1 bg-amber-50/20">
+          <div class="bg-white rounded-2xl border border-amber-200/80 p-4 text-center shadow-2xs space-y-1 bg-amber-50/20">
             <span class="text-[10px] text-amber-600 font-bold uppercase block">LIVE ENTITLEMENT (MAX)</span>
-            <p class="text-xl font-bold font-mono text-amber-600">{{ entitlementYield }}%</p>
-            <span class="text-[10px] text-gray-500">Best Historical Performance</span>
+            <p class="text-2xl font-bold font-mono text-amber-600">{{ entitlementYield }}%</p>
+            <span class="text-[10px] text-slate-400">Best Historical Performance</span>
           </div>
 
-          <div class="bg-white rounded-lg border border-purple-200 p-3.5 text-center shadow-xs space-y-1 bg-purple-50/20">
+          <div class="bg-white rounded-2xl border border-purple-200/80 p-4 text-center shadow-2xs space-y-1 bg-purple-50/20">
             <span class="text-[10px] text-purple-700 font-bold uppercase block">LIVE GOAL LSS (80% GAP)</span>
-            <p class="text-xl font-bold font-mono text-purple-700">{{ goalLssYield }}%</p>
+            <p class="text-2xl font-bold font-mono text-purple-700">{{ goalLssYield }}%</p>
             <span class="text-[10px] text-purple-600 font-medium">80% Entitlement Closure</span>
           </div>
         </div>
 
         <!-- Section Title & Outlier Indicator Alert -->
-        <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-5 space-y-4">
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
           <!-- Toolbar Header -->
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-gray-100 gap-4">
             <div>
