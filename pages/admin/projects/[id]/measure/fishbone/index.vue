@@ -9,8 +9,7 @@ const route = useRoute()
 const projectId = computed(() => (route.params.id as string) || 'example-total-yield')
 
 const {
-  project,
-  fmeaRows
+  project
 } = useProjectData(projectId.value)
 
 // Navigation Tabs
