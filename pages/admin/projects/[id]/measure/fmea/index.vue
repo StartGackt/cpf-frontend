@@ -193,25 +193,51 @@ const rpnRankings = ref([
   }
 ])
 
-const severityCriteria = [
-  { score: 1, desc: 'มีผลกระทบต่อ Total Yield < 0.5%', example: '-' },
-  { score: 4, desc: 'มีผลกระทบต่อ Total Yield 0.6 - 1.0%', example: '-' },
-  { score: 7, desc: 'มีผลกระทบต่อ Total Yield 1.1 - 1.5 %', example: '-' },
-  { score: 10, desc: 'มีผลกระทบต่อ Total Yield > 1.5 %', example: '-' }
-]
+const selectedSeverityTemplate = ref<'yield' | 'cost' | 'quality'>('yield')
+
+const severityCriteria = computed(() => {
+  if (selectedSeverityTemplate.value === 'cost') {
+    return [
+      { score: '1 - 2', level: 'Minor', desc: 'ผลกระทบทางการเงินน้อยมาก (< 10,000 บาท/เดือน)', example: 'ไม่กระทบงบประมาณสายการผลิต' },
+      { score: '3 - 4', level: 'Low', desc: 'ผลกระทบทางการเงินเล็กน้อย (10,000 - 50,000 บาท/เดือน)', example: 'เกิดของเสียเล็กน้อย ปรับหน้างานได้' },
+      { score: '5 - 6', level: 'Moderate', desc: 'ผลกระทบทางการเงินปานกลาง (50,000 - 200,000 บาท/เดือน)', example: 'เกิด Giveaway น้ำหนักเกินต่อเนื่อง' },
+      { score: '7 - 8', level: 'High', desc: 'ผลกระทบทางการเงินสูง (200,000 - 500,000 บาท/เดือน)', example: 'ต้องหยุดสายการผลิตบางส่วนเพื่อแก้ไข' },
+      { score: '9 - 10', level: 'Critical', desc: 'ผลกระทบทางการเงินรุนแรง (> 500,000 บาท/เดือน)', example: 'สูญเสียวัตถุดิบและส่งมอบล่าช้า' }
+    ]
+  }
+  if (selectedSeverityTemplate.value === 'quality') {
+    return [
+      { score: '1 - 2', level: 'Minor', desc: 'คุณภาพไม่ตรงเกณฑ์เล็กน้อยมาก ลูกค้าสังเกตไม่เห็น', example: 'สีแป้งทอดต่างกันเล็กน้อย' },
+      { score: '3 - 4', level: 'Low', desc: 'ลูกค้าสังเกตเห็นแต่ยอมรับได้ ไม่ส่งผลต่อรสชาติ', example: 'Coating หนาบางเล็กน้อย' },
+      { score: '5 - 6', level: 'Moderate', desc: 'คุณภาพต่ำกว่ามาตรฐานลูกค้าบางส่วน', example: 'ความกรอบลดลง ต้องปรับปรุง' },
+      { score: '7 - 8', level: 'High', desc: 'สินค้าไม่ผ่านเกณฑ์ QC ต้องนำไป Rework', example: 'ชิ้นไก่ติดกัน แป้งไม่สุก' },
+      { score: '9 - 10', level: 'Critical', desc: 'สินค้าผิดข้อกำหนดความปลอดภัย/ถูกปฏิเสธทั้งล็อต', example: 'พบสิ่งแปลกปลอมหรืออุณหภูมิแกนไม่ถึง' }
+    ]
+  }
+  // Default %Yield Template
+  return [
+    { score: '1 - 2', level: 'Minor', desc: 'มีผลกระทบต่อ %Total Yield เล็กน้อยมาก (< 0.2%)', example: 'แป้ง Predust ร่วงหล่นเล็กน้อย' },
+    { score: '3 - 4', level: 'Low', desc: 'มีผลกระทบต่อ %Total Yield เล็กน้อย (0.2% - 0.5%)', example: 'น้ำแป้งชุบติดสายพาน' },
+    { score: '5 - 6', level: 'Moderate', desc: 'มีผลกระทบต่อ %Total Yield ปานกลาง (0.6% - 1.0%)', example: 'Giveaway น้ำหนักเกินเล็กน้อย' },
+    { score: '7 - 8', level: 'High', desc: 'มีผลกระทบต่อ %Total Yield สูง (1.1% - 1.5%)', example: 'Giveaway สูง น้ำมันทอดเสื่อมสภาพ' },
+    { score: '9 - 10', level: 'Critical', desc: 'มีผลกระทบต่อ %Total Yield รุนแรงมาก (> 1.5%)', example: 'สายพานหยุด ชิ้นงานไหม้เกรียมต้องทิ้ง' }
+  ]
+})
 
 const occurrenceCriteria = [
-  { score: 1, desc: 'โอกาสเกิดต่ำมาก (< 1 ครั้งต่อเดือน)', example: '-' },
-  { score: 4, desc: 'โอกาสเกิดน้อย (1 - 2 ครั้งต่อเดือน)', example: '-' },
-  { score: 7, desc: 'โอกาสเกิดปานกลาง (1 - 2 ครั้งต่อสัปดาห์)', example: '-' },
-  { score: 10, desc: 'โอกาสเกิดสูงมาก (เกิดทุกวัน/ทุกกะ)', example: '-' }
+  { score: '1 - 2', level: 'Remote', desc: 'โอกาสเกิดต่ำมาก (< 1 ครั้งต่อเดือน)', example: 'ระบบอัตโนมัติมีความเสถียรสูง' },
+  { score: '3 - 4', level: 'Low', desc: 'โอกาสเกิดน้อย (1 - 2 ครั้งต่อเดือน)', example: 'เกิดขึ้นเฉพาะช่วงเปลี่ยนกะ' },
+  { score: '5 - 6', level: 'Moderate', desc: 'โอกาสเกิดปานกลาง (1 - 2 ครั้งต่อสัปดาห์)', example: 'เกิดขึ้นเมื่อเปลี่ยนล็อตวัตถุดิบ' },
+  { score: '7 - 8', level: 'High', desc: 'โอกาสเกิดบ่อย (เกิดทุก 2 - 3 วัน)', example: 'หัวฉีดตันบ่อย' },
+  { score: '9 - 10', level: 'Very High', desc: 'โอกาสเกิดสูงมาก (เกิดทุกวัน/ทุกกะ)', example: 'ไม่มีระบบตั้งค่าอัตโนมัติ' }
 ]
 
 const detectionCriteria = [
-  { score: 1, desc: 'มีระบบควบคุม ปฏิบัติตามแผนอย่างสม่ำเสมอ', example: '-' },
-  { score: 4, desc: 'มีการควบคุม แต่ไม่ปฏิบัติตามแผนอย่างสม่ำเสมอ', example: '-' },
-  { score: 7, desc: 'มีระบบการควบคุม แต่ไม่ปฏิบัติตามแผน', example: '-' },
-  { score: 10, desc: 'ไม่มีระบบการควบคุม', example: '-' }
+  { score: '1 - 2', level: 'Almost Certain', desc: 'มีระบบ Sensor ตรวจจับอัตโนมัติ 100%', example: 'ตรวจจับด้วย Vision Sensor / Checkweigher' },
+  { score: '3 - 4', level: 'High', desc: 'มีการสุ่มตรวจทางสถิติตามรอบเวลาอย่างสม่ำเสมอ', example: 'QC สุ่มตรวจทุก 30 นาที' },
+  { score: '5 - 6', level: 'Moderate', desc: 'ตรวจสอบด้วยสายตาหรือคู่มือปฏิบัติการ', example: 'พนักงานคอยสังเกตความผิดปกติ' },
+  { score: '7 - 8', level: 'Low', desc: 'ตรวจพบได้ยาก ต้องรอผลวิเคราะห์จากแล็บ', example: 'วิเคราะห์ค่าความชื้นใช้เวลา 2 ชม.' },
+  { score: '9 - 10', level: 'Absolute Uncertainty', desc: 'ไม่มีระบบการตรวจจับ ตรวจไม่พบจนกว่าจะถึงลูกค้า', example: 'ไม่มีอุปกรณ์วัดหรือไม่มีเกณฑ์' }
 ]
 </script>
 
@@ -481,33 +507,48 @@ const detectionCriteria = [
             </div>
 
             <!-- Scoring Subtabs: Severity, Occurrence, Detection -->
-            <div class="flex items-center gap-6 border-b border-gray-200 text-xs">
-              <button
-                type="button"
-                class="pb-2.5 font-semibold transition-colors border-b-2"
-                :class="activeCriteriaTab === 'severity' ? 'border-[#008779] text-[#008779]' : 'border-transparent text-gray-500 hover:text-gray-800'"
-                @click="activeCriteriaTab = 'severity'"
-              >
-                Severity
-              </button>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200 pb-2 text-xs">
+              <div class="flex items-center gap-6">
+                <button
+                  type="button"
+                  class="pb-2.5 font-semibold transition-colors border-b-2"
+                  :class="activeCriteriaTab === 'severity' ? 'border-[#008779] text-[#008779]' : 'border-transparent text-gray-500 hover:text-gray-800'"
+                  @click="activeCriteriaTab = 'severity'"
+                >
+                  Severity (ความรุนแรง)
+                </button>
 
-              <button
-                type="button"
-                class="pb-2.5 font-semibold transition-colors border-b-2"
-                :class="activeCriteriaTab === 'occurrence' ? 'border-[#008779] text-[#008779]' : 'border-transparent text-gray-500 hover:text-gray-800'"
-                @click="activeCriteriaTab = 'occurrence'"
-              >
-                Occurrence
-              </button>
+                <button
+                  type="button"
+                  class="pb-2.5 font-semibold transition-colors border-b-2"
+                  :class="activeCriteriaTab === 'occurrence' ? 'border-[#008779] text-[#008779]' : 'border-transparent text-gray-500 hover:text-gray-800'"
+                  @click="activeCriteriaTab = 'occurrence'"
+                >
+                  Occurrence (โอกาสเกิด)
+                </button>
 
-              <button
-                type="button"
-                class="pb-2.5 font-semibold transition-colors border-b-2"
-                :class="activeCriteriaTab === 'detection' ? 'border-[#008779] text-[#008779]' : 'border-transparent text-gray-500 hover:text-gray-800'"
-                @click="activeCriteriaTab = 'detection'"
-              >
-                Detection
-              </button>
+                <button
+                  type="button"
+                  class="pb-2.5 font-semibold transition-colors border-b-2"
+                  :class="activeCriteriaTab === 'detection' ? 'border-[#008779] text-[#008779]' : 'border-transparent text-gray-500 hover:text-gray-800'"
+                  @click="activeCriteriaTab = 'detection'"
+                >
+                  Detection (การตรวจจับ)
+                </button>
+              </div>
+
+              <!-- Severity Template Selection (Phase 2 Requirement) -->
+              <div v-if="activeCriteriaTab === 'severity'" class="flex items-center gap-2">
+                <label class="text-[11px] font-bold text-slate-600">Template เกณฑ์ Severity:</label>
+                <select
+                  v-model="selectedSeverityTemplate"
+                  class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-[#008779] font-bold focus:outline-none focus:border-[#008779] cursor-pointer shadow-2xs"
+                >
+                  <option value="yield">%Total Yield Loss & Waste Impact (มาตรฐาน)</option>
+                  <option value="cost">Financial Cost Impact (มูลค่าความสูญเสีย)</option>
+                  <option value="quality">Product Quality & Safety Specification</option>
+                </select>
+              </div>
             </div>
 
             <!-- Criteria Tables -->
@@ -516,32 +557,51 @@ const detectionCriteria = [
                 <thead>
                   <tr class="bg-gray-50/70 border-b border-gray-200 text-gray-400 uppercase text-[10px] font-semibold">
                     <th class="py-3 px-4 font-semibold w-24">SCORE</th>
+                    <th class="py-3 px-4 font-semibold w-32">LEVEL</th>
                     <th class="py-3 px-6 font-semibold">DESCRIPTION</th>
-                    <th class="py-3 px-6 font-semibold w-48">EXAMPLE</th>
+                    <th class="py-3 px-6 font-semibold w-56">EXAMPLE</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                   <template v-if="activeCriteriaTab === 'severity'">
                     <tr v-for="c in severityCriteria" :key="c.score" class="hover:bg-gray-50/50">
                       <td class="py-3.5 px-4 font-bold text-gray-900 font-mono">{{ c.score }}</td>
+                      <td class="py-3.5 px-4">
+                        <span
+                          class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                          :class="c.level === 'Critical' ? 'bg-rose-100 text-rose-800' : (c.level === 'High' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700')"
+                        >
+                          {{ c.level }}
+                        </span>
+                      </td>
                       <td class="py-3.5 px-6 text-gray-800 font-medium">{{ c.desc }}</td>
-                      <td class="py-3.5 px-6 text-gray-400">{{ c.example }}</td>
+                      <td class="py-3.5 px-6 text-gray-500">{{ c.example }}</td>
                     </tr>
                   </template>
 
                   <template v-else-if="activeCriteriaTab === 'occurrence'">
                     <tr v-for="c in occurrenceCriteria" :key="c.score" class="hover:bg-gray-50/50">
                       <td class="py-3.5 px-4 font-bold text-gray-900 font-mono">{{ c.score }}</td>
+                      <td class="py-3.5 px-4">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                          {{ c.level }}
+                        </span>
+                      </td>
                       <td class="py-3.5 px-6 text-gray-800 font-medium">{{ c.desc }}</td>
-                      <td class="py-3.5 px-6 text-gray-400">{{ c.example }}</td>
+                      <td class="py-3.5 px-6 text-gray-500">{{ c.example }}</td>
                     </tr>
                   </template>
 
                   <template v-else-if="activeCriteriaTab === 'detection'">
                     <tr v-for="c in detectionCriteria" :key="c.score" class="hover:bg-gray-50/50">
                       <td class="py-3.5 px-4 font-bold text-gray-900 font-mono">{{ c.score }}</td>
+                      <td class="py-3.5 px-4">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                          {{ c.level }}
+                        </span>
+                      </td>
                       <td class="py-3.5 px-6 text-gray-800 font-medium">{{ c.desc }}</td>
-                      <td class="py-3.5 px-6 text-gray-400">{{ c.example }}</td>
+                      <td class="py-3.5 px-6 text-gray-500">{{ c.example }}</td>
                     </tr>
                   </template>
                 </tbody>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useProjectData } from '~/composables/useProjectData'
+import { useApprovalWorkflow } from '~/composables/useApprovalWorkflow'
 
 const route = useRoute()
 const projectId = (route.params.id as string) || 'example-total-yield'
@@ -13,17 +14,70 @@ const {
   goalLssYield
 } = useProjectData(projectId)
 
+const { submitGoalRevisionWorkflow } = useApprovalWorkflow()
+
 const activeSubTab = ref<'chart' | 'charter' | 'counterbalance' | 'versions'>('chart')
+const charterFormat = ref<'form' | 'wysiwyg' | 'table'>('form')
 
 const loadedData = computed(() => project.value.insightRows)
 const begData = computed(() => project.value.begGoals)
 const counterbalanceTargets = computed(() => project.value.counterbalanceTargets)
 const pcrVersions = computed(() => project.value.pcrVersions)
 
+// Toast Feedback Notification
+const toastMsg = ref('')
+const toastType = ref<'success' | 'error'>('success')
+const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
+  toastMsg.value = msg
+  toastType.value = type
+  setTimeout(() => { toastMsg.value = '' }, 4000)
+}
+
 const isSaveConfirmed = ref(false)
 const saveChanges = () => {
   isSaveConfirmed.value = true
   setTimeout(() => { isSaveConfirmed.value = false }, 3000)
+}
+
+const exportCharterPdf = () => {
+  if (typeof window !== 'undefined') {
+    window.print()
+  }
+}
+
+// Goal Revision & Validation Logic (Requirement Image 4)
+const saveGoalField = (fieldName: 'goalBu' | 'goalStandard' | 'goalIndustry', label: string) => {
+  const inputValStr = project.value.begGoals[fieldName] || ''
+  const inputNum = parseFloat(inputValStr)
+
+  if (isNaN(inputNum) || inputNum <= 0) {
+    showToast(`กรุณากรอกตัวเลข ${label} ที่ถูกต้อง`, 'error')
+    return
+  }
+
+  const isIncrease = (project.value.target?.type || 'Increase') === 'Increase'
+  const minThreshold = baselineYield.value
+
+  // Validation Rule: New Goal MUST be higher/better than current baseline
+  if (isIncrease && inputNum < minThreshold) {
+    showToast(`⚠️ ค่า ${label} ใหม่ (${inputNum}%) ต้องไม่ต่ำกว่าค่า Baseline เดิม (${minThreshold}%)`, 'error')
+    return
+  }
+
+  // Auto-apply and dispatch approval request to Admin
+  submitGoalRevisionWorkflow(
+    projectId,
+    project.value.name,
+    project.value.plant,
+    `${baselineYield.value}%`,
+    `${entitlementYield.value}%`,
+    `${goalLssYield.value}%`,
+    `${inputNum}%`,
+    `ปรับปรุงค่าเป้าหมาย ${label} จากการประเมินศักยภาพกระบวนการใหม่`
+  )
+
+  project.value.begGoals.goalRevisionStatus = 'Pending Review'
+  showToast(`✓ ตั้งค่า ${label} เป็น ${inputNum}% สำเร็จ และส่งคำขออนุมัติไปยัง Admin (/admin/approvals) เรียบร้อยแล้ว`, 'success')
 }
 
 // Quick edit point modal
@@ -65,6 +119,7 @@ const saveQuickEdit = () => {
     }
   }
   isQuickEditOpen.value = false
+  showToast('Updated data point in real-time!')
 }
 
 // SVG Dynamic Coordinate Mapping
@@ -100,8 +155,27 @@ const polylinePoints = computed(() => {
 
 <template>
   <div class="space-y-4 -mt-2">
+    <!-- Toast Feedback Notification -->
+    <Transition
+      enter-active-class="transition duration-300 ease-out"
+      enter-from-class="transform -translate-y-4 opacity-0"
+      enter-to-class="transform translate-y-0 opacity-100"
+      leave-active-class="transition duration-200 ease-in"
+      leave-from-class="transform translate-y-0 opacity-100"
+      leave-to-class="transform -translate-y-4 opacity-0"
+    >
+      <div
+        v-if="toastMsg"
+        class="fixed top-5 right-5 z-50 px-4 py-2.5 rounded-lg shadow-2xl flex items-center gap-2 text-xs font-semibold"
+        :class="toastType === 'error' ? 'bg-rose-900 border border-rose-500 text-white' : 'bg-gray-900 border border-teal-500 text-white'"
+      >
+        <UIcon :name="toastType === 'error' ? 'i-lucide-alert-circle' : 'i-lucide-check-circle-2'" class="size-4" :class="toastType === 'error' ? 'text-rose-400' : 'text-teal-400'" />
+        <span>{{ toastMsg }}</span>
+      </div>
+    </Transition>
+
     <!-- Breadcrumbs -->
-    <div class="flex items-center gap-2 text-xs text-gray-500 pb-2">
+    <div class="flex items-center gap-2 text-xs text-gray-500 pb-1">
       <NuxtLink to="/admin" class="hover:text-[#008779] flex items-center gap-1">
         <UIcon name="i-lucide-home" class="size-3.5" />
         <span>Home</span>
@@ -120,14 +194,14 @@ const polylinePoints = computed(() => {
       <span class="text-gray-900 font-bold">BEG & Project Charter</span>
     </div>
 
-    <div class="flex gap-6 items-start">
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
       <DmaicSidebar
         :project-id="projectId"
         active-phase="Define"
         active-step="BEG Chart"
       />
 
-      <div class="flex-1 min-w-0 space-y-4">
+      <div class="flex-1 min-w-0 w-full space-y-4">
         <!-- Sub Navigation Tabs (Pill Style) -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-2 flex items-center gap-1.5 flex-wrap text-xs">
           <button
@@ -171,236 +245,447 @@ const polylinePoints = computed(() => {
           </button>
         </div>
 
-        <!-- 1. BEG Analysis Chart View -->
-        <div v-if="activeSubTab === 'chart'" class="bg-white rounded-3xl border border-slate-200/80 shadow-2xs p-6 space-y-6">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-slate-100 gap-3">
+        <!-- 1. BEG Analysis Chart View (Matching Design 3 & 4) -->
+        <div v-if="activeSubTab === 'chart'" class="space-y-4">
+          
+          <!-- Header Banner: BEG Analysis for Improvement Targets -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <h1 class="text-sm font-bold text-slate-900">BEG Analysis for Improvement Targets</h1>
+                <p class="text-xs text-slate-500 mt-0.5">Configure baseline, entitlement, and goal values for your improvement targets</p>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <NuxtLink
+                  :to="`/admin/projects/${projectId}/define/insight-data`"
+                  class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors"
+                >
+                  <UIcon name="i-lucide-edit" class="size-3.5 text-[#008779]" />
+                  <span>Manage Insight Data</span>
+                </NuxtLink>
+              </div>
+            </div>
+
+            <!-- Target Summary Pill Box (Design 3) -->
+            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="flex items-center gap-4 flex-wrap text-xs">
+                <span class="text-sm font-bold text-slate-900 font-mono">{{ project.target?.targetName || '%Yield' }}</span>
+                <span class="text-slate-500">Category: <strong class="text-slate-800">{{ project.target?.category || 'Quality' }}</strong></span>
+                <span class="text-slate-500">Type: <strong class="text-slate-800">{{ project.target?.type || 'Increase' }}</strong></span>
+                <span class="text-slate-500">Unit: <strong class="text-slate-800">{{ project.target?.unit || '%' }}</strong></span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-bold font-mono bg-teal-50 text-[#008779] border border-teal-200 px-2.5 py-0.5 rounded-full">
+                  {{ loadedData.length }} points
+                </span>
+                <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  Goals Active
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- BEG Analysis Time Series SVG Chart -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-3">
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              {{ project.target?.targetName || '%Yield' }} - BEG Analysis Chart
+            </h3>
+
+            <div class="h-68 border border-slate-100 rounded-xl p-4 bg-slate-50/40 flex items-center justify-center relative overflow-hidden">
+              <svg class="w-full h-full" viewBox="0 0 740 210">
+                <!-- Entitlement Line - Amber -->
+                <line
+                  x1="45"
+                  :y1="getYCoord(entitlementYield)"
+                  x2="640"
+                  :y2="getYCoord(entitlementYield)"
+                  stroke="#f59e0b"
+                  stroke-width="1.5"
+                  stroke-dasharray="4 4"
+                />
+                <text x="645" :y="getYCoord(entitlementYield) + 4" font-size="10" fill="#f59e0b" font-weight="bold" font-family="monospace">
+                  Entitlement: {{ entitlementYield }}
+                </text>
+
+                <!-- Goal LSS Line - Purple -->
+                <line
+                  x1="45"
+                  :y1="getYCoord(goalLssYield)"
+                  x2="640"
+                  :y2="getYCoord(goalLssYield)"
+                  stroke="#9333ea"
+                  stroke-width="2"
+                />
+                <text x="645" :y="getYCoord(goalLssYield) + 4" font-size="10" fill="#9333ea" font-weight="bold" font-family="monospace">
+                  Goal LSS: {{ goalLssYield }}
+                </text>
+
+                <!-- Baseline Line - Red -->
+                <line
+                  x1="45"
+                  :y1="getYCoord(baselineYield)"
+                  x2="640"
+                  :y2="getYCoord(baselineYield)"
+                  stroke="#dc2626"
+                  stroke-width="1.5"
+                  stroke-dasharray="4 4"
+                />
+                <text x="645" :y="getYCoord(baselineYield) + 4" font-size="10" fill="#dc2626" font-weight="bold" font-family="monospace">
+                  Baseline: {{ baselineYield }}
+                </text>
+
+                <!-- Actual Data Points Connected Line -->
+                <polyline
+                  v-if="loadedData.length > 1"
+                  :points="polylinePoints"
+                  fill="none"
+                  stroke="#008779"
+                  stroke-width="2.5"
+                />
+
+                <!-- Data Dots & Tooltip labels -->
+                <g
+                  v-for="(row, rIdx) in loadedData"
+                  :key="row.id || rIdx"
+                  class="cursor-pointer group"
+                  @click="openQuickEdit(rIdx)"
+                >
+                  <circle
+                    :cx="getXCoord(rIdx)"
+                    :cy="getYCoord(row.pct)"
+                    :r="row.isOutlier ? 6.5 : 5"
+                    :fill="row.isOutlier ? '#f59e0b' : '#008779'"
+                    :stroke="row.isOutlier ? '#dc2626' : '#ffffff'"
+                    stroke-width="1.5"
+                    class="transition-transform group-hover:scale-125"
+                  />
+                  <text
+                    :x="getXCoord(rIdx)"
+                    y="200"
+                    font-size="9"
+                    fill="#64748b"
+                    text-anchor="middle"
+                    font-family="monospace"
+                  >
+                    {{ row.period || (rIdx + 1) }}
+                  </text>
+                  <text
+                    :x="getXCoord(rIdx)"
+                    :y="getYCoord(row.pct) - 8"
+                    font-size="8.5"
+                    :fill="row.isOutlier ? '#b45309' : '#0f766e'"
+                    text-anchor="middle"
+                    font-weight="bold"
+                    font-family="monospace"
+                  >
+                    {{ row.pct }}
+                  </text>
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <!-- BEG VALUES CONFIGURATION TABLE (Matching Image 3 & 4) -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                BEG Values Configuration
+              </h3>
+              <span v-if="project.begGoals.goalRevisionStatus === 'Pending Review'" class="text-[10px] bg-amber-50 text-amber-800 border border-amber-300 font-bold px-2 py-0.5 rounded-full">
+                ⏳ Goal Revision Pending Admin Approval
+              </span>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border border-slate-200 rounded-xl overflow-hidden">
+                <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase font-bold tracking-wider border-b border-slate-200">
+                  <tr>
+                    <th class="py-3 px-3">TARGET INDICATORS</th>
+                    <th class="py-3 px-3 text-center">UNIT</th>
+                    <th class="py-3 px-3 text-center">BASELINE</th>
+                    <th class="py-3 px-3 text-center">ENTITLEMENT</th>
+                    <th class="py-3 px-3 text-center">GOAL LSS</th>
+                    <th class="py-3 px-3 text-center">GOAL BU</th>
+                    <th class="py-3 px-3 text-center">GOAL STANDARD</th>
+                    <th class="py-3 px-3 text-center">GOAL INDUSTRY</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-800">
+                  <tr>
+                    <!-- Indicator Name -->
+                    <td class="py-3 px-3 font-bold font-mono text-slate-900">
+                      {{ project.target?.targetName || '%Yield' }}
+                    </td>
+
+                    <!-- Unit -->
+                    <td class="py-3 px-3 text-center font-mono">
+                      {{ project.target?.unit || '%' }}
+                    </td>
+
+                    <!-- Baseline -->
+                    <td class="py-3 px-3 text-center font-mono font-bold text-rose-600 bg-rose-50/20">
+                      {{ baselineYield }}
+                    </td>
+
+                    <!-- Entitlement -->
+                    <td class="py-3 px-3 text-center font-mono font-bold text-amber-600 bg-amber-50/20">
+                      {{ entitlementYield }}
+                    </td>
+
+                    <!-- Goal LSS -->
+                    <td class="py-3 px-3 text-center font-mono font-bold text-purple-700 bg-purple-50/20">
+                      {{ goalLssYield }}
+                    </td>
+
+                    <!-- Goal BU (Input + Save) -->
+                    <td class="py-2.5 px-3 text-center">
+                      <div class="flex items-center justify-center gap-1.5">
+                        <input
+                          v-model="project.begGoals.goalBu"
+                          type="text"
+                          placeholder="Enter val"
+                          class="w-18 bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs text-center font-mono focus:border-[#008779] focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          class="bg-[#008779] hover:bg-[#007366] text-white text-[11px] font-bold px-2 py-1 rounded-lg cursor-pointer transition-colors shadow-2xs"
+                          @click="saveGoalField('goalBu', 'Goal BU')"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </td>
+
+                    <!-- Goal Standard (Input + Save) -->
+                    <td class="py-2.5 px-3 text-center">
+                      <div class="flex items-center justify-center gap-1.5">
+                        <input
+                          v-model="project.begGoals.goalStandard"
+                          type="text"
+                          placeholder="Enter val"
+                          class="w-18 bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs text-center font-mono focus:border-[#008779] focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          class="bg-[#008779] hover:bg-[#007366] text-white text-[11px] font-bold px-2 py-1 rounded-lg cursor-pointer transition-colors shadow-2xs"
+                          @click="saveGoalField('goalStandard', 'Goal Standard')"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </td>
+
+                    <!-- Goal Industry (Input + Save) -->
+                    <td class="py-2.5 px-3 text-center">
+                      <div class="flex items-center justify-center gap-1.5">
+                        <input
+                          v-model="project.begGoals.goalIndustry"
+                          type="text"
+                          placeholder="Enter val"
+                          class="w-18 bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs text-center font-mono focus:border-[#008779] focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          class="bg-[#008779] hover:bg-[#007366] text-white text-[11px] font-bold px-2 py-1 rounded-lg cursor-pointer transition-colors shadow-2xs"
+                          @click="saveGoalField('goalIndustry', 'Goal Industry')"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Calculation Method Explanations (Matching Image 3 Bottom) -->
+            <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-4 text-[11px] space-y-1 text-slate-600">
+              <span class="font-bold text-slate-800 block text-xs mb-1">Calculation Method:</span>
+              <p>• <strong>Baseline:</strong> Mean of all valid data points (excluding outliers with cause)</p>
+              <p>• <strong>Entitlement:</strong> Maximum value in dataset (Best historical continuous record)</p>
+              <p>• <strong>Goal LSS:</strong> Baseline + ((Entitlement - Baseline) * 0.80) [80% Gap Closure Rule]</p>
+              <p>• <strong>Goal BU / Standard / Industry:</strong> User input, must be ≥ Baseline (ห้ามตั้งเป้าหมายต่ำลง) และจะส่งบันทึกขออนุมัติไปยังผู้ดูแลระบบอัตโนมัติ</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 2. Project Charter Multi-Format View -->
+        <div v-if="activeSubTab === 'charter'" class="bg-white rounded-3xl border border-slate-200/80 shadow-2xs p-6 space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-4">
             <div>
               <div class="flex items-center gap-2">
                 <h2 class="text-sm font-bold text-slate-900">
-                  BEG Statistical Time-Series Chart (Interactive Real-Time)
+                  Project Charter (PCR) Documentation Studio
                 </h2>
-                <span class="text-[10px] bg-teal-50 text-[#008779] border border-teal-200 px-2.5 py-0.5 rounded-full font-mono font-bold">
-                  {{ loadedData.length }} Data Points
+                <span class="inline-flex items-center gap-1 text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full font-bold">
+                  <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>API Sync Connected</span>
                 </span>
               </div>
               <p class="text-xs text-slate-500 mt-0.5">
-                คลิกที่จุดในกราฟเพื่อแก้ไขค่าแบบทันที หรือไปที่หน้า Insight Data เพื่อจัดการชุดข้อมูลทั้งหมด
+                รองรับการกรอกข้อมูลหลายรูปแบบ (Form Fields, WYSIWYG Editor, ตาราง Matrix)
               </p>
             </div>
 
-            <div class="flex items-center gap-3">
-              <NuxtLink
-                :to="`/admin/projects/${projectId}/define/insight-data`"
-                class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors"
-              >
-                <UIcon name="i-lucide-edit" class="size-3.5 text-[#008779]" />
-                <span>Manage All Data Rows</span>
-              </NuxtLink>
-
-              <span class="text-xs font-mono font-bold text-[#008779] bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-xl shadow-2xs">
-                Entitlement Gap Closure: 80.0%
-              </span>
-            </div>
-          </div>
-
-          <!-- Dynamic SVG Time-Series Chart -->
-          <div class="h-68 border border-gray-100 rounded-lg p-4 bg-gray-50/40 flex items-center justify-center relative overflow-hidden">
-            <svg class="w-full h-full" viewBox="0 0 740 210">
-              <!-- Entitlement Line - Amber -->
-              <line
-                x1="45"
-                :y1="getYCoord(entitlementYield)"
-                x2="660"
-                :y2="getYCoord(entitlementYield)"
-                stroke="#f59e0b"
-                stroke-width="1.5"
-                stroke-dasharray="4 4"
-              />
-              <text x="665" :y="getYCoord(entitlementYield) + 4" font-size="10" fill="#f59e0b" font-weight="bold">
-                Entitlement: {{ entitlementYield }}%
-              </text>
-
-              <!-- Goal Line - Purple -->
-              <line
-                x1="45"
-                :y1="getYCoord(goalLssYield)"
-                x2="660"
-                :y2="getYCoord(goalLssYield)"
-                stroke="#9333ea"
-                stroke-width="2"
-              />
-              <text x="665" :y="getYCoord(goalLssYield) + 4" font-size="10" fill="#9333ea" font-weight="bold">
-                Goal LSS: {{ goalLssYield }}%
-              </text>
-
-              <!-- Baseline Line - Red -->
-              <line
-                x1="45"
-                :y1="getYCoord(baselineYield)"
-                x2="660"
-                :y2="getYCoord(baselineYield)"
-                stroke="#dc2626"
-                stroke-width="1.5"
-                stroke-dasharray="4 4"
-              />
-              <text x="665" :y="getYCoord(baselineYield) + 4" font-size="10" fill="#dc2626" font-weight="bold">
-                Baseline: {{ baselineYield }}%
-              </text>
-
-              <!-- Actual Data Points Connected Line -->
-              <polyline
-                v-if="loadedData.length > 1"
-                :points="polylinePoints"
-                fill="none"
-                stroke="#008779"
-                stroke-width="2.5"
-              />
-
-              <!-- Data Dots & Tooltip labels -->
-              <g
-                v-for="(row, rIdx) in loadedData"
-                :key="row.id || rIdx"
-                class="cursor-pointer group"
-                @click="openQuickEdit(rIdx)"
-              >
-                <!-- Dot -->
-                <circle
-                  :cx="getXCoord(rIdx)"
-                  :cy="getYCoord(row.pct)"
-                  :r="row.isOutlier ? 6.5 : 5"
-                  :fill="row.isOutlier ? '#f59e0b' : '#008779'"
-                  :stroke="row.isOutlier ? '#dc2626' : '#ffffff'"
-                  stroke-width="1.5"
-                  class="transition-transform group-hover:scale-125"
-                />
-
-                <!-- X Axis Period Label -->
-                <text
-                  :x="getXCoord(rIdx)"
-                  y="200"
-                  font-size="9"
-                  fill="#64748b"
-                  text-anchor="middle"
-                  font-family="monospace"
+            <div class="flex items-center gap-2 flex-wrap">
+              <div class="bg-slate-100 p-1 rounded-xl flex items-center gap-1 text-xs font-semibold">
+                <button
+                  type="button"
+                  class="px-2.5 py-1 rounded-lg transition-all cursor-pointer"
+                  :class="charterFormat === 'form' ? 'bg-white text-[#008779] shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
+                  @click="charterFormat = 'form'"
                 >
-                  {{ row.period || (rIdx + 1) }}
-                </text>
-
-                <!-- Value Label on Top of Dot -->
-                <text
-                  :x="getXCoord(rIdx)"
-                  :y="getYCoord(row.pct) - 8"
-                  font-size="8.5"
-                  :fill="row.isOutlier ? '#b45309' : '#0f766e'"
-                  text-anchor="middle"
-                  font-weight="bold"
-                  font-family="monospace"
+                  Form Fields
+                </button>
+                <button
+                  type="button"
+                  class="px-2.5 py-1 rounded-lg transition-all cursor-pointer"
+                  :class="charterFormat === 'wysiwyg' ? 'bg-white text-[#008779] shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
+                  @click="charterFormat = 'wysiwyg'"
                 >
-                  {{ row.pct }}%
-                </text>
-              </g>
-            </svg>
-          </div>
+                  WYSIWYG
+                </button>
+                <button
+                  type="button"
+                  class="px-2.5 py-1 rounded-lg transition-all cursor-pointer"
+                  :class="charterFormat === 'table' ? 'bg-white text-[#008779] shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
+                  @click="charterFormat = 'table'"
+                >
+                  Table
+                </button>
+              </div>
 
-          <!-- BEG Goals Metrics Formulation Grid -->
-          <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 pt-2">
-            <div class="border border-red-200 rounded-lg p-3 bg-red-50/30 text-center">
-              <label class="text-[10px] text-red-700 font-bold block uppercase">Baseline (B)</label>
-              <p class="text-lg font-mono font-bold text-red-700 mt-0.5">{{ baselineYield }}%</p>
-              <span class="text-[10px] text-gray-500">From {{ validInsightRows.length }} valid points</span>
-            </div>
+              <button
+                type="button"
+                class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
+                @click="exportCharterPdf"
+              >
+                <UIcon name="i-lucide-file-text" class="size-3.5 text-rose-500" />
+                <span>Export PDF</span>
+              </button>
 
-            <div class="border border-amber-200 rounded-lg p-3 bg-amber-50/30 text-center">
-              <label class="text-[10px] text-amber-700 font-bold block uppercase">Entitlement (E)</label>
-              <p class="text-lg font-mono font-bold text-amber-700 mt-0.5">{{ entitlementYield }}%</p>
-              <span class="text-[10px] text-gray-500">Historical Maximum</span>
-            </div>
-
-            <div class="border border-purple-200 rounded-lg p-3 bg-purple-50/30 text-center">
-              <label class="text-[10px] text-purple-700 font-bold block uppercase">Goal LSS (G)</label>
-              <p class="text-lg font-mono font-bold text-purple-700 mt-0.5">{{ goalLssYield }}%</p>
-              <span class="text-[10px] text-purple-600 font-medium">80% Gap Closure</span>
-            </div>
-
-            <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
-              <label class="text-[10px] text-gray-600 font-bold block uppercase">Goal BU (Optional)</label>
-              <input v-model="begData.goalBu" type="text" placeholder="e.g. 86.50" class="w-full bg-white border border-gray-300 rounded px-2 py-1 text-xs font-mono mt-1 text-center font-semibold focus:border-[#008779] focus:outline-hidden" />
-            </div>
-
-            <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
-              <label class="text-[10px] text-gray-600 font-bold block uppercase">Goal Challenge (Opt)</label>
-              <input v-model="begData.goalChallenge" type="text" placeholder="e.g. 89.00" class="w-full bg-white border border-gray-300 rounded px-2 py-1 text-xs font-mono mt-1 text-center font-semibold focus:border-[#008779] focus:outline-hidden" />
+              <button
+                type="button"
+                class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-semibold px-4 py-1.5 rounded-xl shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
+                @click="saveChanges"
+              >
+                <UIcon name="i-lucide-check" class="size-3.5" />
+                <span>Save Charter</span>
+              </button>
             </div>
           </div>
-        </div>
 
-        <!-- 2. Project Charter Form View -->
-        <div v-if="activeSubTab === 'charter'" class="bg-white rounded-lg border border-gray-200 shadow-xs p-6 space-y-6">
-          <div class="flex items-center justify-between pb-3 border-b border-gray-100">
-            <div>
-              <h2 class="text-sm font-bold text-gray-900">
-                Project Charter (PCR) Documentation Editor
-              </h2>
-              <p class="text-xs text-gray-500 mt-0.5">
-                Structured fields component with rich formatting for PDF/Image export
-              </p>
-            </div>
-
-            <button
-              type="button"
-              class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-semibold px-4 py-2 rounded-md shadow-xs transition-colors cursor-pointer"
-              @click="saveChanges"
-            >
-              Save Charter Changes
-            </button>
-          </div>
-
-          <div v-if="isSaveConfirmed" class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs p-3 rounded-md font-semibold">
-            ✓ Project Charter modifications saved.
-          </div>
-
-          <div class="grid grid-cols-2 gap-4 text-xs">
-            <div class="space-y-1">
-              <label class="font-bold text-gray-700 block">Problem Statement *</label>
+          <!-- Format A: Form Fields View -->
+          <div v-if="charterFormat === 'form'" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div class="space-y-1.5">
+              <label class="font-bold text-slate-700 block">Problem Statement (สภาพปัญหาปัจจุบัน) *</label>
               <textarea
                 rows="3"
-                class="w-full bg-white border border-gray-200 rounded-md p-2.5 text-xs text-gray-900 focus:outline-hidden focus:border-[#008779]"
+                class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-900 focus:outline-none focus:border-[#008779]"
                 :value="`% Total Yield สินค้าไก่ทอดต่ำกว่าเกณฑ์มาตรฐาน (Baseline ${baselineYield}%) ส่งผลให้เกิดการสูญเสียต้นทุนวัตถุดิบและเกิด Giveaway เกินเป้าหมาย`"
               ></textarea>
             </div>
 
-            <div class="space-y-1">
-              <label class="font-bold text-gray-700 block">Goal Statement *</label>
+            <div class="space-y-1.5">
+              <label class="font-bold text-slate-700 block">Goal Statement (เป้าหมายโครงการ) *</label>
               <textarea
                 rows="3"
-                class="w-full bg-white border border-gray-200 rounded-md p-2.5 text-xs text-gray-900 focus:outline-hidden focus:border-[#008779]"
+                class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-900 focus:outline-none focus:border-[#008779]"
                 :value="`เพิ่ม %Total Yield สินค้าไก่ทอด จาก Baseline ${baselineYield}% สู่ Goal LSS ${goalLssYield}% (Entitlement ${entitlementYield}%) ภายในระยะเวลาดำเนินโครงการ`"
               ></textarea>
             </div>
+
+            <div class="space-y-1.5">
+              <label class="font-bold text-slate-700 block">Project Scope (ขอบเขตงาน In-Scope / Out-Scope)</label>
+              <textarea
+                rows="3"
+                class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-900 focus:outline-none focus:border-[#008779]"
+                value="In-Scope: กระบวนการผสมแป้ง Predust, การชุบ Batter, การทอด Continuous Fryer และการชั่ง Multihead Weigher&#10;Out-Scope: กระบวนการเชือดและตัดแต่งเบื้องต้น (Primary Processing)"
+              ></textarea>
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="font-bold text-slate-700 block">Business Case & Financial Return (ผลประโยชน์ทางการเงิน)</label>
+              <textarea
+                rows="3"
+                class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-900 focus:outline-none focus:border-[#008779]"
+                value="คาดการณ์ผลประโยชน์จากการลด Yield Loss และลด Giveaway น้ำหนักเกิน 4,450,000 บาท/ปี โดยใช้วิธี Six Sigma DMAIC"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Format B: WYSIWYG View -->
+          <div v-else-if="charterFormat === 'wysiwyg'" class="space-y-3">
+            <div class="border border-slate-200 rounded-2xl p-6 bg-white space-y-4 text-xs text-slate-800 min-h-[200px]">
+              <h1 class="text-base font-black text-slate-900 border-b pb-2">
+                PROJECT CHARTER (PCR) — {{ project.name }}
+              </h1>
+              <div class="space-y-2">
+                <h3 class="font-bold text-[#008779]">1. Problem Statement:</h3>
+                <p class="leading-relaxed text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                  ค่าเฉลี่ย Yield ปัจจุบันอยู่ที่ <strong>{{ baselineYield }}%</strong> ซึ่งต่ำกว่าค่าประวัติศาสตร์สูงสุดที่ทำได้ (<strong>{{ entitlementYield }}%</strong>)
+                </p>
+                <h3 class="font-bold text-[#008779] pt-2">2. Objective & Financial Goal:</h3>
+                <p class="leading-relaxed text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                  ปิดช่องว่างผลการดำเนินงาน 80% สู่เป้าหมาย <strong>{{ goalLssYield }}%</strong> คาดว่าจะสร้างผลประหยัดต้นทุนรวม <strong>4.45 ล้านบาท/ปี</strong>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Format C: Table View -->
+          <div v-else class="overflow-x-auto border border-slate-200 rounded-2xl">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[10px]">
+                <tr>
+                  <th class="p-3">Section</th>
+                  <th class="p-3">Specification Content</th>
+                  <th class="p-3">Target KPI</th>
+                  <th class="p-3">Accountable Lead</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-700">
+                <tr>
+                  <td class="p-3 font-bold text-slate-900">Problem Statement</td>
+                  <td class="p-3">%Total Yield สินค้าไก่ทอดต่ำกว่าเป้าหมายที่คาดหวัง</td>
+                  <td class="p-3 font-mono text-rose-600 font-bold">Baseline {{ baselineYield }}%</td>
+                  <td class="p-3">{{ project.leader }}</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold text-slate-900">Goal Statement</td>
+                  <td class="p-3">เพิ่มผลผลิตและลดน้ำหนักส่วนเกิน Giveaway</td>
+                  <td class="p-3 font-mono text-purple-700 font-bold">Goal LSS {{ goalLssYield }}%</td>
+                  <td class="p-3">Dr. Prasert Chareon (MBB)</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
         <!-- 3. Counterbalance Targets View -->
-        <div v-if="activeSubTab === 'counterbalance'" class="bg-white rounded-lg border border-gray-200 shadow-xs p-6 space-y-4">
-          <div class="flex items-center justify-between pb-3 border-b border-gray-100">
-            <h2 class="text-sm font-bold text-gray-900">
+        <div v-if="activeSubTab === 'counterbalance'" class="bg-white rounded-3xl border border-slate-200/80 shadow-2xs p-6 space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <h2 class="text-sm font-bold text-slate-900">
               Counterbalance Targets (Quality & Safety Boundaries)
             </h2>
           </div>
           <table class="w-full text-left text-xs">
             <thead>
-              <tr class="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase text-[10px]">
+              <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[10px]">
                 <th class="p-3">Counterbalance Metric</th>
                 <th class="p-3">Current Performance</th>
                 <th class="p-3">Allowable Boundary Limit</th>
                 <th class="p-3 text-center">Status</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100">
+            <tbody class="divide-y divide-slate-100">
               <tr v-for="t in counterbalanceTargets" :key="t.id">
-                <td class="p-3 font-semibold text-gray-900">{{ t.name }}</td>
-                <td class="p-3 font-mono text-gray-700">{{ t.current }}</td>
-                <td class="p-3 font-mono text-gray-500">{{ t.limit }}</td>
+                <td class="p-3 font-semibold text-slate-900">{{ t.name }}</td>
+                <td class="p-3 font-mono text-slate-700">{{ t.current }}</td>
+                <td class="p-3 font-mono text-slate-500">{{ t.limit }}</td>
                 <td class="p-3 text-center">
                   <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full">
                     ✓ {{ t.status }}
@@ -412,24 +697,49 @@ const polylinePoints = computed(() => {
         </div>
 
         <!-- 4. PCR Version History View -->
-        <div v-if="activeSubTab === 'versions'" class="bg-white rounded-lg border border-gray-200 shadow-xs p-6 space-y-4">
-          <h2 class="text-sm font-bold text-gray-900 pb-3 border-b border-gray-100">
-            PCR Sign-off Version History & Audit Trail
-          </h2>
+        <div v-if="activeSubTab === 'versions'" class="bg-white rounded-3xl border border-slate-200/80 shadow-2xs p-6 space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">
+                PCR Sign-off Version History & Audit Trail
+              </h2>
+              <p class="text-xs text-slate-500 mt-0.5">
+                บันทึกเวอร์ชัน PCR ทุกฉบับและสถานะการเชื่อมต่อ API ขององค์กร
+              </p>
+            </div>
+            <span class="text-xs font-mono font-bold text-[#008779] bg-teal-50 border border-teal-200 px-3 py-1 rounded-full">
+              Current Active: v1.0
+            </span>
+          </div>
+
           <div class="space-y-3">
-            <div v-for="v in pcrVersions" :key="v.version" class="border rounded-lg p-4 space-y-1.5 text-xs bg-gray-50/50">
+            <div
+              v-for="(v, vIdx) in pcrVersions"
+              :key="v.version"
+              class="border rounded-2xl p-4 space-y-2 text-xs transition-colors"
+              :class="vIdx === 0 ? 'border-teal-300 bg-teal-50/20' : 'border-slate-200 bg-slate-50/40'"
+            >
               <div class="flex items-center justify-between">
-                <span class="font-bold text-gray-900">{{ v.version }}</span>
-                <span class="text-gray-500 font-mono text-[10px]">Approved by {{ v.approvedBy }} on {{ v.approvedAt }}</span>
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-slate-900">{{ v.version }}</span>
+                  <span
+                    class="px-2 py-0.5 rounded-full text-[9px] font-bold"
+                    :class="vIdx === 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-slate-200 text-slate-700'"
+                  >
+                    {{ vIdx === 0 ? 'Active (ฉบับใช้งาน)' : 'Inactive (ประวัติย้อนหลัง)' }}
+                  </span>
+                </div>
+                <span class="text-slate-500 font-mono text-[10px]">Approved by {{ v.approvedBy }} on {{ v.approvedAt }}</span>
               </div>
-              <p class="text-gray-600">{{ v.comment }}</p>
+              <p class="text-slate-600">{{ v.comment }}</p>
               <div class="flex gap-4 font-mono text-[11px] pt-1">
-                <span>Baseline: <strong class="text-red-700">{{ v.baseline }}</strong></span>
+                <span>Baseline: <strong class="text-rose-600">{{ v.baseline }}</strong></span>
                 <span>Goal: <strong class="text-purple-700">{{ v.goal }}</strong></span>
               </div>
             </div>
           </div>
         </div>
+
       </div>
     </div>
 

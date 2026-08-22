@@ -51,6 +51,63 @@ const selectedSourceProject = ref<any>(null)
 const duplicateProjectTitle = ref('')
 const duplicateLocation = ref('loc-1')
 
+// New Project Form State (Design 1)
+const newProjectForm = ref({
+  name: '',
+  type: 'Internal' as 'Internal' | 'External',
+  business: 'Food Business',
+  businessUnit: 'Chicken Processing Plant 1',
+  workingCommittee: 'Lean Six Sigma Steering Committee',
+  location: 'โรงงานแปรรูปโชคชัย (Nakhon Ratchasima)'
+})
+
+const locationOptions = ref([
+  'โรงงานแปรรูปโชคชัย (Nakhon Ratchasima)',
+  'โรงงานแปรรูปอาหาร 2 (นครราชสีมา)',
+  'โรงงานแปรรูปสระบุรี',
+  'โรงงานอาหารสำเร็จรูปหนองจอก',
+  'โรงงานแปรรูปเนื้อไก่มีนบุรี'
+])
+
+const isAddingCustomLocation = ref(false)
+const customLocationInput = ref('')
+
+const saveCustomLocation = () => {
+  if (customLocationInput.value.trim()) {
+    const newLoc = customLocationInput.value.trim()
+    if (!locationOptions.value.includes(newLoc)) {
+      locationOptions.value.unshift(newLoc)
+    }
+    newProjectForm.value.location = newLoc
+    customLocationInput.value = ''
+    isAddingCustomLocation.value = false
+  }
+}
+
+const handleCreateProject = () => {
+  if (!newProjectForm.value.name.trim()) {
+    alert('Please enter a project name.')
+    return
+  }
+
+  projects.value.unshift({
+    id: `proj-${Date.now()}`,
+    name: newProjectForm.value.name.trim(),
+    isOriginal: true,
+    location: newProjectForm.value.location,
+    manager: 'Romteera Tadderm',
+    year: '2026',
+    phase: 'Define',
+    phaseColor: 'blue',
+    status: 'Active',
+    lastUpdate: 'Just now'
+  })
+
+  // Reset form
+  newProjectForm.value.name = ''
+  isNewProjectModalOpen.value = false
+}
+
 // Module Scope Checkboxes (Phase 2 feature)
 const copyScope = ref({
   define: true,
@@ -473,7 +530,7 @@ const confirmDuplicateRun = () => {
       </div>
     </div>
 
-    <!-- CREATE PROJECT MODAL -->
+    <!-- CREATE PROJECT MODAL (Matching Design 1) -->
     <div
       v-if="isNewProjectModalOpen"
       class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4"
@@ -481,84 +538,155 @@ const confirmDuplicateRun = () => {
       <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         <div class="p-5 border-b border-slate-100 flex items-center justify-between">
           <h3 class="text-sm font-bold text-slate-900">
-            Create New Project
+            Create Project
           </h3>
           <button
             type="button"
-            class="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+            class="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer"
             @click="isNewProjectModalOpen = false"
           >
             <UIcon name="i-lucide-x" class="size-4" />
           </button>
         </div>
 
-        <div class="p-6 space-y-4 text-xs">
+        <div class="p-6 space-y-4 text-xs max-h-[80vh] overflow-y-auto">
           <!-- Project Name -->
           <div class="space-y-1">
             <label class="font-semibold text-slate-700 block">Project Name *</label>
             <input
+              v-model="newProjectForm.name"
               type="text"
               placeholder="Enter project name"
-              class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#008779] focus:bg-white"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#008779] focus:bg-white transition-colors"
             />
           </div>
 
-          <!-- Project Belt / Type Selection -->
-          <div class="space-y-1">
-            <label class="font-semibold text-slate-700 block">Project Belt / Type *</label>
-            <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-[#008779]">
-              <option value="bb">Black Belt (BB)</option>
-              <option value="gb" selected>Green Belt (GB)</option>
-              <option value="yb">Yellow Belt (YB)</option>
-              <option value="sme">SME / Automation Innovation</option>
-            </select>
+          <!-- Project Type (Internal / External Toggle) -->
+          <div class="space-y-1.5">
+            <label class="font-semibold text-slate-700 block">Project Type</label>
+            <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+              <span class="text-xs font-semibold" :class="newProjectForm.type === 'Internal' ? 'text-[#008779]' : 'text-slate-500'">
+                Internal
+              </span>
+              <button
+                type="button"
+                class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                :class="newProjectForm.type === 'External' ? 'bg-[#008779]' : 'bg-slate-300'"
+                @click="newProjectForm.type = newProjectForm.type === 'Internal' ? 'External' : 'Internal'"
+              >
+                <span
+                  class="pointer-events-none inline-block size-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                  :class="newProjectForm.type === 'External' ? 'translate-x-5' : 'translate-x-0'"
+                />
+              </button>
+              <span class="text-xs font-semibold" :class="newProjectForm.type === 'External' ? 'text-[#008779]' : 'text-slate-500'">
+                External
+              </span>
+            </div>
           </div>
 
           <!-- Business -->
           <div class="space-y-1">
             <label class="font-semibold text-slate-700 block">Business *</label>
-            <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-[#008779]">
-              <option value="food">Food Business</option>
-              <option value="feed">Feed Business</option>
-              <option value="farm">Farm Business</option>
+            <select
+              v-model="newProjectForm.business"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-[#008779]"
+            >
+              <option value="Food Business">Food Business</option>
+              <option value="Agro-Industrial Business">Agro-Industrial Business</option>
+              <option value="Feed Business">Feed Business</option>
+              <option value="Livestock & Farm">Livestock & Farm</option>
+              <option value="International Operations">International Operations</option>
             </select>
           </div>
 
           <!-- Business Unit -->
           <div class="space-y-1">
             <label class="font-semibold text-slate-700 block">Business Unit *</label>
-            <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-[#008779]">
-              <option value="chicken">Chicken Processing</option>
-              <option value="swine">Swine Processing</option>
-              <option value="rte">Ready-to-Eat Food Division</option>
+            <select
+              v-model="newProjectForm.businessUnit"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-[#008779]"
+            >
+              <option value="Chicken Processing Plant 1">Chicken Processing Plant 1</option>
+              <option value="Chicken Processing Plant 2">Chicken Processing Plant 2</option>
+              <option value="Swine Processing Plant">Swine Processing Plant</option>
+              <option value="Ready-to-Eat Food Facility">Ready-to-Eat Food Facility</option>
+              <option value="Aqua Feed Mill">Aqua Feed Mill</option>
             </select>
           </div>
 
-          <!-- Plant / Location -->
+          <!-- Working Committee -->
           <div class="space-y-1">
-            <label class="font-semibold text-slate-700 block">Plant / Location *</label>
-            <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-[#008779]">
-              <option value="loc-1">โรงงานแปรรูปโชคชัย (Nakhon Ratchasima)</option>
-              <option value="loc-2">โรงงานแปรรูปอาหาร 2 (นครราชสีมา)</option>
-              <option value="loc-3">โรงงานแปรรูปสระบุรี</option>
+            <label class="font-semibold text-slate-700 block">Working Committee *</label>
+            <select
+              v-model="newProjectForm.workingCommittee"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-[#008779]"
+            >
+              <option value="Lean Six Sigma Steering Committee">Lean Six Sigma Steering Committee</option>
+              <option value="Operations Excellence & Quality Board">Operations Excellence & Quality Board</option>
+              <option value="Productivity Improvement Taskforce">Productivity Improvement Taskforce</option>
+              <option value="Cost Optimization Committee">Cost Optimization Committee</option>
+            </select>
+          </div>
+
+          <!-- Location * -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label class="font-semibold text-slate-700 block">Location *</label>
+              <button
+                type="button"
+                class="text-[11px] font-bold text-[#008779] hover:underline flex items-center gap-1 cursor-pointer"
+                @click="isAddingCustomLocation = !isAddingCustomLocation"
+              >
+                <UIcon name="i-lucide-plus" class="size-3" />
+                <span>+ Add Location</span>
+              </button>
+            </div>
+
+            <!-- Custom Location Inline Input -->
+            <div v-if="isAddingCustomLocation" class="flex items-center gap-1.5 p-2 bg-teal-50/70 border border-teal-200 rounded-xl">
+              <input
+                v-model="customLocationInput"
+                type="text"
+                placeholder="Enter new plant location name"
+                class="flex-1 bg-white border border-teal-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none"
+                @keyup.enter="saveCustomLocation"
+              />
+              <button
+                type="button"
+                class="bg-[#008779] text-white text-[11px] font-bold px-2.5 py-1.5 rounded-lg cursor-pointer hover:bg-[#007366]"
+                @click="saveCustomLocation"
+              >
+                Add
+              </button>
+            </div>
+
+            <select
+              v-model="newProjectForm.location"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-[#008779]"
+            >
+              <option v-for="loc in locationOptions" :key="loc" :value="loc">
+                {{ loc }}
+              </option>
             </select>
           </div>
         </div>
 
-        <div class="p-4 border-t border-slate-100 flex justify-end gap-2">
+        <div class="p-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50/50">
           <button
             type="button"
-            class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-4 py-2 rounded-xl transition-colors"
+            class="bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
             @click="isNewProjectModalOpen = false"
           >
             Cancel
           </button>
           <button
             type="button"
-            class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors cursor-pointer shadow-xs"
-            @click="isNewProjectModalOpen = false"
+            class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-colors cursor-pointer shadow-xs flex items-center gap-1.5"
+            @click="handleCreateProject"
           >
-            Save
+            <UIcon name="i-lucide-check" class="size-3.5" />
+            <span>Save</span>
           </button>
         </div>
       </div>

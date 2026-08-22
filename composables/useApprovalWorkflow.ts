@@ -1,7 +1,7 @@
 // Enterprise Approval Workflow & E-Signature Engine for CPF Six Sigma (PCR & PFR)
 import { ref, computed } from 'vue'
 
-export type ApprovalType = 'PCR' | 'PFR'
+export type ApprovalType = 'PCR' | 'PFR' | 'GOAL_REVISION'
 export type ApprovalStatus = 'Draft' | 'Under Review' | 'Approved' | 'Needs Revision' | 'Rejected'
 
 export interface ESignatureData {
@@ -562,10 +562,70 @@ export function useApprovalWorkflow() {
     return { success: true, message: `Reminder email dispatched to ${step.approverName}!` }
   }
 
+  // 7. Submit Goal Revision request for Admin approval
+  const submitGoalRevisionWorkflow = (
+    projectId: string,
+    projectName: string,
+    location: string,
+    baseline: string,
+    entitlement: string,
+    oldGoal: string,
+    newGoal: string,
+    reason: string
+  ): ApprovalWorkflow => {
+    const newWf: ApprovalWorkflow = {
+      id: `appr-goal-${Date.now()}`,
+      projectId,
+      projectName,
+      location: location || 'โรงงานแปรรูปโชคชัย (Nakhon Ratchasima)',
+      business: 'Food Business',
+      reportType: 'GOAL_REVISION',
+      reportTitle: `Goal Revision Request: ${oldGoal} → ${newGoal} (${projectName})`,
+      status: 'Under Review',
+      submittedBy: 'Project Leader (Romteera Tadderm)',
+      submittedAt: new Date().toISOString().slice(0, 16).replace('T', ' '),
+      targetCompletionDate: '2026-03-15',
+      currentStepNumber: 1,
+      metricsSummary: {
+        baseline,
+        entitlement,
+        targetGoal: newGoal,
+        financialSavings: 'Target Optimization',
+        pfrDocId: `GOAL-REV-${Date.now().toString().slice(-4)}`
+      },
+      steps: [
+        {
+          id: `step-goal-1`,
+          stepNumber: 1,
+          role: 'Admin / Master Black Belt (MBB)',
+          approverName: 'Dr. Prasert Chareon (MBB)',
+          approverEmail: 'prasert.c@cpf.co.th',
+          designation: 'CPF Operational Excellence Director',
+          status: 'Pending',
+          comments: `Goal upgraded from ${oldGoal} to ${newGoal}. Justification: ${reason || 'Higher stretch capability achieved.'}`
+        }
+      ],
+      auditLog: [
+        {
+          id: `log-${Date.now()}`,
+          action: 'Goal Revision Submitted',
+          performedBy: 'Project Leader',
+          timestamp: new Date().toISOString().slice(0, 16).replace('T', ' '),
+          details: `Requested new target goal: ${newGoal} (was ${oldGoal}). Auto-applied to project workspace.`
+        }
+      ]
+    }
+
+    workflowsState.value.unshift(newWf)
+    saveWorkflows()
+    return newWf
+  }
+
   return {
     workflows: workflowsState,
     getProjectWorkflow,
     submitWorkflow,
+    submitGoalRevisionWorkflow,
     approveStep,
     requestRevision,
     simulateEmailLinkApproval,

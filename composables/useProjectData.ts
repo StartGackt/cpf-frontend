@@ -127,6 +127,14 @@ export interface RealizationLog {
   status: string
 }
 
+export interface TargetDefinition {
+  category: 'Quality' | 'Speed'
+  targetName: string
+  type: 'Increase' | 'Decrease'
+  unit: string
+  dateRange?: string
+}
+
 export interface ProjectFullData {
   id: string
   name: string
@@ -136,14 +144,30 @@ export interface ProjectFullData {
   lastUpdated: string
   phase: string
   status: string
+  // Target
+  target: TargetDefinition
   // Define
   insightRows: InsightRow[]
   begGoals: {
     goalBu: string
+    goalStandard: string
+    goalIndustry: string
     goalChallenge: string
+    goalRevisionStatus?: 'Approved' | 'Pending Review' | 'None'
   }
   counterbalanceTargets: CounterbalanceTarget[]
   pcrVersions: PcrVersion[]
+  // Stage Gates & E-Learning
+  isProcessMapCompleted: boolean
+  isFishboneCompleted: boolean
+  isFmeaCompleted: boolean
+  eLearningPassed: {
+    Define: boolean
+    Measure: boolean
+    Analyze: boolean
+    Improve: boolean
+    Control: boolean
+  }
   // Measure
   capability: CapabilityData
   msaStudies: MsaStudy[]
@@ -185,24 +209,46 @@ const defaultProjectState = (projectId: string): ProjectFullData => ({
   lastUpdated: 'Feb 24, 2026',
   phase: 'Improve',
   status: 'Active',
+  // Target formulation
+  target: {
+    category: 'Quality',
+    targetName: '%Yield',
+    type: 'Increase',
+    unit: '%',
+    dateRange: 'Jan 1 - Dec 1, 2025'
+  },
+  // Stage Gates & E-Learning
+  isProcessMapCompleted: true,
+  isFishboneCompleted: true,
+  isFmeaCompleted: true,
+  eLearningPassed: {
+    Define: true,
+    Measure: true,
+    Analyze: false,
+    Improve: false,
+    Control: false
+  },
   // Define Phase Default Data
   insightRows: [
-    { id: 1, period: '1', actual: 80, total: 100, pct: 80.0, isOutlier: true, outlierCause: 'เครื่องจักรสะดุดช่วงเปลี่ยน Shift', notes: 'Outlier with cause' },
-    { id: 2, period: '2', actual: 84, total: 100, pct: 84.0, isOutlier: false, outlierCause: '', notes: '' },
-    { id: 3, period: '3', actual: 84, total: 100, pct: 84.0, isOutlier: false, outlierCause: '', notes: '' },
-    { id: 4, period: '4', actual: 83, total: 100, pct: 83.0, isOutlier: false, outlierCause: '', notes: '' },
-    { id: 5, period: '5', actual: 82, total: 100, pct: 82.0, isOutlier: false, outlierCause: '', notes: '' },
-    { id: 6, period: '6', actual: 85, total: 100, pct: 85.0, isOutlier: false, outlierCause: '', notes: '' },
-    { id: 7, period: '7', actual: 88, total: 100, pct: 88.0, isOutlier: false, outlierCause: '', notes: '' },
-    { id: 8, period: '8', actual: 83, total: 100, pct: 83.0, isOutlier: false, outlierCause: '', notes: '' },
-    { id: 9, period: '9', actual: 85, total: 100, pct: 85.0, isOutlier: false, outlierCause: '', notes: '' },
-    { id: 10, period: '10', actual: 82, total: 100, pct: 82.0, isOutlier: false, outlierCause: '', notes: '' },
-    { id: 11, period: '11', actual: 84, total: 100, pct: 84.0, isOutlier: false, outlierCause: '', notes: '' },
-    { id: 12, period: '12', actual: 85, total: 100, pct: 85.0, isOutlier: false, outlierCause: '', notes: '' }
+    { id: 1, period: '1/25', actual: 80, total: 100, pct: 80.0, isOutlier: true, outlierCause: 'เครื่องจักรสะดุดช่วงเปลี่ยน Shift', notes: 'Outlier with cause' },
+    { id: 2, period: '2/25', actual: 84, total: 100, pct: 84.0, isOutlier: false, outlierCause: '', notes: '' },
+    { id: 3, period: '3/25', actual: 84, total: 100, pct: 84.0, isOutlier: false, outlierCause: '', notes: '' },
+    { id: 4, period: '4/25', actual: 83, total: 100, pct: 83.0, isOutlier: false, outlierCause: '', notes: '' },
+    { id: 5, period: '5/25', actual: 82, total: 100, pct: 82.0, isOutlier: false, outlierCause: '', notes: '' },
+    { id: 6, period: '6/25', actual: 85, total: 100, pct: 85.0, isOutlier: false, outlierCause: '', notes: '' },
+    { id: 7, period: '7/25', actual: 88, total: 100, pct: 88.0, isOutlier: false, outlierCause: '', notes: '' },
+    { id: 8, period: '8/25', actual: 83, total: 100, pct: 83.0, isOutlier: false, outlierCause: '', notes: '' },
+    { id: 9, period: '9/25', actual: 85, total: 100, pct: 85.0, isOutlier: false, outlierCause: '', notes: '' },
+    { id: 10, period: '10/25', actual: 82, total: 100, pct: 82.0, isOutlier: false, outlierCause: '', notes: '' },
+    { id: 11, period: '11/25', actual: 84, total: 100, pct: 84.0, isOutlier: false, outlierCause: '', notes: '' },
+    { id: 12, period: '12/25', actual: 85, total: 100, pct: 85.0, isOutlier: false, outlierCause: '', notes: '' }
   ],
   begGoals: {
     goalBu: '86.50',
-    goalChallenge: '89.00'
+    goalStandard: '86.00',
+    goalIndustry: '85.50',
+    goalChallenge: '89.00',
+    goalRevisionStatus: 'Approved'
   },
   counterbalanceTargets: [
     { id: 1, name: 'Product Quality Defect Rate (%)', current: '0.45%', limit: '< 0.50%', status: 'Within Limit' },
@@ -666,6 +712,35 @@ function createProjectStore(projectId: string) {
     project.value.begGoals.goalBu = simulatedYield.value.toString()
   }
 
+  const setProcessMapComplete = (isComplete = true) => {
+    project.value.isProcessMapCompleted = isComplete
+  }
+
+  const setFishboneComplete = (isComplete = true) => {
+    project.value.isFishboneCompleted = isComplete
+  }
+
+  const setFmeaComplete = (isComplete = true) => {
+    project.value.isFmeaCompleted = isComplete
+  }
+
+  const passELearningQuiz = (phase: 'Define' | 'Measure' | 'Analyze' | 'Improve' | 'Control') => {
+    if (!project.value.eLearningPassed) {
+      project.value.eLearningPassed = {
+        Define: true,
+        Measure: true,
+        Analyze: false,
+        Improve: false,
+        Control: false
+      }
+    }
+    project.value.eLearningPassed[phase] = true
+  }
+
+  const updateTargetDefinition = (target: TargetDefinition) => {
+    project.value.target = { ...target }
+  }
+
   const resetAllToDefaults = () => {
     project.value = defaultProjectState(projectId)
   }
@@ -677,9 +752,14 @@ function createProjectStore(projectId: string) {
     baselineYield,
     entitlementYield,
     goalLssYield,
+    updateTargetDefinition,
     // Measure
     capabilityMetrics,
     syncBaselineToCapability,
+    setProcessMapComplete,
+    setFishboneComplete,
+    setFmeaComplete,
+    passELearningQuiz,
     // Improve
     simulatedGiveaway,
     simulatedYield,
