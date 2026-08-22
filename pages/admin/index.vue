@@ -53,10 +53,10 @@ const openCreateRunModal = (project?: any) => {
     selectedRunSource.value = project
     runProjectTitle.value = `${project.name} (Run 2 - Line B)`
     runPlantLocation.value = project.plant
-  } else {
+  } else if (projectRecords.value.length > 0) {
     selectedRunSource.value = projectRecords.value[0]
-    runProjectTitle.value = `${projectRecords.value[0].name} (Run 2 - Line B)`
-    runPlantLocation.value = projectRecords.value[0].plant
+    runProjectTitle.value = `${projectRecords.value[0]?.name || 'โครงการใหม่'} (Run 2 - Line B)`
+    runPlantLocation.value = projectRecords.value[0]?.plant || 'โรงงานแปรรูปเนื้อไก่ นครราชสีมา'
   }
   isCreateRunModalOpen.value = true
 }
@@ -474,7 +474,7 @@ const exportToPdf = () => {
         <!-- Vertical Bar Chart Area -->
         <div class="relative pt-6 pb-2">
           <!-- Y-Axis Grid Lines -->
-          <div class="absolute inset-0 flex flex-col justify-between pointer-events-none pb-12 pt-2 px-8">
+          <div class="absolute inset-0 flex flex-col justify-between pointer-events-none pb-14 pt-2 px-6">
             <div class="border-b border-slate-100 flex items-center justify-between text-[10px] text-slate-400 font-mono">
               <span>350M</span>
             </div>
@@ -501,32 +501,38 @@ const exportToPdf = () => {
             </div>
           </div>
 
-          <!-- Bar Columns -->
-          <div class="grid grid-cols-7 gap-3 sm:gap-6 h-72 items-end relative z-10 px-8 pb-12">
+          <!-- Bar Columns Grid -->
+          <div class="grid grid-cols-7 gap-2 sm:gap-4 relative z-10 px-6">
             <div
               v-for="bu in buBudgets"
               :key="bu.id"
-              class="flex flex-col items-center h-full justify-end group cursor-pointer"
+              class="flex flex-col items-center group cursor-pointer"
               @mouseenter="handleMouseEnter($event, bu.name, 'มูลค่ารวม (งบประมาณและผลประหยัด)', `${bu.amount.toFixed(1)}M THB`, bu.color, `จำนวน ${bu.projectsCount} โครงการในระบบ`)"
               @mouseleave="handleMouseLeave"
             >
-              <!-- Value on Top of Bar -->
-              <span class="text-[11px] font-bold text-slate-800 font-mono mb-1.5 group-hover:scale-110 transition-transform">
-                {{ bu.displayVal }}
-              </span>
+              <!-- Bar Column Container with Fixed Height -->
+              <div class="h-64 w-full flex flex-col justify-end items-center">
+                <!-- Value on Top of Bar -->
+                <span class="text-[11px] font-bold text-slate-800 font-mono mb-1.5 group-hover:scale-110 transition-transform">
+                  {{ bu.displayVal }}
+                </span>
 
-              <!-- Animated Vertical Bar with rounded top -->
-              <div
-                class="w-full max-w-[80px] rounded-t-2xl transition-all duration-300 shadow-2xs group-hover:opacity-90 group-hover:shadow-md"
-                :style="{
-                  height: `${(bu.amount / maxBuAmount) * 100}%`,
-                  backgroundColor: bu.color
-                }"
-              ></div>
+                <!-- Animated Vertical Bar with rounded top -->
+                <div
+                  class="w-full max-w-[56px] rounded-t-2xl transition-all duration-300 shadow-2xs group-hover:opacity-90 group-hover:shadow-md"
+                  :style="{
+                    height: `${Math.max(4, (bu.amount / maxBuAmount) * 100)}%`,
+                    backgroundColor: bu.color
+                  }"
+                ></div>
+              </div>
 
-              <!-- X-Axis Label -->
-              <div class="absolute -bottom-2 text-center w-24 transform -translate-x-1/2 left-1/2">
-                <span class="text-[10px] text-slate-600 font-medium leading-tight block truncate" :title="bu.name">
+              <!-- X-Axis Label (Placed directly underneath each column) -->
+              <div class="pt-3 text-center w-full min-h-[38px] flex items-start justify-center">
+                <span
+                  class="text-[11px] text-slate-600 font-semibold leading-tight line-clamp-2 px-0.5 group-hover:text-slate-900 transition-colors"
+                  :title="bu.name"
+                >
                   {{ bu.shortName }}
                 </span>
               </div>
