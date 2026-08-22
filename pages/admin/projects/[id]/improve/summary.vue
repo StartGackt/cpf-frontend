@@ -31,8 +31,8 @@ const hypothesesItems = ref([
   {
     process: 'Packing',
     factor: 'จำนวนDropของเครื่องMultihead',
-    levelPlus: '1',
-    levelMinus: '2',
+    level1: '1',
+    level2: '2',
     response: '%Giveaway',
     test: '2-Sample T',
     result: 'Significant',
@@ -41,9 +41,9 @@ const hypothesesItems = ref([
   },
   {
     process: 'Packing',
-    factor: 'การรอยค่านาหนักเผื่อของเครื่องMultihead',
-    levelPlus: '10',
-    levelMinus: '20',
+    factor: 'การsetค่าน้ำหนักเผื่อของเครื่องMultihead',
+    level1: '10',
+    level2: '20',
     response: '%Giveaway',
     test: '2-Sample T',
     result: 'Significant',
@@ -53,8 +53,8 @@ const hypothesesItems = ref([
   {
     process: 'Predusting',
     factor: 'ความเร็วรอบเครื่อง DB4',
-    levelPlus: '40',
-    levelMinus: '50',
+    level1: '40',
+    level2: '50',
     response: '%การใช้แป้ง',
     test: '2-Sample T',
     result: 'Significant',
@@ -64,8 +64,8 @@ const hypothesesItems = ref([
   {
     process: 'Predusting',
     factor: 'ความเร็วเครื่องเติมแป้งPredust',
-    levelPlus: '2',
-    levelMinus: '3',
+    level1: '2',
+    level2: '3',
     response: '%การใช้แป้ง',
     test: '2-Sample T',
     result: 'Significant',
@@ -75,8 +75,8 @@ const hypothesesItems = ref([
   {
     process: 'Predusting',
     factor: 'ระดับความสูงแผงเครื่องเติมแป้ง Predust',
-    levelPlus: '1',
-    levelMinus: '2',
+    level1: '1',
+    level2: '2',
     response: '%การใช้แป้ง',
     test: '2-Sample T',
     result: 'Significant',
@@ -87,9 +87,9 @@ const hypothesesItems = ref([
 </script>
 
 <template>
-  <div class="space-y-4 -mt-2">
-    <!-- Breadcrumb Bar -->
-    <div class="flex items-center gap-2 text-xs text-gray-500 pb-2">
+  <div class="space-y-6 animate-in fade-in duration-200 select-none pb-12">
+    <!-- Breadcrumbs -->
+    <div class="flex items-center gap-2 text-xs text-slate-500 pb-1">
       <NuxtLink to="/admin" class="hover:text-[#008779] flex items-center gap-1">
         <UIcon name="i-lucide-home" class="size-3.5" />
         <span>Home</span>
@@ -99,17 +99,17 @@ const hypothesesItems = ref([
         Projects
       </NuxtLink>
       <span>›</span>
-      <span class="text-gray-700 font-medium truncate max-w-[200px]">
+      <NuxtLink :to="`/admin/projects/${projectId}`" class="hover:text-[#008779] truncate max-w-[200px]">
         {{ projectName }}
-      </span>
+      </NuxtLink>
       <span>›</span>
-      <span class="text-gray-700 font-medium">Improve</span>
+      <span class="text-slate-700 font-medium">Improve</span>
       <span>›</span>
-      <span class="text-gray-900 font-bold">Summary</span>
+      <span class="text-slate-900 font-bold">Summary</span>
     </div>
 
     <!-- Main Workspace (Sidebar + Content) -->
-    <div class="flex gap-6 items-start">
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
       <DmaicSidebar
         :project-id="projectId"
         active-phase="Improve"
@@ -117,86 +117,86 @@ const hypothesesItems = ref([
       />
 
       <!-- Right: Main DMAIC Content Body -->
-      <div class="flex-1 space-y-4 min-w-0">
-        <!-- Collapsible Phase Info Header -->
-        <div class="bg-white rounded-lg border border-gray-200/80 shadow-xs p-4 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <UIcon name="i-lucide-chevron-right" class="size-4 text-gray-400" />
-            <div>
-              <h2 class="text-sm font-bold text-gray-900">
-                Improve Summary
-              </h2>
-              <p class="text-xs text-gray-500 mt-0.5">
-                Review DOE results, action controls, and summary information for the Improve phase of the DMAIC process.
-              </p>
-            </div>
+      <div class="flex-1 space-y-5 min-w-0 w-full">
+        <!-- Top Banner Header (Matching Image 2.10) -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="space-y-0.5">
+            <h1 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <UIcon name="i-lucide-chevron-right" class="size-4 text-slate-400" />
+              <span>Improve Summary</span>
+            </h1>
+            <p class="text-xs text-slate-500">
+              Review DOE results, action controls, and summary information for the improve phase of the DMAIC process.
+            </p>
           </div>
-          <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-            Completed
-          </span>
+
+          <div class="flex items-center gap-2">
+            <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold px-2.5 py-1 rounded-full">
+              Completed
+            </span>
+          </div>
         </div>
 
-        <!-- Main Detail Card -->
-        <div class="bg-white rounded-lg border border-gray-200/80 shadow-xs p-6 space-y-6">
-          <!-- Card Header & Export Action -->
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-gray-200 gap-4">
+        <!-- Main Card Section (Matching Image 2.10) -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 space-y-6">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
-              <h2 class="text-base font-bold text-gray-900">
+              <h2 class="text-sm font-bold text-slate-900">
                 Improve Summary
               </h2>
-              <p class="text-xs text-gray-500 mt-0.5">
-                Review DOE results, action controls, and summary information for the Improve phase of the DMAIC process.
+              <p class="text-xs text-slate-500 mt-0.5">
+                Review DOE results, action controls, and summary information for the improve phase of the DMAIC process.
               </p>
             </div>
 
             <button
               type="button"
-              class="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-medium px-3.5 py-1.5 rounded-md flex items-center gap-1.5 shadow-xs transition-colors self-start sm:self-auto"
+              class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3.5 py-1.5 rounded-xl inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
             >
-              <UIcon name="i-lucide-download" class="size-3.5 text-gray-500" />
+              <UIcon name="i-lucide-download" class="size-3.5 text-slate-500" />
               <span>Export</span>
             </button>
           </div>
 
-          <!-- Product / Category Pill Tab -->
+          <!-- Product Tag Tab -->
           <div>
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-teal-50/70 border-b-2 border-[#008779] text-[#008779] font-bold text-xs">
-              <span>% Total Yield สินค้าไก่ทอด</span>
+            <div class="inline-flex items-center gap-2 px-3 py-1 bg-teal-50 text-[#008779] border border-teal-200 rounded-xl font-bold text-xs">
+              <span>%Total Yield สินค้าไก่ทอดต่ำ</span>
               <span class="size-4 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center">
-                8
+                6
               </span>
             </div>
           </div>
 
-          <!-- Section 1: Action Table -->
+          <!-- 1. Action Table (Matching Image 2.10) -->
           <div class="space-y-3">
-            <h3 class="text-sm font-bold text-gray-900">
+            <h3 class="text-xs font-bold text-slate-900">
               Action
             </h3>
 
-            <div class="overflow-x-auto border border-gray-200 rounded-lg">
+            <div class="overflow-x-auto border border-slate-200 rounded-xl">
               <table class="w-full text-left text-xs">
-                <thead>
-                  <tr class="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase text-[11px] font-semibold tracking-wider">
-                    <th class="py-2.5 px-4 font-semibold">PROCESS</th>
-                    <th class="py-2.5 px-4 font-semibold">FACTOR</th>
-                    <th class="py-2.5 px-4 font-semibold">CURRENT PROBLEM</th>
-                    <th class="py-2.5 px-4 font-semibold">DETAIL</th>
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[10px] font-bold tracking-wider">
+                  <tr>
+                    <th class="py-3 px-4 w-48">PROCESS</th>
+                    <th class="py-3 px-4 w-64">FACTOR</th>
+                    <th class="py-3 px-4">CURRENT PROBLEM</th>
+                    <th class="py-3 px-4 w-28 text-center">DETAIL</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
-                  <tr v-for="(item, idx) in actionItems" :key="idx" class="hover:bg-gray-50/60">
-                    <td class="py-3 px-4 font-medium text-gray-900">
-                      {{ item.process }}
+                <tbody class="divide-y divide-slate-100 text-slate-800">
+                  <tr v-for="(act, idx) in actionItems" :key="idx" class="hover:bg-slate-50/60 transition-colors">
+                    <td class="py-3.5 px-4 font-semibold text-slate-700">
+                      {{ act.process }}
                     </td>
-                    <td class="py-3 px-4 text-gray-800">
-                      {{ item.factor }}
+                    <td class="py-3.5 px-4 font-bold text-slate-900">
+                      {{ act.factor }}
                     </td>
-                    <td class="py-3 px-4 text-gray-600">
-                      {{ item.currentProblem }}
+                    <td class="py-3.5 px-4 text-slate-600">
+                      {{ act.currentProblem }}
                     </td>
-                    <td class="py-3 px-4 text-gray-400">
-                      {{ item.detail }}
+                    <td class="py-3.5 px-4 text-center text-slate-400 font-mono">
+                      {{ act.detail }}
                     </td>
                   </tr>
                 </tbody>
@@ -204,77 +204,87 @@ const hypothesesItems = ref([
             </div>
           </div>
 
-          <!-- Section 2: Hypotheses Table -->
-          <div class="space-y-3 pt-4 border-t border-gray-100">
-            <h3 class="text-sm font-bold text-gray-900">
+          <!-- 2. Hypotheses Table (Matching Image 2.10) -->
+          <div class="space-y-3 pt-2">
+            <h3 class="text-xs font-bold text-slate-900">
               Hypotheses
             </h3>
 
-            <div class="overflow-x-auto border border-gray-200 rounded-lg">
+            <div class="overflow-x-auto border border-slate-200 rounded-xl">
               <table class="w-full text-left text-xs">
-                <thead>
-                  <tr class="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase text-[11px] font-semibold tracking-wider">
-                    <th class="py-2.5 px-3 font-semibold">PROCESS</th>
-                    <th class="py-2.5 px-3 font-semibold">FACTOR</th>
-                    <th class="py-2.5 px-3 font-semibold text-center">LEVEL (+ / -)</th>
-                    <th class="py-2.5 px-3 font-semibold">RESPONSE</th>
-                    <th class="py-2.5 px-3 font-semibold">HYPOTHESIS TEST</th>
-                    <th class="py-2.5 px-3 font-semibold text-center">RESULT</th>
-                    <th class="py-2.5 px-3 font-semibold text-center">IMPROVE</th>
-                    <th class="py-2.5 px-3 font-semibold">DETAIL</th>
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[10px] font-bold tracking-wider">
+                  <tr>
+                    <th class="py-3 px-3">PROCESS</th>
+                    <th class="py-3 px-4">FACTOR</th>
+                    <th class="py-3 px-3 text-center">LEVEL</th>
+                    <th class="py-3 px-3">RESPONSE</th>
+                    <th class="py-3 px-3 text-center">HYPOTHESIS TEST</th>
+                    <th class="py-3 px-3 text-center">RESULT</th>
+                    <th class="py-3 px-3 text-center">IMPROVE</th>
+                    <th class="py-3 px-4">DETAIL</th>
+                  </tr>
+                  <!-- Sub-header row matching image -->
+                  <tr class="bg-slate-50/50 border-b border-slate-200 text-slate-400 text-[10px] font-mono">
+                    <th class="py-1 px-3"></th>
+                    <th class="py-1 px-4"></th>
+                    <th class="py-1 px-3 text-center">- &nbsp; -</th>
+                    <th class="py-1 px-3"></th>
+                    <th class="py-1 px-3"></th>
+                    <th class="py-1 px-3"></th>
+                    <th class="py-1 px-3"></th>
+                    <th class="py-1 px-4"></th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
-                  <tr v-for="(item, idx) in hypothesesItems" :key="idx" class="hover:bg-gray-50/60">
+                <tbody class="divide-y divide-slate-100 text-slate-800">
+                  <tr v-for="(item, idx) in hypothesesItems" :key="idx" class="hover:bg-slate-50/60 transition-colors">
                     <!-- Process -->
-                    <td class="py-3 px-3 font-medium text-gray-900">
+                    <td class="py-3.5 px-3 font-semibold text-slate-700">
                       {{ item.process }}
                     </td>
 
                     <!-- Factor -->
-                    <td class="py-3 px-3 text-gray-800 font-medium">
+                    <td class="py-3.5 px-4 font-bold text-slate-900">
                       {{ item.factor }}
                     </td>
 
-                    <!-- Level + / - -->
-                    <td class="py-3 px-3 text-center">
-                      <div class="inline-flex items-center gap-2 text-xs font-mono">
-                        <span class="text-gray-700">+ {{ item.levelPlus }}</span>
-                        <span class="text-gray-300">/</span>
-                        <span class="text-gray-500">- {{ item.levelMinus }}</span>
-                      </div>
+                    <!-- Level -->
+                    <td class="py-3.5 px-3 text-center font-mono font-bold text-slate-700">
+                      {{ item.level1 }} &nbsp;|&nbsp; {{ item.level2 }}
                     </td>
 
                     <!-- Response -->
-                    <td class="py-3 px-3 text-gray-700">
+                    <td class="py-3.5 px-3 font-medium text-teal-700">
                       {{ item.response }}
                     </td>
 
                     <!-- Hypothesis Test -->
-                    <td class="py-3 px-3 text-gray-700">
-                      {{ item.test }}
-                    </td>
-
-                    <!-- Result Badge -->
-                    <td class="py-3 px-3 text-center">
-                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        {{ item.result }}
+                    <td class="py-3.5 px-3 text-center">
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                        {{ item.test }}
                       </span>
                     </td>
 
-                    <!-- Improve DOE Badge -->
-                    <td class="py-3 px-3 text-center">
+                    <!-- Result -->
+                    <td class="py-3.5 px-3 text-center">
+                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-300">
+                        <UIcon name="i-lucide-check-circle-2" class="size-3 text-emerald-500" />
+                        <span>{{ item.result }}</span>
+                      </span>
+                    </td>
+
+                    <!-- Improve DOE Tag -->
+                    <td class="py-3.5 px-3 text-center">
                       <NuxtLink
                         :to="`/admin/projects/${projectId}/improve/doe`"
-                        class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-bold bg-teal-50 text-[#008779] border border-teal-200 hover:bg-teal-100 cursor-pointer transition-colors"
+                        class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100 transition-colors font-mono"
                       >
-                        <UIcon name="i-lucide-flask-conical" class="size-3" />
+                        <UIcon name="i-lucide-triangle" class="size-2.5 text-amber-500 fill-amber-500" />
                         <span>{{ item.improve }}</span>
                       </NuxtLink>
                     </td>
 
-                    <!-- Detail (Best Setting) -->
-                    <td class="py-3 px-3 text-gray-700 font-medium">
+                    <!-- Detail -->
+                    <td class="py-3.5 px-4 font-bold text-slate-900">
                       {{ item.detail }}
                     </td>
                   </tr>
@@ -283,15 +293,26 @@ const hypothesesItems = ref([
             </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Floating Actions -->
-    <div class="fixed bottom-6 right-24 flex items-center gap-3 z-30">
-      <button class="bg-[#008779] hover:bg-[#007366] text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-1.5 text-sm font-medium transition-all hover:scale-105 cursor-pointer">
-        <UIcon name="i-lucide-edit" class="size-4" />
-        <span>Edit</span>
-      </button>
+        <!-- Bottom Action Bar (Matching Image 2.10) -->
+        <div class="flex justify-end gap-2 pt-2">
+          <NuxtLink
+            :to="`/admin/projects/${projectId}/improve/doe`"
+            class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            <UIcon name="i-lucide-pencil" class="size-3.5" />
+            <span>Edit</span>
+          </NuxtLink>
+          <button
+            type="button"
+            class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold px-4 py-2.5 rounded-xl shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            <UIcon name="i-lucide-help-circle" class="size-3.5 text-slate-500" />
+            <span>Help</span>
+          </button>
+        </div>
+
+      </div>
     </div>
   </div>
 </template>
