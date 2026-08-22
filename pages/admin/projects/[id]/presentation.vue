@@ -593,7 +593,7 @@ const importJsonBackup = () => {
       :class="isFullscreen ? 'fixed inset-0 z-50 rounded-none h-screen' : 'border border-gray-800 min-h-[760px]'"
     >
       <!-- Top Slide Presentation Toolbar (Hidden in Print) -->
-      <div class="bg-gray-800/95 backdrop-blur-md px-5 py-2.5 border-b border-gray-700/80 flex items-center justify-between text-white text-xs print:hidden">
+      <div class="bg-gray-800/95 backdrop-blur-md px-5 py-2.5 border-b border-gray-700/80 flex items-center justify-between text-white text-xs print:hidden relative z-40">
         <!-- Left: Mac-style dots + Slide Title header -->
         <div class="flex items-center gap-3 min-w-0 max-w-[45%]">
           <div class="flex items-center gap-1.5 shrink-0">
@@ -722,7 +722,7 @@ const importJsonBackup = () => {
           </div>
 
           <!-- Download & Export Dropdown Menu ("ดาวโหลดได้") -->
-          <div class="relative">
+          <div class="relative z-50">
             <button
               type="button"
               class="bg-[#008779] hover:bg-[#007366] text-white px-3 py-1.5 rounded-md font-semibold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
@@ -733,10 +733,17 @@ const importJsonBackup = () => {
               <UIcon name="i-lucide-chevron-down" class="size-3" />
             </button>
 
+            <!-- Transparent fixed backdrop to close dropdown on click outside -->
+            <div
+              v-if="isDownloadMenuOpen"
+              class="fixed inset-0 z-40 bg-transparent"
+              @click="isDownloadMenuOpen = false"
+            ></div>
+
             <!-- Dropdown Options -->
             <div
               v-if="isDownloadMenuOpen"
-              class="absolute right-0 top-full mt-1.5 w-64 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl p-1 z-50 text-xs text-gray-200 animate-in fade-in zoom-in-95 duration-100"
+              class="absolute right-0 top-full mt-2 w-64 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl p-1 z-50 text-xs text-gray-200 animate-in fade-in zoom-in-95 duration-100"
             >
               <div class="px-2.5 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-700">
                 Export & Download Options
@@ -746,7 +753,7 @@ const importJsonBackup = () => {
               <button
                 type="button"
                 class="w-full text-left px-2.5 py-2 hover:bg-teal-900/60 rounded flex items-center gap-2.5 transition-colors cursor-pointer text-gray-100 font-medium"
-                @click="downloadPptx"
+                @click="downloadPptx(); isDownloadMenuOpen = false"
               >
                 <div class="size-6 rounded bg-orange-600 text-white flex items-center justify-center shrink-0 font-bold text-[10px]">
                   P
@@ -761,7 +768,7 @@ const importJsonBackup = () => {
               <button
                 type="button"
                 class="w-full text-left px-2.5 py-2 hover:bg-gray-700/60 rounded flex items-center gap-2.5 transition-colors cursor-pointer text-gray-100 font-medium"
-                @click="downloadCurrentSlidePng"
+                @click="downloadCurrentSlidePng(); isDownloadMenuOpen = false"
               >
                 <UIcon name="i-lucide-image" class="size-4 text-emerald-400 shrink-0" />
                 <div class="min-w-0">
@@ -774,7 +781,7 @@ const importJsonBackup = () => {
               <button
                 type="button"
                 class="w-full text-left px-2.5 py-2 hover:bg-gray-700/60 rounded flex items-center gap-2.5 transition-colors cursor-pointer text-gray-100 font-medium"
-                @click="downloadAllSlidesPng"
+                @click="downloadAllSlidesPng(); isDownloadMenuOpen = false"
               >
                 <UIcon name="i-lucide-images" class="size-4 text-cyan-400 shrink-0" />
                 <div class="min-w-0">
@@ -787,7 +794,7 @@ const importJsonBackup = () => {
               <button
                 type="button"
                 class="w-full text-left px-2.5 py-2 hover:bg-gray-700/60 rounded flex items-center gap-2.5 transition-colors cursor-pointer text-gray-100 font-medium border-t border-gray-700/60"
-                @click="printOrPdf"
+                @click="printOrPdf(); isDownloadMenuOpen = false"
               >
                 <UIcon name="i-lucide-printer" class="size-4 text-teal-400 shrink-0" />
                 <div class="min-w-0">
@@ -801,7 +808,7 @@ const importJsonBackup = () => {
                 <button
                   type="button"
                   class="flex-1 text-left px-2 py-1 hover:bg-gray-700 rounded text-[11px] text-gray-300 flex items-center gap-1 cursor-pointer"
-                  @click="exportJsonBackup"
+                  @click="exportJsonBackup(); isDownloadMenuOpen = false"
                 >
                   <UIcon name="i-lucide-file-code" class="size-3 text-gray-400" />
                   <span>Backup JSON</span>
@@ -809,7 +816,7 @@ const importJsonBackup = () => {
                 <button
                   type="button"
                   class="flex-1 text-left px-2 py-1 hover:bg-gray-700 rounded text-[11px] text-gray-300 flex items-center gap-1 cursor-pointer"
-                  @click="importJsonBackup"
+                  @click="importJsonBackup(); isDownloadMenuOpen = false"
                 >
                   <UIcon name="i-lucide-upload" class="size-3 text-gray-400" />
                   <span>Import JSON</span>
