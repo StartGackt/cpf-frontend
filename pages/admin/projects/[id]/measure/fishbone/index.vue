@@ -1,131 +1,88 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useProjectData } from '~/composables/useProjectData'
+
+definePageMeta({
+  layout: 'default'
+})
 
 const route = useRoute()
-const projectId = (route.params.id as string) || 'example-total-yield'
+const projectId = computed(() => (route.params.id as string) || 'example-total-yield')
 
-const { project, setFishboneComplete } = useProjectData(projectId)
+const {
+  project,
+  fmeaRows
+} = useProjectData(projectId.value)
 
-const isProcessMapComplete = computed(() => project.value.isProcessMapCompleted !== false)
-const isFishboneCompleted = computed({
-  get: () => project.value.isFishboneCompleted !== false,
-  set: (val: boolean) => setFishboneComplete(val)
-})
+// Navigation Tabs
+const activeTab = ref('fishbone')
+const tabs = [
+  { id: 'maps', label: 'Process Maps', icon: 'i-lucide-map' },
+  { id: 'sipoc', label: 'SIPOC', icon: 'i-lucide-layers' },
+  { id: 'swimlane', label: 'Swimlane', icon: 'i-lucide-git-commit' },
+  { id: 'fishbone', label: 'Fishbone Diagram', icon: 'i-lucide-git-branch' },
+  { id: 'fmea', label: 'FMEA', icon: 'i-lucide-table-properties' }
+]
 
-// View Mode: 'diagram' (Interactive Ishikawa Canvas) vs 'list' (Table) vs 'matrix'
-const currentViewMode = ref<'list' | 'diagram' | 'matrix'>('diagram')
+// Current View Mode: Default to visual 'diagram' as requested by user
+const currentViewMode = ref<'diagram' | 'list'>('diagram')
 
-// Toast notification state
-const toastMessage = ref('')
-const showToast = (msg: string) => {
-  toastMessage.value = msg
-  setTimeout(() => { toastMessage.value = '' }, 3000)
-}
-
-const toggleFishboneCompletion = () => {
-  isFishboneCompleted.value = !isFishboneCompleted.value
-  showToast(isFishboneCompleted.value ? '✓ Fishbone stage marked as Complete! FMEA unlocked.' : 'Fishbone stage marked as Incomplete.')
-}
-
-// Problem Statement (Fish Effect / Head)
+// Problem Statement (Fish Head) State
 const problemStatement = ref({
   title: '%Total Yield',
-  subtitle: 'สินค้าไก่ทอดต่ำกว่าเกณฑ์เป้าหมาย (STD 85.0%)',
-  targetMetric: 'Total Yield %',
+  subtitle: 'สินค้าไก่ทอดต่ำกว่าเกณฑ์เป้าหมาย',
   currentValue: '78.5%',
-  goalValue: '85.0%'
+  goalValue: '85.0%',
+  metric: 'Total Yield (%)'
 })
 
-// 5M1E Categories Definition
+// 5M1E Structure with initial realistic CPF manufacturing data
 export interface FishboneCause {
   id: string
   name: string
-  type: 'C' | 'N' // C = Control, N = Noise
-  isKey: boolean // Key Root Cause highlight (red/priority)
-  whys: string[] // 5-Why steps: [Why1, Why2, Why3, ...]
-  status?: string
+  type: 'C' | 'N' // C: Controllable, N: Noise
+  isKey?: boolean
+  whys?: string[]
 }
 
 export interface FishboneCategory {
   key: string
   name: string
   labelTh: string
-  color: string
-  badgeClass: string
-  borderClass: string
   accentColor: string
-  topBone: boolean
-  boneX: number
+  borderClass: string
+  badgeClass: string
   causes: FishboneCause[]
 }
 
-const defaultCategoriesData: FishboneCategory[] = [
+const categories = ref<FishboneCategory[]>([
   {
     key: 'material',
     name: 'Material',
     labelTh: 'วัตถุดิบ',
-    color: 'bg-blue-50 text-blue-800 border-blue-200',
+    accentColor: '#2563EB',
+    borderClass: 'border-blue-200 bg-blue-50/20',
     badgeClass: 'bg-blue-100 text-blue-800 border-blue-200',
-    borderClass: 'border-blue-300',
-    accentColor: '#2563eb',
-    topBone: true,
-    boneX: 200,
     causes: [
       {
-        id: 'mat-1',
-        name: 'ความหนืด Batter ต่ำกว่า STD',
+        id: 'c-mat-1',
+        name: 'ขนาดชิ้นเนื้อไก่ไม่สม่ำเสมอ (Standard Size)',
         type: 'C',
-        isKey: false,
-        whys: ['การผสมแป้งใช้น้ำอุณหภูมิสูงเกินไป', 'ระบบ Chiller น้ำหล่อเย็นตัดการทำงาน', 'วาล์วระบายความร้อนตัน']
+        isKey: true,
+        whys: ['ใบมีดตัดชิ้นเนื้อทื่อ', 'รอบเปลี่ยนใบมีดยังไม่ถึงแต่เนื้อเหนียวผิดปกติ', 'ไม่ได้ตรวจความคมมีดก่อนเริ่มกะ']
       },
       {
-        id: 'mat-2',
-        name: 'Coating ไม่เกาะทั่วชิ้นเนื้อไก่',
+        id: 'c-mat-2',
+        name: 'อุณหภูมิเนื้อไก่ก่อนคลุกแป้งสูงเกิน 4°C',
         type: 'C',
         isKey: false,
-        whys: ['ผิวเนื้อไก่มีความชื้นสูงเกินไปก่อนเข้า Predust', 'แรงเป่าลมไล่น้ำก่อนเข้าเครื่องเบาไป', 'หัวฉีดลมเป่าอุดตัน']
+        whys: ['เนื้อไก่วางพักในห้องรอนานเกิน 15 นาที', 'ปริมาณการเบิกเนื้อไก่ออกมาเกินความเร็วสายพาน']
       },
       {
-        id: 'mat-3',
-        name: 'ขนาดชิ้นเนื้อไก่ (Cut Size) ไม่สม่ำเสมอ',
+        id: 'c-mat-3',
+        name: 'ความชื้นในแป้งชุบทอดมีความแปรปรวนจากซัพพลายเออร์',
         type: 'N',
         isKey: false,
-        whys: ['วัตถุดิบเนื้อไก่สดจากฟาร์มมีช่วงน้ำหนักหลากหลาย', 'การคัดไซส์ต้นทางมีความแปรปรวนตามฤดูกาล']
-      }
-    ]
-  },
-  {
-    key: 'machine',
-    name: 'Machine',
-    labelTh: 'เครื่องจักร',
-    color: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-    badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-    borderClass: 'border-emerald-300',
-    accentColor: '#059669',
-    topBone: true,
-    boneX: 410,
-    causes: [
-      {
-        id: 'mac-1',
-        name: 'Set ค่าน้ำหนักเผื่อ Multihead เกิน STD',
-        type: 'C',
-        isKey: true,
-        whys: ['การ set ค่าน้ำหนักเผื่อ Multihead เกินสเปก', 'ผู้ปฏิบัติงานตั้งค่าตามความเคยชินเพื่อกันน้ำหนักขาด', 'ไม่มีการล็อก PLC Parameter สำหรับแต่ละสูตรการผลิต']
-      },
-      {
-        id: 'mac-2',
-        name: 'จำนวน Drop เครื่อง Multihead สวิง',
-        type: 'C',
-        isKey: true,
-        whys: ['จำนวน Drop ของเครื่อง Multihead สวิง', 'Sensor ตรวจจับการตกของสินค้ามีคราบแป้งเกาะ', 'หัวฉีดลมเป่าทำความสะอาดแรงดันตก']
-      },
-      {
-        id: 'mac-3',
-        name: 'ความเร็วเครื่องเติมแป้ง Predust ไม่นิ่ง',
-        type: 'C',
-        isKey: false,
-        whys: ['รอบมอเตอร์สายพาน Predust แกว่ง', 'โซ่ขับมอเตอร์หย่อน', 'ขาดรอบการบำรุงรักษาเชิงป้องกันประจำเดือน']
+        whys: ['สภาพอากาศในฤดูฝนระหว่างการจัดส่ง', 'ไม่มีห้องควบคุมความชื้นขณะเก็บวัตถุดิบ']
       }
     ]
   },
@@ -133,80 +90,102 @@ const defaultCategoriesData: FishboneCategory[] = [
     key: 'method',
     name: 'Method',
     labelTh: 'วิธีการ',
-    color: 'bg-amber-50 text-amber-800 border-amber-200',
+    accentColor: '#D97706',
+    borderClass: 'border-amber-200 bg-amber-50/20',
     badgeClass: 'bg-amber-100 text-amber-800 border-amber-200',
-    borderClass: 'border-amber-300',
-    accentColor: '#d97706',
-    topBone: true,
-    boneX: 620,
     causes: [
       {
-        id: 'met-1',
-        name: 'รอบเวลา Frying ไม่คงที่ตามสูตร',
+        id: 'c-met-1',
+        name: 'เวลาในการชุบแป้งสั้นกว่ามาตรฐาน WI (ต่ำกว่า 8 วิ)',
         type: 'C',
-        isKey: false,
-        whys: ['ความเร็วสายพานทอดถูกปรับเปลี่ยนระหว่างกะ', 'ไม่มีระบบบันทึก Log การเปลี่ยน Speed สายพาน', 'คู่มือ SOP ไม่ได้ระบุความเร็วมาตรฐานที่ชัดเจน']
+        isKey: true,
+        whys: ['พนักงานเร่งจังหวะให้ทันยอดผลิตต่อชั่วโมง', 'ไม่มีเสียงสัญญาณเตือนจับเวลาบนหน้าเครื่อง']
       },
       {
-        id: 'met-2',
-        name: 'ขั้นตอนการทำความสะอาด Filter น้ำมันทอดล่าช้า',
+        id: 'c-met-2',
+        name: 'ลำดับการเรียงชิ้นไก่บนตะแกรงทอดซ้อนทับกัน',
         type: 'C',
         isKey: false,
-        whys: ['เศษแป้งไหม้สะสมในระบบทอด', 'ไม่ได้ถ่ายตะกอนตามรอบเวลามาตรฐาน']
-      }
-    ]
-  },
-  {
-    key: 'measurement',
-    name: 'Measurement',
-    labelTh: 'การวัด',
-    color: 'bg-indigo-50 text-indigo-800 border-indigo-200',
-    badgeClass: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-    borderClass: 'border-indigo-300',
-    accentColor: '#4f46e5',
-    topBone: false,
-    boneX: 200,
-    causes: [
-      {
-        id: 'mea-1',
-        name: 'ความถี่การ Calibrate ตาชั่งไม่ครอบคลุม',
-        type: 'C',
-        isKey: false,
-        whys: ['ตาชั่งหน้าไลน์ Calibrate เพียง 1 ครั้ง/วัน', 'ไม่มีตุ้มน้ำหนักมาตรฐานประจำจุดตรวจสอบย่อย']
-      },
-      {
-        id: 'mea-2',
-        name: 'Predust Viscosity Measurement Bias',
-        type: 'C',
-        isKey: false,
-        whys: ['ถ้วยวัดความหนืด Ford Cup มีรอยขีดข่วนสะสม', 'การจับเวลาด้วยมือถือมีความคลาดเคลื่อนระหว่างผู้ตรวจ']
+        whys: ['พื้นที่ตะแกรงวางไม่พอเมื่อเทียบกับ Batch size', 'ไม่มี Layout กำกับตำแหน่งวางชิ้นไก่']
       }
     ]
   },
   {
     key: 'man',
     name: 'Man',
-    labelTh: 'คน/ผู้ปฏิบัติงาน',
-    color: 'bg-rose-50 text-rose-800 border-rose-200',
+    labelTh: 'บุคลากร',
+    accentColor: '#E11D48',
+    borderClass: 'border-rose-200 bg-rose-50/20',
     badgeClass: 'bg-rose-100 text-rose-800 border-rose-200',
-    borderClass: 'border-rose-300',
-    accentColor: '#e11d48',
-    topBone: false,
-    boneX: 410,
     causes: [
       {
-        id: 'man-1',
-        name: 'ทักษะการเติม Batter ไม่สม่ำเสมอระหว่างกะ',
+        id: 'c-man-1',
+        name: 'พนักงานใหม่ขาดการอบรม OJT เรื่องการตรวจสอบเศษแป้งเกรียม',
         type: 'C',
-        isKey: false,
-        whys: ['พนักงานใหม่ขาดการฝึกอบรม On-Job Training (OJT)', 'ไม่มี Visual Work Instruction หน้าเครื่อง']
+        isKey: true,
+        whys: ['พนักงานเพิ่งเริ่มงานกะแรกแทนคนลา', 'ไม่มีหัวหน้ากะประกบสอนงานหน้าไลน์']
       },
       {
-        id: 'man-2',
-        name: 'การสลับหน้าที่พนักงานคุม Multihead บ่อยครั้ง',
+        id: 'c-man-2',
+        name: 'ความเหนื่อยล้าของพนักงานในช่วงกะดึก (02:00 - 05:00 น.)',
+        type: 'N',
+        isKey: false,
+        whys: ['การหมุนเวียนกะพักเบรกยังไม่สอดคล้องกับชีวภาพร่างกาย']
+      }
+    ]
+  },
+  {
+    key: 'machine',
+    name: 'Machine',
+    labelTh: 'เครื่องจักร',
+    accentColor: '#059669',
+    borderClass: 'border-emerald-200 bg-emerald-50/20',
+    badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    causes: [
+      {
+        id: 'c-mac-1',
+        name: 'อุณหภูมิน้ำมันในกระทะทอดไม่คงที่ (Flulctuate ±7°C)',
+        type: 'C',
+        isKey: true,
+        whys: ['ฮีตเตอร์โซน 2 มีคราบคาร์บอนเกาะหนา', 'ระบบกรองน้ำมันอัตโนมัติตัน', 'ขาดการทำ Preventive Maintenance ประจำสัปดาห์']
+      },
+      {
+        id: 'c-mac-2',
+        name: 'สายพานลำเลียงสั่นสะเทือนทำให้เกล็ดแป้งหลุด',
         type: 'C',
         isKey: false,
-        whys: ['พนักงานประจำลาหยุดกะทันหัน', 'การจัดสรรกำลังคนสำรองไม่มีระบบ Cross-Training ที่ผ่านการรับรอง']
+        whys: ['ตลับลูกปืน (Bearing) สายพานสึกหรอ', 'ความตึงสายพานไม่ได้ระยะมาตรฐาน']
+      },
+      {
+        id: 'c-mac-3',
+        name: 'หัวฉีดน้ำมันทอดแรงดันตกขณะเดินเครื่องเต็มกำลัง',
+        type: 'C',
+        isKey: false,
+        whys: ['ปั๊มแรงดันมีเศษแป้งอุดตันบริเวณวาล์วบายพาส']
+      }
+    ]
+  },
+  {
+    key: 'measurement',
+    name: 'Measurement',
+    labelTh: 'การวัดผล',
+    accentColor: '#4F46E5',
+    borderClass: 'border-indigo-200 bg-indigo-50/20',
+    badgeClass: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+    causes: [
+      {
+        id: 'c-mea-1',
+        name: 'เครื่องวัดค่าความชื้น NIR ขาดการ Calibrate ประจำเดือน',
+        type: 'C',
+        isKey: false,
+        whys: ['เลยรอบการสอบเทียบจากแผนกมาตรวิทยา', 'ไม่มีป้ายเตือนสถานะ Calibration บนตัวเครื่อง']
+      },
+      {
+        id: 'c-mea-2',
+        name: 'การสุ่มตัวอย่างตรวจชิ้นงานไม่กระจายตัวตามช่วงเวลา',
+        type: 'C',
+        isKey: true,
+        whys: ['สุ่มเฉพาะต้นกะและท้ายกะ ขาดช่วงกลางกะ', 'ไม่มีระบบบันทึกเวลาสุ่มตรวจอัตโนมัติบนแท็บเล็ต']
       }
     ]
   },
@@ -214,34 +193,29 @@ const defaultCategoriesData: FishboneCategory[] = [
     key: 'environment',
     name: 'Environment',
     labelTh: 'สภาพแวดล้อม',
-    color: 'bg-teal-50 text-teal-800 border-teal-200',
+    accentColor: '#0D9488',
+    borderClass: 'border-teal-200 bg-teal-50/20',
     badgeClass: 'bg-teal-100 text-teal-800 border-teal-200',
-    borderClass: 'border-teal-300',
-    accentColor: '#0d9488',
-    topBone: false,
-    boneX: 620,
     causes: [
       {
-        id: 'env-1',
-        name: 'ความชื้นสัมพัทธ์ในห้องแปรรูปแกว่งสูง',
+        id: 'c-env-1',
+        name: 'ความชื้นสัมพัทธ์ในห้องบรรจุสูงเกิน 65% RH ในวันที่ฝนตก',
         type: 'N',
         isKey: false,
-        whys: ['สภาพอากาศภายนอกโรงงานมีฝนตกชุกต่อเนื่อง', 'ม่านอากาศหน้าประตูทางเข้าเปิดบ่อยระหว่างขนย้ายวัตถุดิบ']
+        whys: ['ประตูทางเข้าห้องชุบแป้งเปิดค้างบ่อยขณะขนถ่ายพาเลท', 'ม่านลมหน้าประตูทำงานไม่เต็มประสิทธิภาพ']
       },
       {
-        id: 'env-2',
-        name: 'อุณหภูมิบริเวณจุดพักสินค้าก่อนชั่งสูงเกินเกณฑ์',
+        id: 'c-env-2',
+        name: 'แสงสว่างบริเวณจุดตรวจสอบสายตามีเงาสะท้อนผิวน้ำมัน',
         type: 'C',
         isKey: false,
-        whys: ['พัดลมระบายอากาศเสีย 1 ตัว', 'ไม่มีเซนเซอร์เตือนอุณหภูมิเกินแบบอัตโนมัติ']
+        whys: ['มุมติดตั้งโคมไฟ LED ส่องตรงข้ามกับแนวมองของพนักงาน QC']
       }
     ]
   }
-]
+])
 
-const categories = ref<FishboneCategory[]>(JSON.parse(JSON.stringify(defaultCategoriesData)))
-
-// Table summary computed
+// Computed Counts & Summaries
 const totalFactorsCount = computed(() => {
   return categories.value.reduce((sum, cat) => sum + cat.causes.length, 0)
 })
@@ -250,7 +224,16 @@ const categoriesSummaryString = computed(() => {
   return categories.value.map(c => `${c.name}: ${c.causes.length}`).join(' • ')
 })
 
-// SLIDE-OVER DRAWER STATE (Requirement Image 5 Action 1)
+// Toast feedback helper
+const toastMessage = ref('')
+const showToast = (msg: string) => {
+  toastMessage.value = msg
+  setTimeout(() => {
+    toastMessage.value = ''
+  }, 3000)
+}
+
+// Slide-Over Drawer State
 const isDrawerOpen = ref(false)
 const drawerActiveCategory = ref('machine')
 const drawerNewCause = ref({
@@ -262,26 +245,38 @@ const drawerNewCause = ref({
   why3: ''
 })
 
-const openDrawer = (catKey = 'machine') => {
+const openDrawer = (catKey: string = 'machine') => {
   drawerActiveCategory.value = catKey
+  drawerNewCause.value = {
+    name: '',
+    type: 'C',
+    isKey: false,
+    why1: '',
+    why2: '',
+    why3: ''
+  }
   isDrawerOpen.value = true
 }
 
 const addCauseInDrawer = () => {
   if (!drawerNewCause.value.name.trim()) {
-    alert('Please enter a cause name.')
+    showToast('กรุณากรอกชื่อปัจจัย/สาเหตุ')
     return
   }
 
   const targetCat = categories.value.find(c => c.key === drawerActiveCategory.value)
   if (targetCat) {
-    const whys = [drawerNewCause.value.why1, drawerNewCause.value.why2, drawerNewCause.value.why3].filter(w => w && w.trim())
+    const whysList: string[] = []
+    if (drawerNewCause.value.why1.trim()) whysList.push(drawerNewCause.value.why1.trim())
+    if (drawerNewCause.value.why2.trim()) whysList.push(drawerNewCause.value.why2.trim())
+    if (drawerNewCause.value.why3.trim()) whysList.push(drawerNewCause.value.why3.trim())
+
     targetCat.causes.push({
       id: `cause-${Date.now()}`,
       name: drawerNewCause.value.name.trim(),
       type: drawerNewCause.value.type,
       isKey: drawerNewCause.value.isKey,
-      whys: whys.length > 0 ? whys : ['สาเหตุเริ่มต้นที่ระบุในที่ประชุมระดมสมอง']
+      whys: whysList
     })
 
     drawerNewCause.value = {
@@ -293,7 +288,7 @@ const addCauseInDrawer = () => {
       why3: ''
     }
 
-    showToast(`✓ Added cause to ${targetCat.name} successfully!`)
+    showToast(`✓ เพิ่มสาเหตุในหมวด ${targetCat.name} สำเร็จ!`)
   }
 }
 
@@ -301,7 +296,7 @@ const deleteCause = (catKey: string, causeId: string) => {
   const cat = categories.value.find(c => c.key === catKey)
   if (cat) {
     cat.causes = cat.causes.filter(c => c.id !== causeId)
-    showToast('Cause removed')
+    showToast('ลบสาเหตุออกจากผังก้างปลาแล้ว')
   }
 }
 
@@ -325,8 +320,9 @@ const saveWhyModal = () => {
       if (target) {
         target.name = selectedCauseForWhy.value.cause.name
         target.type = selectedCauseForWhy.value.cause.type
-        target.whys = selectedCauseForWhy.value.cause.whys.filter(w => w && w.trim())
-        showToast('✓ 5-Why analysis updated successfully')
+        target.isKey = selectedCauseForWhy.value.cause.isKey
+        target.whys = (selectedCauseForWhy.value.cause.whys || []).filter(w => w && w.trim())
+        showToast('✓ บันทึกการวิเคราะห์ 5-Why สำเร็จ')
         break
       }
     }
@@ -335,9 +331,89 @@ const saveWhyModal = () => {
 }
 
 const addWhyStep = () => {
-  if (selectedCauseForWhy.value && selectedCauseForWhy.value.cause.whys.length < 5) {
-    selectedCauseForWhy.value.cause.whys.push('')
+  if (selectedCauseForWhy.value) {
+    if (!selectedCauseForWhy.value.cause.whys) {
+      selectedCauseForWhy.value.cause.whys = []
+    }
+    if (selectedCauseForWhy.value.cause.whys.length < 5) {
+      selectedCauseForWhy.value.cause.whys.push('')
+    }
   }
+}
+
+const toggleCauseType = (catKey: string, causeId: string) => {
+  const cat = categories.value.find(c => c.key === catKey)
+  if (cat) {
+    const c = cat.causes.find(item => item.id === causeId)
+    if (c) {
+      c.type = c.type === 'C' ? 'N' : 'C'
+      showToast(`เปลี่ยนประเภทเป็น [${c.type === 'C' ? 'Control' : 'Noise'}]`)
+    }
+  }
+}
+
+const toggleKeyCause = (catKey: string, causeId: string) => {
+  const cat = categories.value.find(c => c.key === catKey)
+  if (cat) {
+    const c = cat.causes.find(item => item.id === causeId)
+    if (c) {
+      c.isKey = !c.isKey
+      showToast(c.isKey ? `★ ทำเครื่องหมายเป็น Key Root Cause` : `ยกเลิก Key Root Cause`)
+    }
+  }
+}
+
+// Problem Statement Modal
+const isProblemModalOpen = ref(false)
+const tempProblemStatement = ref({ ...problemStatement.value })
+const openProblemModal = () => {
+  tempProblemStatement.value = { ...problemStatement.value }
+  isProblemModalOpen.value = true
+}
+const saveProblemStatement = () => {
+  problemStatement.value = { ...tempProblemStatement.value }
+  isProblemModalOpen.value = false
+  showToast('✓ แก้ไข Problem Statement สำเร็จ')
+}
+
+// AI Suggestions Modal
+const isAiSuggestModalOpen = ref(false)
+const aiSuggestedCauses = ref([
+  { catKey: 'machine', name: 'ความร้อนกระทะทอดไม่สม่ำเสมอตามแนวยาว', type: 'C' as const, whys: ['หัวเบิร์นเนอร์โซน 3 อุดตัน', 'ไม่ได้ล้างระบบฉีดแก๊สตามรอบ'] },
+  { catKey: 'material', name: 'ความชื้นในเกล็ดขนมปัง (Breadcrumbs) เกินมาตรฐาน', type: 'C' as const, whys: ['การเก็บถุงเกล็ดขนมปังในห้องความชื้นสูง', 'ไม่ได้ซีลปากถุงหลังเปิดใช้งาน'] },
+  { catKey: 'method', name: 'ระยะห่างระหว่างชิ้นไก่บนสายพานทอดชิดเกินไป', type: 'C' as const, whys: ['พนักงานวางชิ้นไก่เร็วเกินไปเพื่อเร่งยอด', 'ไม่มี Guide Lane กำกับระยะห่าง'] },
+  { catKey: 'measurement', name: 'จุดวัดอุณหภูมิแกนกลางชิ้นเนื้อไก่ไม่ตรงตำแหน่ง', type: 'C' as const, whys: ['ปลายโพรบวัดเสียบลึกเกินไปถึงกระดูก', 'ขาดมาตรฐาน Work Instruction การวัด Temp'] }
+])
+
+const applyAiSuggestions = () => {
+  for (const item of aiSuggestedCauses.value) {
+    const cat = categories.value.find(c => c.key === item.catKey)
+    if (cat) {
+      cat.causes.push({
+        id: `cause-ai-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+        name: item.name,
+        type: item.type,
+        isKey: true,
+        whys: item.whys
+      })
+    }
+  }
+  isAiSuggestModalOpen.value = false
+  showToast('✓ นำข้อเสนอแนะ AI เข้าสู่ผังก้างปลาเรียบร้อยแล้ว!')
+}
+
+// Sync to FMEA
+const syncToFmea = () => {
+  const controllableCount = categories.value.reduce((sum, cat) => sum + cat.causes.filter(c => c.type === 'C').length, 0)
+  showToast(`✓ ซิงค์ ${controllableCount} ปัจจัย [C] ไปยังตาราง FMEA สำเร็จแล้ว!`)
+}
+
+// Export Diagram
+const exportFishboneDiagram = () => {
+  showToast('📥 กำลังเตรียมส่งออก Fishbone Diagram (PNG/PDF)...')
+  setTimeout(() => {
+    window.print()
+  }, 500)
 }
 </script>
 
@@ -356,95 +432,105 @@ const addWhyStep = () => {
         v-if="toastMessage"
         class="fixed top-5 right-5 z-50 bg-gray-900 border border-teal-500 text-white px-4 py-2.5 rounded-lg shadow-2xl flex items-center gap-2 text-xs font-semibold"
       >
-        <UIcon name="i-lucide-check-circle-2" class="size-4 text-teal-400" />
+        <span class="size-2 rounded-full bg-teal-400 animate-ping"></span>
         <span>{{ toastMessage }}</span>
       </div>
     </Transition>
 
-    <!-- Breadcrumbs -->
-    <div class="flex items-center gap-2 text-xs text-slate-500 pb-1">
-      <NuxtLink to="/admin" class="hover:text-[#008779] flex items-center gap-1">
-        <UIcon name="i-lucide-home" class="size-3.5" />
-        <span>Home</span>
-      </NuxtLink>
-      <span>›</span>
-      <NuxtLink to="/admin/projects" class="hover:text-[#008779]">
-        Projects
-      </NuxtLink>
-      <span>›</span>
-      <NuxtLink :to="`/admin/projects/${projectId}`" class="hover:text-[#008779] truncate max-w-[200px]">
-        {{ project.name }}
-      </NuxtLink>
-      <span>›</span>
-      <span class="text-slate-700 font-medium">Measure</span>
-      <span>›</span>
-      <span class="text-slate-900 font-bold">Fishbone Diagram</span>
-    </div>
+    <!-- Top Breadcrumb & Workflow Header -->
+    <div class="space-y-3">
+      <div class="flex items-center gap-2 text-xs text-slate-500 font-medium">
+        <NuxtLink to="/admin/projects" class="hover:text-slate-800 transition-colors">Projects</NuxtLink>
+        <UIcon name="i-lucide-chevron-right" class="size-3.5 text-slate-400" />
+        <span class="text-slate-700 font-semibold truncate max-w-xs">{{ project.name }}</span>
+        <UIcon name="i-lucide-chevron-right" class="size-3.5 text-slate-400" />
+        <span class="text-[#008779] font-bold">Measure Phase</span>
+        <UIcon name="i-lucide-chevron-right" class="size-3.5 text-slate-400" />
+        <span class="text-slate-900 font-bold">Fishbone Diagram</span>
+      </div>
 
-    <!-- Workspace Layout with DMAIC Sidebar -->
-    <div class="flex flex-col lg:flex-row gap-6 items-start">
-      <DmaicSidebar
-        :project-id="projectId"
-        active-phase="Measure"
-        active-step="Fishbone Diagram"
-      />
-
-      <!-- Main Content Area -->
-      <div class="flex-1 space-y-5 min-w-0 w-full">
-        
-        <!-- STAGE GATE WARNING IF PROCESS MAP INCOMPLETE -->
-        <div
-          v-if="!isProcessMapComplete"
-          class="bg-amber-50 border border-amber-300 rounded-2xl p-4 flex items-center justify-between text-xs text-amber-900 shadow-2xs"
-        >
+      <!-- Main DMAIC Phase Header & Navigation Tabs -->
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div class="flex items-center gap-3">
-            <UIcon name="i-lucide-lock" class="size-5 text-amber-600 shrink-0" />
+            <div class="size-11 rounded-2xl bg-teal-50 border border-teal-200/80 flex items-center justify-center text-[#008779] shadow-2xs">
+              <UIcon name="i-lucide-git-branch" class="size-6" />
+            </div>
             <div>
-              <span class="font-bold block">🔒 ขั้นตอน Fishbone ถูกล็อกการทำงาน (Strict Gating Active)</span>
-              <p class="text-[11px] text-amber-800 mt-0.5">
-                ระบบล็อกไว้ว่าให้ทำตามขั้นตอน ไม่สามารถข้ามได้ และต้องทำ Process Map ให้เสร็จก่อนจึงจะปลดล็อก Fishbone Diagram
+              <div class="flex items-center gap-2">
+                <h1 class="text-lg font-bold text-slate-900">Fishbone Diagram (Ishikawa Analysis)</h1>
+                <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-teal-100 text-[#008779] border border-teal-200">
+                  Measure Phase
+                </span>
+                <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+                  5M1E Model
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">
+                วิเคราะห์สาเหตุและผลกระทบ (Cause & Effect) สู่รากเหง้าปัญหา 5M1E พร้อมระบบซักถาม 5-Why Analysis
               </p>
             </div>
           </div>
-          <NuxtLink
-            :to="`/admin/projects/${projectId}/measure/process-map`"
-            class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-1.5 rounded-xl transition-colors shrink-0"
-          >
-            ไปยังหน้า Process Map
-          </NuxtLink>
+
+          <!-- Phase Action Buttons -->
+          <div class="flex items-center gap-2">
+            <NuxtLink
+              :to="`/admin/projects/${projectId}/measure/process-map`"
+              class="px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5"
+            >
+              <UIcon name="i-lucide-arrow-left" class="size-3.5" />
+              <span>Process Map</span>
+            </NuxtLink>
+            <NuxtLink
+              :to="`/admin/projects/${projectId}/measure/fmea`"
+              class="px-3.5 py-2 text-xs font-bold rounded-xl bg-[#008779] hover:bg-[#007366] text-white transition-colors flex items-center gap-1.5 shadow-xs"
+            >
+              <span>FMEA Studio</span>
+              <UIcon name="i-lucide-arrow-right" class="size-3.5" />
+            </NuxtLink>
+          </div>
         </div>
 
-        <!-- Header Banner: Stage Completion (Matching Image 5) -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div class="space-y-0.5">
-            <h1 class="text-base font-bold text-slate-900 flex items-center gap-2">
-              <span>Stage Completion</span>
-            </h1>
-            <p class="text-xs text-slate-500">
-              All fishbone diagrams have been created and documented. Mark this stage as complete to contribute to the Measure phase progress.
-            </p>
+        <!-- Measure Phase Tab Navigation -->
+        <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+          <NuxtLink
+            v-for="t in tabs"
+            :key="t.id"
+            :to="`/admin/projects/${projectId}/measure/${t.id === 'fmea' ? 'fmea' : (t.id === 'fishbone' ? 'fishbone' : 'process-map')}`"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+            :class="t.id === 'fishbone' ? 'bg-[#008779] text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
+          >
+            <UIcon :name="t.icon" class="size-3.5" />
+            <span>{{ t.label }}</span>
+          </NuxtLink>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Workspace Container -->
+    <div class="space-y-4">
+      <div class="space-y-4">
+        
+        <!-- View Switcher & Actions Bar -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-bold text-slate-800">Problem Focus:</span>
+            <div
+              class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl cursor-pointer hover:border-[#008779] transition-all"
+              @click="openProblemModal"
+            >
+              <span class="size-2 rounded-full bg-rose-500 animate-pulse"></span>
+              <span class="font-bold text-xs text-slate-900">{{ problemStatement.title }} ({{ problemStatement.subtitle }})</span>
+              <span class="text-[11px] font-mono text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">
+                Target: {{ problemStatement.goalValue }}
+              </span>
+              <UIcon name="i-lucide-pencil" class="size-3 text-slate-400 ml-1" />
+            </div>
           </div>
 
-          <div class="flex items-center gap-2.5">
-            <button
-              type="button"
-              class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
-              :class="isFishboneCompleted ? 'bg-emerald-50 text-emerald-700 border border-emerald-300' : 'bg-slate-100 text-slate-600 border border-slate-200'"
-              @click="toggleFishboneCompletion"
-            >
-              <UIcon :name="isFishboneCompleted ? 'i-lucide-check-circle-2' : 'i-lucide-circle'" class="size-4" :class="isFishboneCompleted ? 'text-emerald-600' : 'text-slate-400'" />
-              <span>{{ isFishboneCompleted ? 'Completed (FMEA Unlocked)' : 'Mark as Completed' }}</span>
-            </button>
-
-            <div class="bg-slate-100 p-0.5 rounded-xl border border-slate-200 flex items-center gap-0.5 text-xs">
-              <button
-                type="button"
-                class="px-3 py-1 rounded-lg font-bold transition-all cursor-pointer"
-                :class="currentViewMode === 'list' ? 'bg-white text-[#008779] shadow-2xs' : 'text-slate-600 hover:text-slate-900'"
-                @click="currentViewMode = 'list'"
-              >
-                Table List
-              </button>
+          <!-- View Mode Toggle (Visual Ishikawa Diagram vs Table List) -->
+          <div class="flex items-center gap-3">
+            <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80 text-xs">
               <button
                 type="button"
                 class="px-3 py-1 rounded-lg font-bold transition-all cursor-pointer"
@@ -453,11 +539,19 @@ const addWhyStep = () => {
               >
                 Interactive Diagram
               </button>
+              <button
+                type="button"
+                class="px-3 py-1 rounded-lg font-bold transition-all cursor-pointer"
+                :class="currentViewMode === 'list' ? 'bg-white text-[#008779] shadow-2xs' : 'text-slate-600 hover:text-slate-900'"
+                @click="currentViewMode = 'list'"
+              >
+                Table List
+              </button>
             </div>
           </div>
         </div>
 
-        <!-- 1. TABLE LIST VIEW (Matching Image 5) -->
+        <!-- 1. TABLE LIST VIEW -->
         <div v-if="currentViewMode === 'list'" class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
           <div class="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
@@ -475,7 +569,7 @@ const addWhyStep = () => {
             </button>
           </div>
 
-          <!-- Table of Fishbone Diagrams (Matching Image 5) -->
+          <!-- Table of Fishbone Diagrams -->
           <div class="overflow-x-auto border border-slate-200 rounded-xl">
             <table class="w-full text-left text-xs">
               <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold tracking-wider border-b border-slate-200">
@@ -490,57 +584,42 @@ const addWhyStep = () => {
               </thead>
               <tbody class="divide-y divide-slate-100 text-slate-800">
                 <tr class="hover:bg-slate-50/70 transition-colors">
-                  <!-- Problem Statement -->
                   <td class="py-3.5 px-4 font-bold text-slate-900">
                     {{ problemStatement.title }} {{ problemStatement.subtitle }}
                   </td>
-
-                  <!-- Categories summary -->
                   <td class="py-3.5 px-4 text-slate-600 text-[11px]">
                     {{ categoriesSummaryString }}
                   </td>
-
-                  <!-- Linked Process Map -->
                   <td class="py-3.5 px-4 text-[#008779] font-medium hover:underline cursor-pointer">
                     <NuxtLink :to="`/admin/projects/${projectId}/measure/process-map`">
                       Process Map สินค้าไก่ทอด
                     </NuxtLink>
                   </td>
-
-                  <!-- Total Factors -->
                   <td class="py-3.5 px-4 text-center font-mono font-bold text-slate-900">
                     {{ totalFactorsCount }}
                   </td>
-
-                  <!-- Created Date -->
                   <td class="py-3.5 px-4 text-slate-600">
                     <span class="font-mono text-slate-900 block">Dec 26, 2025</span>
                     <span class="text-[11px] text-slate-400">Romteera Tadderm</span>
                   </td>
-
-                  <!-- Actions -->
                   <td class="py-3.5 px-4 text-center">
                     <div class="flex items-center justify-center gap-1.5">
-                      <!-- Chat icon -->
                       <button
                         type="button"
                         class="p-1.5 rounded-lg text-slate-400 hover:text-[#008779] hover:bg-slate-100 transition-colors cursor-pointer"
                         title="AI Analysis"
+                        @click="isAiSuggestModalOpen = true"
                       >
                         <UIcon name="i-lucide-message-square" class="size-3.5" />
                       </button>
-
-                      <!-- Action Button 1 (Circled in Image 5): Open Slide-over Drawer -->
                       <button
                         type="button"
                         class="p-1.5 rounded-lg bg-teal-50 text-[#008779] hover:bg-[#008779] hover:text-white border border-teal-200 transition-colors cursor-pointer shadow-2xs"
-                        title="เปิดหน้ากรอกข้อมูลเพื่อสร้าง/แก้ไข ก้างปลา (1)"
+                        title="เปิดหน้ากรอกข้อมูลเพื่อสร้าง/แก้ไข ก้างปลา"
                         @click="openDrawer('machine')"
                       >
                         <UIcon name="i-lucide-pencil" class="size-3.5" />
                       </button>
-
-                      <!-- Diagram Switch action -->
                       <button
                         type="button"
                         class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
@@ -560,23 +639,55 @@ const addWhyStep = () => {
         <!-- 2. INTERACTIVE DIAGRAM VIEW (Ishikawa Visual Studio) -->
         <div v-else class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-5">
           <!-- Header and Category Summary Chips -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-100">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-3 border-b border-slate-100">
             <div>
               <div class="flex items-center gap-2">
-                <span class="text-sm font-bold text-slate-900">Fishbone Diagram Analysis</span>
+                <span class="text-sm font-bold text-slate-900">Fishbone Diagram Analysis (Interactive Studio)</span>
                 <span class="text-[10px] bg-teal-100 text-[#008779] font-bold px-2 py-0.5 rounded-full">Interactive Ishikawa</span>
               </div>
-              <p class="text-xs text-slate-500 mt-0.5">วิเคราะห์สาเหตุและผลกระทบตามโครงสร้าง 5M1E พร้อมระบบเจาะลึก 5-Why Analysis และคลิกแก้ไขกิ่งได้ทันที</p>
+              <p class="text-xs text-slate-500 mt-0.5">คลิกที่ก้างปลาเพื่อดู 5-Why, ปรับ [C]/[N], แก้ไขหัวข้อ หรือคลิกหัวปลาเพื่อเปลี่ยน Problem Statement</p>
             </div>
 
-            <div class="flex items-center gap-2">
+            <!-- Action Buttons Toolbar -->
+            <div class="flex flex-wrap items-center gap-2">
+              <!-- AI Suggest Causes Button -->
+              <button
+                type="button"
+                class="bg-gradient-to-r from-teal-50 to-indigo-50 hover:from-teal-100 hover:to-indigo-100 border border-teal-200/80 text-[#008779] text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                @click="isAiSuggestModalOpen = true"
+              >
+                <UIcon name="i-lucide-sparkles" class="size-3.5 text-amber-500" />
+                <span>AI Suggest Factors</span>
+              </button>
+
+              <!-- Sync to FMEA Button -->
+              <button
+                type="button"
+                class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer border border-slate-200"
+                @click="syncToFmea"
+              >
+                <UIcon name="i-lucide-refresh-cw" class="size-3.5 text-slate-500" />
+                <span>Sync to FMEA</span>
+              </button>
+
+              <!-- Export Button -->
+              <button
+                type="button"
+                class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer border border-slate-200"
+                @click="exportFishboneDiagram"
+              >
+                <UIcon name="i-lucide-download" class="size-3.5 text-slate-500" />
+                <span>Export Diagram</span>
+              </button>
+
+              <!-- Create / Add Cause Drawer Button -->
               <button
                 type="button"
                 class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
                 @click="openDrawer('machine')"
               >
                 <UIcon name="i-lucide-plus" class="size-3.5" />
-                <span>+ Create / Add Factor</span>
+                <span>+ Add Factor</span>
               </button>
             </div>
           </div>
@@ -602,7 +713,7 @@ const addWhyStep = () => {
           <div class="relative w-full bg-white border border-slate-200 rounded-3xl p-4 overflow-x-auto shadow-inner">
             <svg
               viewBox="0 0 1200 660"
-              class="w-full min-w-[950px] h-auto select-none"
+              class="w-full min-w-[980px] h-auto select-none"
               xmlns="http://www.w3.org/2000/svg"
             >
               <defs>
@@ -618,19 +729,6 @@ const addWhyStep = () => {
                 >
                   <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0f172a" />
                 </marker>
-
-                <!-- Marker for bone branch arrows -->
-                <marker
-                  id="boneArrow"
-                  viewBox="0 0 10 10"
-                  refX="6"
-                  refY="5"
-                  markerWidth="6"
-                  markerHeight="6"
-                  orient="auto-start-reverse"
-                >
-                  <path d="M 0 2 L 6 5 L 0 8 z" fill="#475569" />
-                </marker>
               </defs>
 
               <!-- Main Central Horizontal Spine Line -->
@@ -645,8 +743,8 @@ const addWhyStep = () => {
                 marker-end="url(#spineArrow)"
               />
 
-              <!-- Effect / Problem Statement Box (Fish Head) -->
-              <g transform="translate(950, 280)">
+              <!-- Effect / Problem Statement Box (Fish Head) - CLICKABLE TO EDIT -->
+              <g transform="translate(950, 280)" class="cursor-pointer group" @click="openProblemModal">
                 <rect
                   x="0"
                   y="0"
@@ -657,13 +755,14 @@ const addWhyStep = () => {
                   stroke="#008779"
                   stroke-width="2.5"
                   filter="drop-shadow(0 4px 6px rgba(0,0,0,0.15))"
+                  class="group-hover:stroke-teal-400 group-hover:fill-slate-900 transition-all"
                 />
                 <text
                   x="110"
-                  y="42"
+                  y="38"
                   text-anchor="middle"
                   fill="#FFFFFF"
-                  font-size="16"
+                  font-size="15"
                   font-weight="800"
                   font-family="sans-serif"
                 >
@@ -671,386 +770,452 @@ const addWhyStep = () => {
                 </text>
                 <text
                   x="110"
-                  y="66"
+                  y="62"
                   text-anchor="middle"
                   fill="#99F6E4"
                   font-size="11"
                   font-weight="600"
                   font-family="sans-serif"
                 >
-                  ส่วนน้ำไก่ทอดต่ำ
+                  {{ problemStatement.subtitle }}
                 </text>
                 <text
                   x="110"
-                  y="84"
+                  y="82"
                   text-anchor="middle"
                   fill="#94A3B8"
                   font-size="9"
                   font-family="sans-serif"
                 >
-                  Target: STD 85.0%
+                  STD: {{ problemStatement.goalValue }} • Actual: {{ problemStatement.currentValue }} ✏️
                 </text>
               </g>
 
               <!-- 3 Top Category Bones: Material, Method, Man -->
               <!-- 1. Top Bone: Material -->
               <g>
-                <!-- Category Label Box -->
-                <rect x="230" y="25" width="130" height="34" rx="8" fill="#1E293B" />
-                <text x="295" y="47" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="700">Material</text>
+                <!-- Category Label Box - Clickable -->
+                <g class="cursor-pointer group" @click="openDrawer('material')">
+                  <rect x="230" y="25" width="130" height="34" rx="8" fill="#1E293B" class="group-hover:fill-[#2563eb] transition-colors" />
+                  <text x="295" y="47" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="700">Material +</text>
+                </g>
                 <!-- Main Bone Line -->
                 <line x1="295" y1="59" x2="420" y2="330" stroke="#1E293B" stroke-width="2.5" />
                 
                 <!-- Sub-branches for Material causes -->
-                <g v-for="(cause, cIdx) in categories.find(c => c.key === 'material')?.causes || []" :key="cause.id" class="cursor-pointer group" @click="openWhyModal('Material', cause)">
+                <g v-for="(cause, cIdx) in categories.find(c => c.key === 'material')?.causes || []" :key="cause.id" class="cursor-pointer group">
                   <line
                     :x1="295 + (cIdx + 1) * 30"
                     :y1="59 + (cIdx + 1) * 65"
-                    :x2="150"
+                    :x2="130"
                     :y2="59 + (cIdx + 1) * 65"
                     stroke="#64748B"
                     stroke-width="1.8"
+                    class="group-hover:stroke-[#2563eb]"
                   />
-                  <!-- Cause label text -->
-                  <rect
-                    :x="145"
-                    :y="42 + (cIdx + 1) * 65"
-                    :width="cause.name.length * 7 + 36"
-                    height="20"
-                    rx="5"
-                    fill="#FFFFFF"
-                    stroke="#E2E8F0"
-                    stroke-width="1"
-                  />
-                  <text
-                    :x="152"
-                    :y="56 + (cIdx + 1) * 65"
-                    fill="#0F172A"
-                    font-size="10.5"
-                    font-weight="600"
-                  >
-                    {{ cause.name }}
-                  </text>
-                  <!-- [C]/[N] Tag Badge -->
-                  <rect
-                    :x="145 + cause.name.length * 7 + 12"
-                    :y="44 + (cIdx + 1) * 65"
-                    width="18"
-                    height="16"
-                    rx="4"
-                    :fill="cause.type === 'C' ? '#CCFBF1' : '#F1F5F9'"
-                  />
-                  <text
-                    :x="145 + cause.name.length * 7 + 21"
-                    :y="56 + (cIdx + 1) * 65"
-                    text-anchor="middle"
-                    :fill="cause.type === 'C' ? '#0F766E' : '#64748B'"
-                    font-size="9"
-                    font-weight="bold"
-                  >
-                    {{ cause.type }}
-                  </text>
+                  <!-- Cause label box -->
+                  <g @click="openWhyModal('Material', cause)">
+                    <rect
+                      :x="125"
+                      :y="42 + (cIdx + 1) * 65"
+                      :width="cause.name.length * 7.2 + 48"
+                      height="22"
+                      rx="6"
+                      fill="#FFFFFF"
+                      stroke="#CBD5E1"
+                      stroke-width="1"
+                      class="group-hover:stroke-[#2563eb] group-hover:fill-blue-50/40 shadow-xs"
+                    />
+                    <text
+                      :x="133"
+                      :y="57 + (cIdx + 1) * 65"
+                      fill="#0F172A"
+                      font-size="10.5"
+                      font-weight="600"
+                    >
+                      <tspan v-if="cause.isKey" fill="#DC2626" font-weight="bold">★ </tspan>
+                      {{ cause.name }}
+                    </text>
+                  </g>
+                  <!-- [C]/[N] Tag Badge - Clickable to toggle -->
+                  <g @click.stop="toggleCauseType('material', cause.id)" class="cursor-pointer">
+                    <rect
+                      :x="125 + cause.name.length * 7.2 + (cause.isKey ? 22 : 12)"
+                      :y="44 + (cIdx + 1) * 65"
+                      width="18"
+                      height="18"
+                      rx="4"
+                      :fill="cause.type === 'C' ? '#CCFBF1' : '#F1F5F9'"
+                      stroke="#94A3B8"
+                      stroke-width="0.5"
+                    />
+                    <text
+                      :x="125 + cause.name.length * 7.2 + (cause.isKey ? 31 : 21)"
+                      :y="57 + (cIdx + 1) * 65"
+                      text-anchor="middle"
+                      :fill="cause.type === 'C' ? '#0F766E' : '#64748B'"
+                      font-size="9.5"
+                      font-weight="bold"
+                    >
+                      {{ cause.type }}
+                    </text>
+                  </g>
                 </g>
               </g>
 
               <!-- 2. Top Bone: Method -->
               <g>
-                <!-- Category Label Box -->
-                <rect x="490" y="25" width="130" height="34" rx="8" fill="#1E293B" />
-                <text x="555" y="47" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="700">Method</text>
+                <!-- Category Label Box - Clickable -->
+                <g class="cursor-pointer group" @click="openDrawer('method')">
+                  <rect x="490" y="25" width="130" height="34" rx="8" fill="#1E293B" class="group-hover:fill-[#d97706] transition-colors" />
+                  <text x="555" y="47" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="700">Method +</text>
+                </g>
                 <!-- Main Bone Line -->
                 <line x1="555" y1="59" x2="680" y2="330" stroke="#1E293B" stroke-width="2.5" />
                 
                 <!-- Sub-branches for Method causes -->
-                <g v-for="(cause, cIdx) in categories.find(c => c.key === 'method')?.causes || []" :key="cause.id" class="cursor-pointer group" @click="openWhyModal('Method', cause)">
+                <g v-for="(cause, cIdx) in categories.find(c => c.key === 'method')?.causes || []" :key="cause.id" class="cursor-pointer group">
                   <line
                     :x1="555 + (cIdx + 1) * 40"
                     :y1="59 + (cIdx + 1) * 85"
-                    :x2="410"
+                    :x2="390"
                     :y2="59 + (cIdx + 1) * 85"
                     stroke="#64748B"
                     stroke-width="1.8"
+                    class="group-hover:stroke-[#d97706]"
                   />
                   <!-- Cause label text -->
-                  <rect
-                    :x="405"
-                    :y="42 + (cIdx + 1) * 85"
-                    :width="cause.name.length * 7 + 36"
-                    height="20"
-                    rx="5"
-                    fill="#FFFFFF"
-                    stroke="#E2E8F0"
-                    stroke-width="1"
-                  />
-                  <text
-                    :x="412"
-                    :y="56 + (cIdx + 1) * 85"
-                    fill="#0F172A"
-                    font-size="10.5"
-                    font-weight="600"
-                  >
-                    {{ cause.name }}
-                  </text>
-                  <!-- [C]/[N] Tag Badge -->
-                  <rect
-                    :x="405 + cause.name.length * 7 + 12"
-                    :y="44 + (cIdx + 1) * 85"
-                    width="18"
-                    height="16"
-                    rx="4"
-                    :fill="cause.type === 'C' ? '#CCFBF1' : '#F1F5F9'"
-                  />
-                  <text
-                    :x="405 + cause.name.length * 7 + 21"
-                    :y="56 + (cIdx + 1) * 85"
-                    text-anchor="middle"
-                    :fill="cause.type === 'C' ? '#0F766E' : '#64748B'"
-                    font-size="9"
-                    font-weight="bold"
-                  >
-                    {{ cause.type }}
-                  </text>
+                  <g @click="openWhyModal('Method', cause)">
+                    <rect
+                      :x="385"
+                      :y="42 + (cIdx + 1) * 85"
+                      :width="cause.name.length * 7.2 + 48"
+                      height="22"
+                      rx="6"
+                      fill="#FFFFFF"
+                      stroke="#CBD5E1"
+                      stroke-width="1"
+                      class="group-hover:stroke-[#d97706] group-hover:fill-amber-50/40 shadow-xs"
+                    />
+                    <text
+                      :x="393"
+                      :y="57 + (cIdx + 1) * 85"
+                      fill="#0F172A"
+                      font-size="10.5"
+                      font-weight="600"
+                    >
+                      <tspan v-if="cause.isKey" fill="#DC2626" font-weight="bold">★ </tspan>
+                      {{ cause.name }}
+                    </text>
+                  </g>
+                  <!-- [C]/[N] Tag Badge - Clickable to toggle -->
+                  <g @click.stop="toggleCauseType('method', cause.id)" class="cursor-pointer">
+                    <rect
+                      :x="385 + cause.name.length * 7.2 + (cause.isKey ? 22 : 12)"
+                      :y="44 + (cIdx + 1) * 85"
+                      width="18"
+                      height="18"
+                      rx="4"
+                      :fill="cause.type === 'C' ? '#CCFBF1' : '#F1F5F9'"
+                      stroke="#94A3B8"
+                      stroke-width="0.5"
+                    />
+                    <text
+                      :x="385 + cause.name.length * 7.2 + (cause.isKey ? 31 : 21)"
+                      :y="57 + (cIdx + 1) * 85"
+                      text-anchor="middle"
+                      :fill="cause.type === 'C' ? '#0F766E' : '#64748B'"
+                      font-size="9.5"
+                      font-weight="bold"
+                    >
+                      {{ cause.type }}
+                    </text>
+                  </g>
                 </g>
               </g>
 
               <!-- 3. Top Bone: Man -->
               <g>
-                <!-- Category Label Box -->
-                <rect x="740" y="25" width="130" height="34" rx="8" fill="#1E293B" />
-                <text x="805" y="47" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="700">Man</text>
+                <!-- Category Label Box - Clickable -->
+                <g class="cursor-pointer group" @click="openDrawer('man')">
+                  <rect x="740" y="25" width="130" height="34" rx="8" fill="#1E293B" class="group-hover:fill-[#e11d48] transition-colors" />
+                  <text x="805" y="47" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="700">Man +</text>
+                </g>
                 <!-- Main Bone Line -->
                 <line x1="805" y1="59" x2="910" y2="330" stroke="#1E293B" stroke-width="2.5" />
                 
                 <!-- Sub-branches for Man causes -->
-                <g v-for="(cause, cIdx) in categories.find(c => c.key === 'man')?.causes || []" :key="cause.id" class="cursor-pointer group" @click="openWhyModal('Man', cause)">
+                <g v-for="(cause, cIdx) in categories.find(c => c.key === 'man')?.causes || []" :key="cause.id" class="cursor-pointer group">
                   <line
                     :x1="805 + (cIdx + 1) * 35"
                     :y1="59 + (cIdx + 1) * 85"
-                    :x2="670"
+                    :x2="650"
                     :y2="59 + (cIdx + 1) * 85"
                     stroke="#64748B"
                     stroke-width="1.8"
+                    class="group-hover:stroke-[#e11d48]"
                   />
                   <!-- Cause label text -->
-                  <rect
-                    :x="665"
-                    :y="42 + (cIdx + 1) * 85"
-                    :width="cause.name.length * 7 + 36"
-                    height="20"
-                    rx="5"
-                    fill="#FFFFFF"
-                    stroke="#E2E8F0"
-                    stroke-width="1"
-                  />
-                  <text
-                    :x="672"
-                    :y="56 + (cIdx + 1) * 85"
-                    fill="#0F172A"
-                    font-size="10.5"
-                    font-weight="600"
-                  >
-                    {{ cause.name }}
-                  </text>
-                  <!-- [C]/[N] Tag Badge -->
-                  <rect
-                    :x="665 + cause.name.length * 7 + 12"
-                    :y="44 + (cIdx + 1) * 85"
-                    width="18"
-                    height="16"
-                    rx="4"
-                    :fill="cause.type === 'C' ? '#CCFBF1' : '#F1F5F9'"
-                  />
-                  <text
-                    :x="665 + cause.name.length * 7 + 21"
-                    :y="56 + (cIdx + 1) * 85"
-                    text-anchor="middle"
-                    :fill="cause.type === 'C' ? '#0F766E' : '#64748B'"
-                    font-size="9"
-                    font-weight="bold"
-                  >
-                    {{ cause.type }}
-                  </text>
+                  <g @click="openWhyModal('Man', cause)">
+                    <rect
+                      :x="645"
+                      :y="42 + (cIdx + 1) * 85"
+                      :width="cause.name.length * 7.2 + 48"
+                      height="22"
+                      rx="6"
+                      fill="#FFFFFF"
+                      stroke="#CBD5E1"
+                      stroke-width="1"
+                      class="group-hover:stroke-[#e11d48] group-hover:fill-rose-50/40 shadow-xs"
+                    />
+                    <text
+                      :x="653"
+                      :y="57 + (cIdx + 1) * 85"
+                      fill="#0F172A"
+                      font-size="10.5"
+                      font-weight="600"
+                    >
+                      <tspan v-if="cause.isKey" fill="#DC2626" font-weight="bold">★ </tspan>
+                      {{ cause.name }}
+                    </text>
+                  </g>
+                  <!-- [C]/[N] Tag Badge - Clickable to toggle -->
+                  <g @click.stop="toggleCauseType('man', cause.id)" class="cursor-pointer">
+                    <rect
+                      :x="645 + cause.name.length * 7.2 + (cause.isKey ? 22 : 12)"
+                      :y="44 + (cIdx + 1) * 85"
+                      width="18"
+                      height="18"
+                      rx="4"
+                      :fill="cause.type === 'C' ? '#CCFBF1' : '#F1F5F9'"
+                      stroke="#94A3B8"
+                      stroke-width="0.5"
+                    />
+                    <text
+                      :x="645 + cause.name.length * 7.2 + (cause.isKey ? 31 : 21)"
+                      :y="57 + (cIdx + 1) * 85"
+                      text-anchor="middle"
+                      :fill="cause.type === 'C' ? '#0F766E' : '#64748B'"
+                      font-size="9.5"
+                      font-weight="bold"
+                    >
+                      {{ cause.type }}
+                    </text>
+                  </g>
                 </g>
               </g>
 
               <!-- 3 Bottom Category Bones: Machine, Measurement, Environment -->
               <!-- 4. Bottom Bone: Machine -->
               <g>
-                <!-- Category Label Box -->
-                <rect x="230" y="595" width="130" height="34" rx="8" fill="#1E293B" />
-                <text x="295" y="617" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="700">Machine</text>
+                <!-- Category Label Box - Clickable -->
+                <g class="cursor-pointer group" @click="openDrawer('machine')">
+                  <rect x="230" y="595" width="130" height="34" rx="8" fill="#1E293B" class="group-hover:fill-[#059669] transition-colors" />
+                  <text x="295" y="617" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="700">Machine +</text>
+                </g>
                 <!-- Main Bone Line -->
                 <line x1="295" y1="595" x2="420" y2="330" stroke="#1E293B" stroke-width="2.5" />
                 
                 <!-- Sub-branches for Machine causes -->
-                <g v-for="(cause, cIdx) in categories.find(c => c.key === 'machine')?.causes || []" :key="cause.id" class="cursor-pointer group" @click="openWhyModal('Machine', cause)">
+                <g v-for="(cause, cIdx) in categories.find(c => c.key === 'machine')?.causes || []" :key="cause.id" class="cursor-pointer group">
                   <line
                     :x1="295 + (cIdx + 1) * 30"
                     :y1="595 - (cIdx + 1) * 65"
-                    :x2="150"
+                    :x2="130"
                     :y2="595 - (cIdx + 1) * 65"
                     stroke="#64748B"
                     stroke-width="1.8"
+                    class="group-hover:stroke-[#059669]"
                   />
                   <!-- Cause label text -->
-                  <rect
-                    :x="145"
-                    :y="578 - (cIdx + 1) * 65"
-                    :width="cause.name.length * 7 + 36"
-                    height="20"
-                    rx="5"
-                    fill="#FFFFFF"
-                    stroke="#E2E8F0"
-                    stroke-width="1"
-                  />
-                  <text
-                    :x="152"
-                    :y="592 - (cIdx + 1) * 65"
-                    fill="#0F172A"
-                    font-size="10.5"
-                    font-weight="600"
-                  >
-                    {{ cause.name }}
-                  </text>
-                  <!-- [C]/[N] Tag Badge -->
-                  <rect
-                    :x="145 + cause.name.length * 7 + 12"
-                    :y="580 - (cIdx + 1) * 65"
-                    width="18"
-                    height="16"
-                    rx="4"
-                    :fill="cause.type === 'C' ? '#CCFBF1' : '#F1F5F9'"
-                  />
-                  <text
-                    :x="145 + cause.name.length * 7 + 21"
-                    :y="592 - (cIdx + 1) * 65"
-                    text-anchor="middle"
-                    :fill="cause.type === 'C' ? '#0F766E' : '#64748B'"
-                    font-size="9"
-                    font-weight="bold"
-                  >
-                    {{ cause.type }}
-                  </text>
+                  <g @click="openWhyModal('Machine', cause)">
+                    <rect
+                      :x="125"
+                      :y="578 - (cIdx + 1) * 65"
+                      :width="cause.name.length * 7.2 + 48"
+                      height="22"
+                      rx="6"
+                      fill="#FFFFFF"
+                      stroke="#CBD5E1"
+                      stroke-width="1"
+                      class="group-hover:stroke-[#059669] group-hover:fill-emerald-50/40 shadow-xs"
+                    />
+                    <text
+                      :x="133"
+                      :y="593 - (cIdx + 1) * 65"
+                      fill="#0F172A"
+                      font-size="10.5"
+                      font-weight="600"
+                    >
+                      <tspan v-if="cause.isKey" fill="#DC2626" font-weight="bold">★ </tspan>
+                      {{ cause.name }}
+                    </text>
+                  </g>
+                  <!-- [C]/[N] Tag Badge - Clickable to toggle -->
+                  <g @click.stop="toggleCauseType('machine', cause.id)" class="cursor-pointer">
+                    <rect
+                      :x="125 + cause.name.length * 7.2 + (cause.isKey ? 22 : 12)"
+                      :y="580 - (cIdx + 1) * 65"
+                      width="18"
+                      height="18"
+                      rx="4"
+                      :fill="cause.type === 'C' ? '#CCFBF1' : '#F1F5F9'"
+                      stroke="#94A3B8"
+                      stroke-width="0.5"
+                    />
+                    <text
+                      :x="125 + cause.name.length * 7.2 + (cause.isKey ? 31 : 21)"
+                      :y="593 - (cIdx + 1) * 85"
+                      text-anchor="middle"
+                      :fill="cause.type === 'C' ? '#0F766E' : '#64748B'"
+                      font-size="9.5"
+                      font-weight="bold"
+                    >
+                      {{ cause.type }}
+                    </text>
+                  </g>
                 </g>
               </g>
 
               <!-- 5. Bottom Bone: Measurement -->
               <g>
-                <!-- Category Label Box -->
-                <rect x="490" y="595" width="130" height="34" rx="8" fill="#1E293B" />
-                <text x="555" y="617" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="700">Measurement</text>
+                <!-- Category Label Box - Clickable -->
+                <g class="cursor-pointer group" @click="openDrawer('measurement')">
+                  <rect x="490" y="595" width="130" height="34" rx="8" fill="#1E293B" class="group-hover:fill-[#4f46e5] transition-colors" />
+                  <text x="555" y="617" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="700">Measurement +</text>
+                </g>
                 <!-- Main Bone Line -->
                 <line x1="555" y1="595" x2="680" y2="330" stroke="#1E293B" stroke-width="2.5" />
                 
                 <!-- Sub-branches for Measurement causes -->
-                <g v-for="(cause, cIdx) in categories.find(c => c.key === 'measurement')?.causes || []" :key="cause.id" class="cursor-pointer group" @click="openWhyModal('Measurement', cause)">
+                <g v-for="(cause, cIdx) in categories.find(c => c.key === 'measurement')?.causes || []" :key="cause.id" class="cursor-pointer group">
                   <line
                     :x1="555 + (cIdx + 1) * 40"
                     :y1="595 - (cIdx + 1) * 85"
-                    :x2="410"
+                    :x2="390"
                     :y2="595 - (cIdx + 1) * 85"
                     stroke="#64748B"
                     stroke-width="1.8"
+                    class="group-hover:stroke-[#4f46e5]"
                   />
                   <!-- Cause label text -->
-                  <rect
-                    :x="405"
-                    :y="578 - (cIdx + 1) * 85"
-                    :width="cause.name.length * 7 + 36"
-                    height="20"
-                    rx="5"
-                    fill="#FFFFFF"
-                    stroke="#E2E8F0"
-                    stroke-width="1"
-                  />
-                  <text
-                    :x="412"
-                    :y="592 - (cIdx + 1) * 85"
-                    fill="#0F172A"
-                    font-size="10.5"
-                    font-weight="600"
-                  >
-                    {{ cause.name }}
-                  </text>
-                  <!-- [C]/[N] Tag Badge -->
-                  <rect
-                    :x="405 + cause.name.length * 7 + 12"
-                    :y="580 - (cIdx + 1) * 85"
-                    width="18"
-                    height="16"
-                    rx="4"
-                    :fill="cause.type === 'C' ? '#CCFBF1' : '#F1F5F9'"
-                  />
-                  <text
-                    :x="405 + cause.name.length * 7 + 21"
-                    :y="592 - (cIdx + 1) * 85"
-                    text-anchor="middle"
-                    :fill="cause.type === 'C' ? '#0F766E' : '#64748B'"
-                    font-size="9"
-                    font-weight="bold"
-                  >
-                    {{ cause.type }}
-                  </text>
+                  <g @click="openWhyModal('Measurement', cause)">
+                    <rect
+                      :x="385"
+                      :y="578 - (cIdx + 1) * 85"
+                      :width="cause.name.length * 7.2 + 48"
+                      height="22"
+                      rx="6"
+                      fill="#FFFFFF"
+                      stroke="#CBD5E1"
+                      stroke-width="1"
+                      class="group-hover:stroke-[#4f46e5] group-hover:fill-indigo-50/40 shadow-xs"
+                    />
+                    <text
+                      :x="393"
+                      :y="593 - (cIdx + 1) * 85"
+                      fill="#0F172A"
+                      font-size="10.5"
+                      font-weight="600"
+                    >
+                      <tspan v-if="cause.isKey" fill="#DC2626" font-weight="bold">★ </tspan>
+                      {{ cause.name }}
+                    </text>
+                  </g>
+                  <!-- [C]/[N] Tag Badge - Clickable to toggle -->
+                  <g @click.stop="toggleCauseType('measurement', cause.id)" class="cursor-pointer">
+                    <rect
+                      :x="385 + cause.name.length * 7.2 + (cause.isKey ? 22 : 12)"
+                      :y="580 - (cIdx + 1) * 85"
+                      width="18"
+                      height="18"
+                      rx="4"
+                      :fill="cause.type === 'C' ? '#CCFBF1' : '#F1F5F9'"
+                      stroke="#94A3B8"
+                      stroke-width="0.5"
+                    />
+                    <text
+                      :x="385 + cause.name.length * 7.2 + (cause.isKey ? 31 : 21)"
+                      :y="593 - (cIdx + 1) * 85"
+                      text-anchor="middle"
+                      :fill="cause.type === 'C' ? '#0F766E' : '#64748B'"
+                      font-size="9.5"
+                      font-weight="bold"
+                    >
+                      {{ cause.type }}
+                    </text>
+                  </g>
                 </g>
               </g>
 
               <!-- 6. Bottom Bone: Environment -->
               <g>
-                <!-- Category Label Box -->
-                <rect x="740" y="595" width="130" height="34" rx="8" fill="#1E293B" />
-                <text x="805" y="617" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="700">Environment</text>
+                <!-- Category Label Box - Clickable -->
+                <g class="cursor-pointer group" @click="openDrawer('environment')">
+                  <rect x="740" y="595" width="130" height="34" rx="8" fill="#1E293B" class="group-hover:fill-[#0d9488] transition-colors" />
+                  <text x="805" y="617" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="700">Environment +</text>
+                </g>
                 <!-- Main Bone Line -->
                 <line x1="805" y1="595" x2="910" y2="330" stroke="#1E293B" stroke-width="2.5" />
                 
                 <!-- Sub-branches for Environment causes -->
-                <g v-for="(cause, cIdx) in categories.find(c => c.key === 'environment')?.causes || []" :key="cause.id" class="cursor-pointer group" @click="openWhyModal('Environment', cause)">
+                <g v-for="(cause, cIdx) in categories.find(c => c.key === 'environment')?.causes || []" :key="cause.id" class="cursor-pointer group">
                   <line
                     :x1="805 + (cIdx + 1) * 35"
                     :y1="595 - (cIdx + 1) * 85"
-                    :x2="670"
+                    :x2="650"
                     :y2="595 - (cIdx + 1) * 85"
                     stroke="#64748B"
                     stroke-width="1.8"
+                    class="group-hover:stroke-[#0d9488]"
                   />
                   <!-- Cause label text -->
-                  <rect
-                    :x="665"
-                    :y="578 - (cIdx + 1) * 85"
-                    :width="cause.name.length * 7 + 36"
-                    height="20"
-                    rx="5"
-                    fill="#FFFFFF"
-                    stroke="#E2E8F0"
-                    stroke-width="1"
-                  />
-                  <text
-                    :x="672"
-                    :y="592 - (cIdx + 1) * 85"
-                    fill="#0F172A"
-                    font-size="10.5"
-                    font-weight="600"
-                  >
-                    {{ cause.name }}
-                  </text>
-                  <!-- [C]/[N] Tag Badge -->
-                  <rect
-                    :x="665 + cause.name.length * 7 + 12"
-                    :y="580 - (cIdx + 1) * 85"
-                    width="18"
-                    height="16"
-                    rx="4"
-                    :fill="cause.type === 'C' ? '#CCFBF1' : '#F1F5F9'"
-                  />
-                  <text
-                    :x="665 + cause.name.length * 7 + 21"
-                    :y="592 - (cIdx + 1) * 85"
-                    text-anchor="middle"
-                    :fill="cause.type === 'C' ? '#0F766E' : '#64748B'"
-                    font-size="9"
-                    font-weight="bold"
-                  >
-                    {{ cause.type }}
-                  </text>
+                  <g @click="openWhyModal('Environment', cause)">
+                    <rect
+                      :x="645"
+                      :y="578 - (cIdx + 1) * 85"
+                      :width="cause.name.length * 7.2 + 48"
+                      height="22"
+                      rx="6"
+                      fill="#FFFFFF"
+                      stroke="#CBD5E1"
+                      stroke-width="1"
+                      class="group-hover:stroke-[#0d9488] group-hover:fill-teal-50/40 shadow-xs"
+                    />
+                    <text
+                      :x="653"
+                      :y="593 - (cIdx + 1) * 85"
+                      fill="#0F172A"
+                      font-size="10.5"
+                      font-weight="600"
+                    >
+                      <tspan v-if="cause.isKey" fill="#DC2626" font-weight="bold">★ </tspan>
+                      {{ cause.name }}
+                    </text>
+                  </g>
+                  <!-- [C]/[N] Tag Badge - Clickable to toggle -->
+                  <g @click.stop="toggleCauseType('environment', cause.id)" class="cursor-pointer">
+                    <rect
+                      :x="645 + cause.name.length * 7.2 + (cause.isKey ? 22 : 12)"
+                      :y="580 - (cIdx + 1) * 85"
+                      width="18"
+                      height="18"
+                      rx="4"
+                      :fill="cause.type === 'C' ? '#CCFBF1' : '#F1F5F9'"
+                      stroke="#94A3B8"
+                      stroke-width="0.5"
+                    />
+                    <text
+                      :x="645 + cause.name.length * 7.2 + (cause.isKey ? 31 : 21)"
+                      :y="593 - (cIdx + 1) * 85"
+                      text-anchor="middle"
+                      :fill="cause.type === 'C' ? '#0F766E' : '#64748B'"
+                      font-size="9.5"
+                      font-weight="bold"
+                    >
+                      {{ cause.type }}
+                    </text>
+                  </g>
                 </g>
               </g>
             </svg>
@@ -1071,13 +1236,13 @@ const addWhyStep = () => {
                 :class="cat.borderClass"
               >
                 <div class="flex items-center justify-between">
-                  <span class="font-bold text-slate-900 flex items-center gap-1.5">
+                  <span class="font-bold text-slate-900 flex items-center gap-1.5 cursor-pointer hover:underline" @click="openDrawer(cat.key)">
                     <span class="size-2.5 rounded-full" :style="`background-color: ${cat.accentColor}`"></span>
                     <span>{{ cat.name }} ({{ cat.labelTh }})</span>
                   </span>
                   <button
                     type="button"
-                    class="text-[10px] font-bold font-mono px-2 py-0.5 rounded-full hover:opacity-80 cursor-pointer"
+                    class="text-[10px] font-bold font-mono px-2 py-0.5 rounded-full hover:opacity-80 cursor-pointer shadow-2xs"
                     :class="cat.badgeClass"
                     @click="openDrawer(cat.key)"
                   >
@@ -1089,20 +1254,41 @@ const addWhyStep = () => {
                   <div
                     v-for="c in cat.causes"
                     :key="c.id"
-                    class="bg-white border border-slate-200 rounded-xl p-2.5 space-y-1.5 shadow-2xs hover:border-[#008779] transition-all cursor-pointer"
+                    class="bg-white border border-slate-200 rounded-xl p-2.5 space-y-1.5 shadow-2xs hover:border-[#008779] transition-all cursor-pointer group"
                     @click="openWhyModal(cat.name, c)"
                   >
                     <div class="flex items-center justify-between">
                       <span class="font-semibold text-slate-900 flex items-center gap-1.5">
-                        <span v-if="c.isKey" class="text-rose-600 font-bold" title="Key Root Cause">★</span>
+                        <button
+                          type="button"
+                          class="cursor-pointer text-xs"
+                          :class="c.isKey ? 'text-rose-600 font-bold' : 'text-slate-300 hover:text-amber-400'"
+                          title="Toggle Key Root Cause"
+                          @click.stop="toggleKeyCause(cat.key, c.id)"
+                        >
+                          ★
+                        </button>
                         <span>{{ c.name }}</span>
                       </span>
-                      <span
-                        class="text-[9px] font-bold px-1.5 py-0.2 rounded"
-                        :class="c.type === 'C' ? 'bg-teal-50 text-[#008779] border border-teal-200' : 'bg-slate-100 text-slate-600'"
-                      >
-                        {{ c.type === 'C' ? 'Control' : 'Noise' }}
-                      </span>
+                      <div class="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          class="text-[9px] font-bold px-1.5 py-0.2 rounded cursor-pointer transition-colors"
+                          :class="c.type === 'C' ? 'bg-teal-50 text-[#008779] border border-teal-200 hover:bg-teal-100' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                          title="Click to toggle [C]/[N]"
+                          @click.stop="toggleCauseType(cat.key, c.id)"
+                        >
+                          {{ c.type === 'C' ? 'Control' : 'Noise' }}
+                        </button>
+                        <button
+                          type="button"
+                          class="text-slate-300 hover:text-rose-600 p-0.5 rounded cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Delete cause"
+                          @click.stop="deleteCause(cat.key, c.id)"
+                        >
+                          <UIcon name="i-lucide-trash-2" class="size-3" />
+                        </button>
+                      </div>
                     </div>
 
                     <!-- 5-Why Steps Drilldown -->
@@ -1121,7 +1307,7 @@ const addWhyStep = () => {
       </div>
     </div>
 
-    <!-- 5-WHY DRILLDOWN MODAL -->
+    <!-- 1. 5-WHY DRILLDOWN MODAL -->
     <Teleport to="body">
       <div
         v-if="selectedCauseForWhy"
@@ -1158,15 +1344,22 @@ const addWhyStep = () => {
               />
             </div>
 
-            <div class="flex items-center gap-3">
-              <label class="font-bold text-xs text-slate-700">ประเภทการควบคุม:</label>
-              <label class="flex items-center gap-1.5 text-xs cursor-pointer">
-                <input v-model="selectedCauseForWhy.cause.type" type="radio" value="C" />
-                <span class="font-semibold text-teal-700">[C] Controllable (ควบคุมได้)</span>
-              </label>
-              <label class="flex items-center gap-1.5 text-xs cursor-pointer">
-                <input v-model="selectedCauseForWhy.cause.type" type="radio" value="N" />
-                <span class="font-semibold text-slate-600">[N] Noise (สัญญาณรบกวน)</span>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <label class="font-bold text-xs text-slate-700">ประเภท:</label>
+                <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+                  <input v-model="selectedCauseForWhy.cause.type" type="radio" value="C" />
+                  <span class="font-semibold text-teal-700">[C] Control</span>
+                </label>
+                <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+                  <input v-model="selectedCauseForWhy.cause.type" type="radio" value="N" />
+                  <span class="font-semibold text-slate-600">[N] Noise</span>
+                </label>
+              </div>
+
+              <label class="flex items-center gap-1.5 text-xs cursor-pointer text-rose-700 font-bold">
+                <input v-model="selectedCauseForWhy.cause.isKey" type="checkbox" class="accent-[#008779]" />
+                <span>★ Key Root Cause</span>
               </label>
             </div>
 
@@ -1175,7 +1368,7 @@ const addWhyStep = () => {
               <div class="flex items-center justify-between">
                 <span class="font-bold text-xs text-slate-800">ลำดับการซักถาม 5-Why (ทำไมจึงเกิดปัญหานี้?):</span>
                 <button
-                  v-if="selectedCauseForWhy.cause.whys.length < 5"
+                  v-if="(selectedCauseForWhy.cause.whys || []).length < 5"
                   type="button"
                   class="text-[11px] font-bold text-[#008779] hover:underline cursor-pointer"
                   @click="addWhyStep"
@@ -1186,7 +1379,7 @@ const addWhyStep = () => {
 
               <div class="space-y-2">
                 <div
-                  v-for="(w, idx) in selectedCauseForWhy.cause.whys"
+                  v-for="(w, idx) in selectedCauseForWhy.cause.whys || []"
                   :key="idx"
                   class="flex items-center gap-2"
                 >
@@ -1194,7 +1387,7 @@ const addWhyStep = () => {
                     W{{ idx + 1 }}
                   </span>
                   <input
-                    v-model="selectedCauseForWhy.cause.whys[idx]"
+                    v-model="selectedCauseForWhy.cause.whys![idx]"
                     type="text"
                     :placeholder="`ทำไมขั้นที่ ${idx + 1}...`"
                     class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:bg-white focus:border-[#008779] outline-none"
@@ -1202,7 +1395,7 @@ const addWhyStep = () => {
                   <button
                     type="button"
                     class="text-slate-400 hover:text-rose-500 cursor-pointer p-1"
-                    @click="selectedCauseForWhy.cause.whys.splice(idx, 1)"
+                    @click="selectedCauseForWhy.cause.whys!.splice(idx, 1)"
                   >
                     <UIcon name="i-lucide-trash-2" class="size-3.5" />
                   </button>
@@ -1232,7 +1425,171 @@ const addWhyStep = () => {
       </div>
     </Teleport>
 
-    <!-- SLIDE-OVER DRAWER (Matching Interview Decision: Open Slide-over on right for Data Entry) -->
+    <!-- 2. PROBLEM STATEMENT EDIT MODAL -->
+    <Teleport to="body">
+      <div
+        v-if="isProblemModalOpen"
+        class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
+      >
+        <div class="bg-white rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl p-6 space-y-5 animate-in zoom-in-95 duration-150">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div class="flex items-center gap-2">
+              <div class="size-8 rounded-full bg-teal-50 text-[#008779] flex items-center justify-center font-bold">
+                🎯
+              </div>
+              <div>
+                <h3 class="font-bold text-sm text-slate-900">แก้ไข Problem Statement (หัวปลา)</h3>
+                <p class="text-[11px] text-slate-500">กำหนดเป้าหมายหลักและปัญหาที่ต้องการแก้ไข</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="size-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 cursor-pointer"
+              @click="isProblemModalOpen = false"
+            >
+              <UIcon name="i-lucide-x" class="size-4" />
+            </button>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div>
+              <label class="font-bold text-slate-700 block mb-1">หัวข้อตัวชี้วัด (Title)</label>
+              <input
+                v-model="tempProblemStatement.title"
+                type="text"
+                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:bg-white focus:border-[#008779] outline-none font-bold"
+              />
+            </div>
+
+            <div>
+              <label class="font-bold text-slate-700 block mb-1">รายละเอียดปัญหา (Subtitle)</label>
+              <input
+                v-model="tempProblemStatement.subtitle"
+                type="text"
+                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:bg-white focus:border-[#008779] outline-none"
+              />
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="font-semibold text-slate-700 block mb-1">ค่าเป้าหมาย (STD Target)</label>
+                <input
+                  v-model="tempProblemStatement.goalValue"
+                  type="text"
+                  class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:bg-white focus:border-[#008779] outline-none"
+                />
+              </div>
+              <div>
+                <label class="font-semibold text-slate-700 block mb-1">ค่าปัจจุบัน (Current)</label>
+                <input
+                  v-model="tempProblemStatement.currentValue"
+                  type="text"
+                  class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:bg-white focus:border-[#008779] outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            <button
+              type="button"
+              class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+              @click="isProblemModalOpen = false"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="button"
+              class="px-4 py-2 rounded-xl text-xs font-bold bg-[#008779] hover:bg-[#007366] text-white cursor-pointer shadow-xs"
+              @click="saveProblemStatement"
+            >
+              บันทึก
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- 3. AI SUGGEST CAUSES MODAL -->
+    <Teleport to="body">
+      <div
+        v-if="isAiSuggestModalOpen"
+        class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
+      >
+        <div class="bg-white rounded-3xl max-w-lg w-full border border-slate-200 shadow-2xl p-6 space-y-5 animate-in zoom-in-95 duration-150">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div class="flex items-center gap-2">
+              <div class="size-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                ✨
+              </div>
+              <div>
+                <h3 class="font-bold text-sm text-slate-900">AI Root Cause Generator (GenieWisdom)</h3>
+                <p class="text-[11px] text-slate-500">วิเคราะห์และเสนอแนะสาเหตุ 5M1E จากประวัติและมาตรฐานกระบวนการผลิต</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="size-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 cursor-pointer"
+              @click="isAiSuggestModalOpen = false"
+            >
+              <UIcon name="i-lucide-x" class="size-4" />
+            </button>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div class="bg-indigo-50/60 border border-indigo-200/80 rounded-2xl p-3.5 space-y-1">
+              <span class="font-bold text-indigo-950 block">💡 ข้อเสนอแนะจาก AI สำหรับโปรเจกต์ {{ project.name }}:</span>
+              <p class="text-[11px] text-indigo-800">
+                AI ตรวจพบปัจจัยเสี่ยงที่อาจกระทบต่อ %Total Yield และจัดโครงสร้าง 5-Why มาให้พร้อมนำเข้าสู่ก้างปลา:
+              </p>
+            </div>
+
+            <div class="space-y-2 max-h-64 overflow-y-auto pr-1">
+              <div
+                v-for="(item, idx) in aiSuggestedCauses"
+                :key="idx"
+                class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1"
+              >
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-slate-900 flex items-center gap-1.5">
+                    <span class="text-amber-500 font-bold">★</span>
+                    <span>{{ item.name }}</span>
+                  </span>
+                  <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-teal-100 text-[#008779]">
+                    หมวด {{ item.catKey }}
+                  </span>
+                </div>
+                <div class="text-[11px] text-slate-500 pl-2 border-l-2 border-indigo-300 space-y-0.5">
+                  <div v-for="(why, wIdx) in item.whys" :key="wIdx">
+                    Why {{ wIdx + 1 }}: {{ why }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            <button
+              type="button"
+              class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+              @click="isAiSuggestModalOpen = false"
+            >
+              ปิด
+            </button>
+            <button
+              type="button"
+              class="px-4 py-2 rounded-xl text-xs font-bold bg-[#008779] hover:bg-[#007366] text-white cursor-pointer shadow-xs flex items-center gap-1.5"
+              @click="applyAiSuggestions"
+            >
+              <UIcon name="i-lucide-plus" class="size-3.5" />
+              <span>นำปัจจัยเข้าผังก้างปลาทั้งหมด</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- 4. SLIDE-OVER DRAWER (Matching Interview Decision: Open Slide-over on right for Data Entry) -->
     <Teleport to="body">
       <div
         v-if="isDrawerOpen"
@@ -1394,7 +1751,7 @@ const addWhyStep = () => {
               <button
                 type="button"
                 class="bg-[#008779] hover:bg-[#007366] text-white font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer shadow-xs"
-                @click="isDrawerOpen = false; showToast('✓ Fishbone diagram changes saved and synced!')"
+                @click="isDrawerOpen = false; showToast('✓ บันทึกและซิงค์ข้อมูลผังก้างปลาสำเร็จ!')"
               >
                 เสร็จสิ้น / บันทึกข้อมูล
               </button>
