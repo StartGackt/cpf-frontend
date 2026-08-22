@@ -112,10 +112,12 @@ const saveGoalField = (fieldName: 'goalBu' | 'goalStandard' | 'goalIndustry', la
 const updatePointPct = (index: number, newPct: number) => {
   if (index >= 0 && index < project.value.insightRows.length) {
     const row = project.value.insightRows[index]
-    const clamped = Math.max(0, Math.min(100, Number(newPct)))
-    row.pct = Number(clamped.toFixed(2))
-    row.actual = row.pct
-    row.total = 100
+    if (row) {
+      const clamped = Math.max(0, Math.min(100, Number(newPct)))
+      row.pct = Number(clamped.toFixed(2))
+      row.actual = row.pct
+      row.total = 100
+    }
   }
 }
 
@@ -123,7 +125,7 @@ const addDataPoint = () => {
   const nextIdx = project.value.insightRows.length + 1
   const lastPct = project.value.insightRows[project.value.insightRows.length - 1]?.pct || 85.0
   project.value.insightRows.push({
-    id: `row-${Date.now()}`,
+    id: Date.now(),
     period: `M${nextIdx}`,
     actual: lastPct,
     total: 100,
@@ -157,28 +159,30 @@ const simulateImprovement = () => {
 const simulateOutlier = () => {
   if (project.value.insightRows.length > 2) {
     const target = project.value.insightRows[2]
-    target.pct = Number(Math.max(60, target.pct - 6.5).toFixed(2))
-    target.actual = target.pct
-    target.isOutlier = true
-    target.outlierCause = 'กะดึกฮีตเตอร์ขัดข้อง 45 นาที'
-    showToast('⚠️ จำลองจุด Outlier ลดลง -6.5% พร้อมระบุสาเหตุเรียบร้อย!')
+    if (target) {
+      target.pct = Number(Math.max(60, target.pct - 6.5).toFixed(2))
+      target.actual = target.pct
+      target.isOutlier = true
+      target.outlierCause = 'กะดึกฮีตเตอร์ขัดข้อง 45 นาที'
+      showToast('⚠️ จำลองจุด Outlier ลดลง -6.5% พร้อมระบุสาเหตุเรียบร้อย!')
+    }
   }
 }
 
 const resetData = () => {
   project.value.insightRows = [
-    { id: '1', period: 'Jan 25', actual: 82.5, total: 100, pct: 82.5, isOutlier: false },
-    { id: '2', period: 'Feb 25', actual: 83.2, total: 100, pct: 83.2, isOutlier: false },
-    { id: '3', period: 'Mar 25', actual: 78.0, total: 100, pct: 78.0, isOutlier: true, outlierCause: 'เปลี่ยนสายพานทอดฉุกเฉิน' },
-    { id: '4', period: 'Apr 25', actual: 84.1, total: 100, pct: 84.1, isOutlier: false },
-    { id: '5', period: 'May 25', actual: 83.8, total: 100, pct: 83.8, isOutlier: false },
-    { id: '6', period: 'Jun 25', actual: 85.0, total: 100, pct: 85.0, isOutlier: false },
-    { id: '7', period: 'Jul 25', actual: 84.6, total: 100, pct: 84.6, isOutlier: false },
-    { id: '8', period: 'Aug 25', actual: 86.2, total: 100, pct: 86.2, isOutlier: false },
-    { id: '9', period: 'Sep 25', actual: 85.5, total: 100, pct: 85.5, isOutlier: false },
-    { id: '10', period: 'Oct 25', actual: 87.0, total: 100, pct: 87.0, isOutlier: false },
-    { id: '11', period: 'Nov 25', actual: 86.8, total: 100, pct: 86.8, isOutlier: false },
-    { id: '12', period: 'Dec 25', actual: 88.0, total: 100, pct: 88.0, isOutlier: false }
+    { id: 1, period: 'Jan 25', actual: 82.5, total: 100, pct: 82.5, isOutlier: false, outlierCause: '' },
+    { id: 2, period: 'Feb 25', actual: 83.2, total: 100, pct: 83.2, isOutlier: false, outlierCause: '' },
+    { id: 3, period: 'Mar 25', actual: 78.0, total: 100, pct: 78.0, isOutlier: true, outlierCause: 'เปลี่ยนสายพานทอดฉุกเฉิน' },
+    { id: 4, period: 'Apr 25', actual: 84.1, total: 100, pct: 84.1, isOutlier: false, outlierCause: '' },
+    { id: 5, period: 'May 25', actual: 83.8, total: 100, pct: 83.8, isOutlier: false, outlierCause: '' },
+    { id: 6, period: 'Jun 25', actual: 85.0, total: 100, pct: 85.0, isOutlier: false, outlierCause: '' },
+    { id: 7, period: 'Jul 25', actual: 84.6, total: 100, pct: 84.6, isOutlier: false, outlierCause: '' },
+    { id: 8, period: 'Aug 25', actual: 86.2, total: 100, pct: 86.2, isOutlier: false, outlierCause: '' },
+    { id: 9, period: 'Sep 25', actual: 85.5, total: 100, pct: 85.5, isOutlier: false, outlierCause: '' },
+    { id: 10, period: 'Oct 25', actual: 87.0, total: 100, pct: 87.0, isOutlier: false, outlierCause: '' },
+    { id: 11, period: 'Nov 25', actual: 86.8, total: 100, pct: 86.8, isOutlier: false, outlierCause: '' },
+    { id: 12, period: 'Dec 25', actual: 88.0, total: 100, pct: 88.0, isOutlier: false, outlierCause: '' }
   ]
   showToast('🔄 รีเซ็ตข้อมูลกลับสู่ค่าเริ่มต้นของโรงงานเรียบร้อยแล้ว')
 }
