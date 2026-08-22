@@ -13,8 +13,8 @@ const isFishboneCompleted = computed({
   set: (val: boolean) => setFishboneComplete(val)
 })
 
-// View Mode: 'list' (Table matching Image 5) vs 'diagram' (Interactive Ishikawa Canvas) vs 'matrix'
-const currentViewMode = ref<'list' | 'diagram' | 'matrix'>('list')
+// View Mode: 'diagram' (Interactive Ishikawa Canvas) vs 'list' (Table) vs 'matrix'
+const currentViewMode = ref<'list' | 'diagram' | 'matrix'>('diagram')
 
 // Toast notification state
 const toastMessage = ref('')
@@ -304,6 +304,41 @@ const deleteCause = (catKey: string, causeId: string) => {
     showToast('Cause removed')
   }
 }
+
+// 5-Why Drilldown Modal
+const selectedCauseForWhy = ref<{
+  categoryName: string
+  cause: FishboneCause
+} | null>(null)
+
+const openWhyModal = (catName: string, cause: FishboneCause) => {
+  selectedCauseForWhy.value = {
+    categoryName: catName,
+    cause: JSON.parse(JSON.stringify(cause))
+  }
+}
+
+const saveWhyModal = () => {
+  if (selectedCauseForWhy.value) {
+    for (const cat of categories.value) {
+      const target = cat.causes.find(c => c.id === selectedCauseForWhy.value?.cause.id)
+      if (target) {
+        target.name = selectedCauseForWhy.value.cause.name
+        target.type = selectedCauseForWhy.value.cause.type
+        target.whys = selectedCauseForWhy.value.cause.whys.filter(w => w && w.trim())
+        showToast('✓ 5-Why analysis updated successfully')
+        break
+      }
+    }
+  }
+  selectedCauseForWhy.value = null
+}
+
+const addWhyStep = () => {
+  if (selectedCauseForWhy.value && selectedCauseForWhy.value.cause.whys.length < 5) {
+    selectedCauseForWhy.value.cause.whys.push('')
+  }
+}
 </script>
 
 <template>
@@ -523,64 +558,558 @@ const deleteCause = (catKey: string, causeId: string) => {
         </div>
 
         <!-- 2. INTERACTIVE DIAGRAM VIEW (Ishikawa Visual Studio) -->
-        <div v-else class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
-          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div v-else class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-5">
+          <!-- Header and Category Summary Chips -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-100">
             <div>
-              <h2 class="text-sm font-bold text-slate-900">Ishikawa Fishbone Diagram (Visual Canvas)</h2>
-              <p class="text-xs text-slate-500">วิเคราะห์สาเหตุและผลกระทบตามโครงสร้าง 5M1E พร้อมระบบเจาะลึก 5-Why Analysis</p>
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-bold text-slate-900">Fishbone Diagram Analysis</span>
+                <span class="text-[10px] bg-teal-100 text-[#008779] font-bold px-2 py-0.5 rounded-full">Interactive Ishikawa</span>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">วิเคราะห์สาเหตุและผลกระทบตามโครงสร้าง 5M1E พร้อมระบบเจาะลึก 5-Why Analysis และคลิกแก้ไขกิ่งได้ทันที</p>
             </div>
 
-            <button
-              type="button"
-              class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
-              @click="openDrawer('machine')"
-            >
-              <UIcon name="i-lucide-pencil" class="size-3.5" />
-              <span>เปิด Drawer แก้ไขปัจจัย</span>
-            </button>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="bg-[#008779] hover:bg-[#007366] text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                @click="openDrawer('machine')"
+              >
+                <UIcon name="i-lucide-plus" class="size-3.5" />
+                <span>+ Create / Add Factor</span>
+              </button>
+            </div>
           </div>
 
-          <!-- 6 Category Cards Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
-            <div
+          <!-- Category Count Badges Bar (Matching Screenshot) -->
+          <div class="flex flex-wrap items-center gap-2 bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80">
+            <span
               v-for="cat in categories"
               :key="cat.key"
-              class="border rounded-2xl p-4 space-y-3 bg-slate-50/50"
-              :class="cat.borderClass"
+              class="px-2.5 py-1 rounded-xl text-[11px] font-bold border flex items-center gap-1.5 cursor-pointer transition-all hover:scale-105 shadow-2xs"
+              :class="cat.badgeClass"
+              @click="openDrawer(cat.key)"
             >
-              <div class="flex items-center justify-between">
-                <span class="font-bold text-slate-900 flex items-center gap-1.5">
-                  <span class="size-2.5 rounded-full" :style="`background-color: ${cat.accentColor}`"></span>
-                  <span>{{ cat.name }} ({{ cat.labelTh }})</span>
-                </span>
-                <span class="text-[10px] font-bold font-mono px-2 py-0.5 rounded-full" :class="cat.badgeClass">
-                  {{ cat.causes.length }} causes
-                </span>
-              </div>
+              <span class="size-2 rounded-full" :style="`background-color: ${cat.accentColor}`"></span>
+              <span>{{ cat.name }}: {{ cat.causes.length }}</span>
+            </span>
+            <span class="px-3 py-1 rounded-xl text-[11px] font-bold bg-slate-800 text-white border border-slate-700 ml-auto shadow-2xs">
+              Total: {{ totalFactorsCount }}
+            </span>
+          </div>
 
-              <div class="space-y-2">
-                <div
-                  v-for="c in cat.causes"
-                  :key="c.id"
-                  class="bg-white border border-slate-200 rounded-xl p-2.5 space-y-1.5 shadow-2xs"
+          <!-- SVG Visual Fishbone Skeleton Canvas -->
+          <div class="relative w-full bg-white border border-slate-200 rounded-3xl p-4 overflow-x-auto shadow-inner">
+            <svg
+              viewBox="0 0 1200 660"
+              class="w-full min-w-[950px] h-auto select-none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <defs>
+                <!-- Marker for main spine arrow -->
+                <marker
+                  id="spineArrow"
+                  viewBox="0 0 10 10"
+                  refX="6"
+                  refY="5"
+                  markerWidth="8"
+                  markerHeight="8"
+                  orient="auto-start-reverse"
                 >
-                  <div class="flex items-center justify-between">
-                    <span class="font-semibold text-slate-900 flex items-center gap-1.5">
-                      <span v-if="c.isKey" class="text-rose-600 font-bold" title="Key Root Cause">★</span>
-                      <span>{{ c.name }}</span>
-                    </span>
-                    <span
-                      class="text-[9px] font-bold px-1.5 py-0.2 rounded"
-                      :class="c.type === 'C' ? 'bg-teal-50 text-[#008779] border border-teal-200' : 'bg-slate-100 text-slate-600'"
-                    >
-                      {{ c.type === 'C' ? 'Control' : 'Noise' }}
-                    </span>
-                  </div>
+                  <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0f172a" />
+                </marker>
 
-                  <!-- 5-Why Steps Drilldown -->
-                  <div v-if="c.whys && c.whys.length > 0" class="pl-2 border-l-2 border-teal-200 space-y-0.5 text-[11px] text-slate-600">
-                    <div v-for="(why, wIdx) in c.whys" :key="wIdx" class="truncate">
-                      <span class="text-slate-400 font-bold">Why {{ wIdx + 1 }}:</span> {{ why }}
+                <!-- Marker for bone branch arrows -->
+                <marker
+                  id="boneArrow"
+                  viewBox="0 0 10 10"
+                  refX="6"
+                  refY="5"
+                  markerWidth="6"
+                  markerHeight="6"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M 0 2 L 6 5 L 0 8 z" fill="#475569" />
+                </marker>
+              </defs>
+
+              <!-- Main Central Horizontal Spine Line -->
+              <line
+                x1="40"
+                y1="330"
+                x2="940"
+                y2="330"
+                stroke="#0f172a"
+                stroke-width="3.5"
+                stroke-linecap="round"
+                marker-end="url(#spineArrow)"
+              />
+
+              <!-- Effect / Problem Statement Box (Fish Head) -->
+              <g transform="translate(950, 280)">
+                <rect
+                  x="0"
+                  y="0"
+                  width="220"
+                  height="100"
+                  rx="14"
+                  fill="#071E3D"
+                  stroke="#008779"
+                  stroke-width="2.5"
+                  filter="drop-shadow(0 4px 6px rgba(0,0,0,0.15))"
+                />
+                <text
+                  x="110"
+                  y="42"
+                  text-anchor="middle"
+                  fill="#FFFFFF"
+                  font-size="16"
+                  font-weight="800"
+                  font-family="sans-serif"
+                >
+                  {{ problemStatement.title }}
+                </text>
+                <text
+                  x="110"
+                  y="66"
+                  text-anchor="middle"
+                  fill="#99F6E4"
+                  font-size="11"
+                  font-weight="600"
+                  font-family="sans-serif"
+                >
+                  ส่วนน้ำไก่ทอดต่ำ
+                </text>
+                <text
+                  x="110"
+                  y="84"
+                  text-anchor="middle"
+                  fill="#94A3B8"
+                  font-size="9"
+                  font-family="sans-serif"
+                >
+                  Target: STD 85.0%
+                </text>
+              </g>
+
+              <!-- 3 Top Category Bones: Material, Method, Man -->
+              <!-- 1. Top Bone: Material -->
+              <g>
+                <!-- Category Label Box -->
+                <rect x="230" y="25" width="130" height="34" rx="8" fill="#1E293B" />
+                <text x="295" y="47" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="700">Material</text>
+                <!-- Main Bone Line -->
+                <line x1="295" y1="59" x2="420" y2="330" stroke="#1E293B" stroke-width="2.5" />
+                
+                <!-- Sub-branches for Material causes -->
+                <g v-for="(cause, cIdx) in categories.find(c => c.key === 'material')?.causes || []" :key="cause.id" class="cursor-pointer group" @click="openWhyModal('Material', cause)">
+                  <line
+                    :x1="295 + (cIdx + 1) * 30"
+                    :y1="59 + (cIdx + 1) * 65"
+                    :x2="150"
+                    :y2="59 + (cIdx + 1) * 65"
+                    stroke="#64748B"
+                    stroke-width="1.8"
+                  />
+                  <!-- Cause label text -->
+                  <rect
+                    :x="145"
+                    :y="42 + (cIdx + 1) * 65"
+                    :width="cause.name.length * 7 + 36"
+                    height="20"
+                    rx="5"
+                    fill="#FFFFFF"
+                    stroke="#E2E8F0"
+                    stroke-width="1"
+                  />
+                  <text
+                    :x="152"
+                    :y="56 + (cIdx + 1) * 65"
+                    fill="#0F172A"
+                    font-size="10.5"
+                    font-weight="600"
+                  >
+                    {{ cause.name }}
+                  </text>
+                  <!-- [C]/[N] Tag Badge -->
+                  <rect
+                    :x="145 + cause.name.length * 7 + 12"
+                    :y="44 + (cIdx + 1) * 65"
+                    width="18"
+                    height="16"
+                    rx="4"
+                    :fill="cause.type === 'C' ? '#CCFBF1' : '#F1F5F9'"
+                  />
+                  <text
+                    :x="145 + cause.name.length * 7 + 21"
+                    :y="56 + (cIdx + 1) * 65"
+                    text-anchor="middle"
+                    :fill="cause.type === 'C' ? '#0F766E' : '#64748B'"
+                    font-size="9"
+                    font-weight="bold"
+                  >
+                    {{ cause.type }}
+                  </text>
+                </g>
+              </g>
+
+              <!-- 2. Top Bone: Method -->
+              <g>
+                <!-- Category Label Box -->
+                <rect x="490" y="25" width="130" height="34" rx="8" fill="#1E293B" />
+                <text x="555" y="47" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="700">Method</text>
+                <!-- Main Bone Line -->
+                <line x1="555" y1="59" x2="680" y2="330" stroke="#1E293B" stroke-width="2.5" />
+                
+                <!-- Sub-branches for Method causes -->
+                <g v-for="(cause, cIdx) in categories.find(c => c.key === 'method')?.causes || []" :key="cause.id" class="cursor-pointer group" @click="openWhyModal('Method', cause)">
+                  <line
+                    :x1="555 + (cIdx + 1) * 40"
+                    :y1="59 + (cIdx + 1) * 85"
+                    :x2="410"
+                    :y2="59 + (cIdx + 1) * 85"
+                    stroke="#64748B"
+                    stroke-width="1.8"
+                  />
+                  <!-- Cause label text -->
+                  <rect
+                    :x="405"
+                    :y="42 + (cIdx + 1) * 85"
+                    :width="cause.name.length * 7 + 36"
+                    height="20"
+                    rx="5"
+                    fill="#FFFFFF"
+                    stroke="#E2E8F0"
+                    stroke-width="1"
+                  />
+                  <text
+                    :x="412"
+                    :y="56 + (cIdx + 1) * 85"
+                    fill="#0F172A"
+                    font-size="10.5"
+                    font-weight="600"
+                  >
+                    {{ cause.name }}
+                  </text>
+                  <!-- [C]/[N] Tag Badge -->
+                  <rect
+                    :x="405 + cause.name.length * 7 + 12"
+                    :y="44 + (cIdx + 1) * 85"
+                    width="18"
+                    height="16"
+                    rx="4"
+                    :fill="cause.type === 'C' ? '#CCFBF1' : '#F1F5F9'"
+                  />
+                  <text
+                    :x="405 + cause.name.length * 7 + 21"
+                    :y="56 + (cIdx + 1) * 85"
+                    text-anchor="middle"
+                    :fill="cause.type === 'C' ? '#0F766E' : '#64748B'"
+                    font-size="9"
+                    font-weight="bold"
+                  >
+                    {{ cause.type }}
+                  </text>
+                </g>
+              </g>
+
+              <!-- 3. Top Bone: Man -->
+              <g>
+                <!-- Category Label Box -->
+                <rect x="740" y="25" width="130" height="34" rx="8" fill="#1E293B" />
+                <text x="805" y="47" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="700">Man</text>
+                <!-- Main Bone Line -->
+                <line x1="805" y1="59" x2="910" y2="330" stroke="#1E293B" stroke-width="2.5" />
+                
+                <!-- Sub-branches for Man causes -->
+                <g v-for="(cause, cIdx) in categories.find(c => c.key === 'man')?.causes || []" :key="cause.id" class="cursor-pointer group" @click="openWhyModal('Man', cause)">
+                  <line
+                    :x1="805 + (cIdx + 1) * 35"
+                    :y1="59 + (cIdx + 1) * 85"
+                    :x2="670"
+                    :y2="59 + (cIdx + 1) * 85"
+                    stroke="#64748B"
+                    stroke-width="1.8"
+                  />
+                  <!-- Cause label text -->
+                  <rect
+                    :x="665"
+                    :y="42 + (cIdx + 1) * 85"
+                    :width="cause.name.length * 7 + 36"
+                    height="20"
+                    rx="5"
+                    fill="#FFFFFF"
+                    stroke="#E2E8F0"
+                    stroke-width="1"
+                  />
+                  <text
+                    :x="672"
+                    :y="56 + (cIdx + 1) * 85"
+                    fill="#0F172A"
+                    font-size="10.5"
+                    font-weight="600"
+                  >
+                    {{ cause.name }}
+                  </text>
+                  <!-- [C]/[N] Tag Badge -->
+                  <rect
+                    :x="665 + cause.name.length * 7 + 12"
+                    :y="44 + (cIdx + 1) * 85"
+                    width="18"
+                    height="16"
+                    rx="4"
+                    :fill="cause.type === 'C' ? '#CCFBF1' : '#F1F5F9'"
+                  />
+                  <text
+                    :x="665 + cause.name.length * 7 + 21"
+                    :y="56 + (cIdx + 1) * 85"
+                    text-anchor="middle"
+                    :fill="cause.type === 'C' ? '#0F766E' : '#64748B'"
+                    font-size="9"
+                    font-weight="bold"
+                  >
+                    {{ cause.type }}
+                  </text>
+                </g>
+              </g>
+
+              <!-- 3 Bottom Category Bones: Machine, Measurement, Environment -->
+              <!-- 4. Bottom Bone: Machine -->
+              <g>
+                <!-- Category Label Box -->
+                <rect x="230" y="595" width="130" height="34" rx="8" fill="#1E293B" />
+                <text x="295" y="617" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="700">Machine</text>
+                <!-- Main Bone Line -->
+                <line x1="295" y1="595" x2="420" y2="330" stroke="#1E293B" stroke-width="2.5" />
+                
+                <!-- Sub-branches for Machine causes -->
+                <g v-for="(cause, cIdx) in categories.find(c => c.key === 'machine')?.causes || []" :key="cause.id" class="cursor-pointer group" @click="openWhyModal('Machine', cause)">
+                  <line
+                    :x1="295 + (cIdx + 1) * 30"
+                    :y1="595 - (cIdx + 1) * 65"
+                    :x2="150"
+                    :y2="595 - (cIdx + 1) * 65"
+                    stroke="#64748B"
+                    stroke-width="1.8"
+                  />
+                  <!-- Cause label text -->
+                  <rect
+                    :x="145"
+                    :y="578 - (cIdx + 1) * 65"
+                    :width="cause.name.length * 7 + 36"
+                    height="20"
+                    rx="5"
+                    fill="#FFFFFF"
+                    stroke="#E2E8F0"
+                    stroke-width="1"
+                  />
+                  <text
+                    :x="152"
+                    :y="592 - (cIdx + 1) * 65"
+                    fill="#0F172A"
+                    font-size="10.5"
+                    font-weight="600"
+                  >
+                    {{ cause.name }}
+                  </text>
+                  <!-- [C]/[N] Tag Badge -->
+                  <rect
+                    :x="145 + cause.name.length * 7 + 12"
+                    :y="580 - (cIdx + 1) * 65"
+                    width="18"
+                    height="16"
+                    rx="4"
+                    :fill="cause.type === 'C' ? '#CCFBF1' : '#F1F5F9'"
+                  />
+                  <text
+                    :x="145 + cause.name.length * 7 + 21"
+                    :y="592 - (cIdx + 1) * 65"
+                    text-anchor="middle"
+                    :fill="cause.type === 'C' ? '#0F766E' : '#64748B'"
+                    font-size="9"
+                    font-weight="bold"
+                  >
+                    {{ cause.type }}
+                  </text>
+                </g>
+              </g>
+
+              <!-- 5. Bottom Bone: Measurement -->
+              <g>
+                <!-- Category Label Box -->
+                <rect x="490" y="595" width="130" height="34" rx="8" fill="#1E293B" />
+                <text x="555" y="617" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="700">Measurement</text>
+                <!-- Main Bone Line -->
+                <line x1="555" y1="595" x2="680" y2="330" stroke="#1E293B" stroke-width="2.5" />
+                
+                <!-- Sub-branches for Measurement causes -->
+                <g v-for="(cause, cIdx) in categories.find(c => c.key === 'measurement')?.causes || []" :key="cause.id" class="cursor-pointer group" @click="openWhyModal('Measurement', cause)">
+                  <line
+                    :x1="555 + (cIdx + 1) * 40"
+                    :y1="595 - (cIdx + 1) * 85"
+                    :x2="410"
+                    :y2="595 - (cIdx + 1) * 85"
+                    stroke="#64748B"
+                    stroke-width="1.8"
+                  />
+                  <!-- Cause label text -->
+                  <rect
+                    :x="405"
+                    :y="578 - (cIdx + 1) * 85"
+                    :width="cause.name.length * 7 + 36"
+                    height="20"
+                    rx="5"
+                    fill="#FFFFFF"
+                    stroke="#E2E8F0"
+                    stroke-width="1"
+                  />
+                  <text
+                    :x="412"
+                    :y="592 - (cIdx + 1) * 85"
+                    fill="#0F172A"
+                    font-size="10.5"
+                    font-weight="600"
+                  >
+                    {{ cause.name }}
+                  </text>
+                  <!-- [C]/[N] Tag Badge -->
+                  <rect
+                    :x="405 + cause.name.length * 7 + 12"
+                    :y="580 - (cIdx + 1) * 85"
+                    width="18"
+                    height="16"
+                    rx="4"
+                    :fill="cause.type === 'C' ? '#CCFBF1' : '#F1F5F9'"
+                  />
+                  <text
+                    :x="405 + cause.name.length * 7 + 21"
+                    :y="592 - (cIdx + 1) * 85"
+                    text-anchor="middle"
+                    :fill="cause.type === 'C' ? '#0F766E' : '#64748B'"
+                    font-size="9"
+                    font-weight="bold"
+                  >
+                    {{ cause.type }}
+                  </text>
+                </g>
+              </g>
+
+              <!-- 6. Bottom Bone: Environment -->
+              <g>
+                <!-- Category Label Box -->
+                <rect x="740" y="595" width="130" height="34" rx="8" fill="#1E293B" />
+                <text x="805" y="617" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="700">Environment</text>
+                <!-- Main Bone Line -->
+                <line x1="805" y1="595" x2="910" y2="330" stroke="#1E293B" stroke-width="2.5" />
+                
+                <!-- Sub-branches for Environment causes -->
+                <g v-for="(cause, cIdx) in categories.find(c => c.key === 'environment')?.causes || []" :key="cause.id" class="cursor-pointer group" @click="openWhyModal('Environment', cause)">
+                  <line
+                    :x1="805 + (cIdx + 1) * 35"
+                    :y1="595 - (cIdx + 1) * 85"
+                    :x2="670"
+                    :y2="595 - (cIdx + 1) * 85"
+                    stroke="#64748B"
+                    stroke-width="1.8"
+                  />
+                  <!-- Cause label text -->
+                  <rect
+                    :x="665"
+                    :y="578 - (cIdx + 1) * 85"
+                    :width="cause.name.length * 7 + 36"
+                    height="20"
+                    rx="5"
+                    fill="#FFFFFF"
+                    stroke="#E2E8F0"
+                    stroke-width="1"
+                  />
+                  <text
+                    :x="672"
+                    :y="592 - (cIdx + 1) * 85"
+                    fill="#0F172A"
+                    font-size="10.5"
+                    font-weight="600"
+                  >
+                    {{ cause.name }}
+                  </text>
+                  <!-- [C]/[N] Tag Badge -->
+                  <rect
+                    :x="665 + cause.name.length * 7 + 12"
+                    :y="580 - (cIdx + 1) * 85"
+                    width="18"
+                    height="16"
+                    rx="4"
+                    :fill="cause.type === 'C' ? '#CCFBF1' : '#F1F5F9'"
+                  />
+                  <text
+                    :x="665 + cause.name.length * 7 + 21"
+                    :y="592 - (cIdx + 1) * 85"
+                    text-anchor="middle"
+                    :fill="cause.type === 'C' ? '#0F766E' : '#64748B'"
+                    font-size="9"
+                    font-weight="bold"
+                  >
+                    {{ cause.type }}
+                  </text>
+                </g>
+              </g>
+            </svg>
+          </div>
+
+          <!-- 6 Category Cards Grid for Quick Drilldown & Editing -->
+          <div class="space-y-2 pt-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-800">5M1E Factor Cards (คลิกเพื่อแก้ไข 5-Why หรือเพิ่มสาเหตุย่อย)</span>
+              <span class="text-[11px] text-slate-500">คลิกที่การ์ดเพื่อเปิด Drawer จัดการ</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+              <div
+                v-for="cat in categories"
+                :key="cat.key"
+                class="border rounded-2xl p-4 space-y-3 bg-slate-50/50"
+                :class="cat.borderClass"
+              >
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-slate-900 flex items-center gap-1.5">
+                    <span class="size-2.5 rounded-full" :style="`background-color: ${cat.accentColor}`"></span>
+                    <span>{{ cat.name }} ({{ cat.labelTh }})</span>
+                  </span>
+                  <button
+                    type="button"
+                    class="text-[10px] font-bold font-mono px-2 py-0.5 rounded-full hover:opacity-80 cursor-pointer"
+                    :class="cat.badgeClass"
+                    @click="openDrawer(cat.key)"
+                  >
+                    + {{ cat.causes.length }} causes
+                  </button>
+                </div>
+
+                <div class="space-y-2">
+                  <div
+                    v-for="c in cat.causes"
+                    :key="c.id"
+                    class="bg-white border border-slate-200 rounded-xl p-2.5 space-y-1.5 shadow-2xs hover:border-[#008779] transition-all cursor-pointer"
+                    @click="openWhyModal(cat.name, c)"
+                  >
+                    <div class="flex items-center justify-between">
+                      <span class="font-semibold text-slate-900 flex items-center gap-1.5">
+                        <span v-if="c.isKey" class="text-rose-600 font-bold" title="Key Root Cause">★</span>
+                        <span>{{ c.name }}</span>
+                      </span>
+                      <span
+                        class="text-[9px] font-bold px-1.5 py-0.2 rounded"
+                        :class="c.type === 'C' ? 'bg-teal-50 text-[#008779] border border-teal-200' : 'bg-slate-100 text-slate-600'"
+                      >
+                        {{ c.type === 'C' ? 'Control' : 'Noise' }}
+                      </span>
+                    </div>
+
+                    <!-- 5-Why Steps Drilldown -->
+                    <div v-if="c.whys && c.whys.length > 0" class="pl-2 border-l-2 border-teal-200 space-y-0.5 text-[11px] text-slate-600">
+                      <div v-for="(why, wIdx) in c.whys" :key="wIdx" class="truncate">
+                        <span class="text-slate-400 font-bold">Why {{ wIdx + 1 }}:</span> {{ why }}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -591,6 +1120,117 @@ const deleteCause = (catKey: string, causeId: string) => {
 
       </div>
     </div>
+
+    <!-- 5-WHY DRILLDOWN MODAL -->
+    <Teleport to="body">
+      <div
+        v-if="selectedCauseForWhy"
+        class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
+      >
+        <div class="bg-white rounded-3xl max-w-lg w-full border border-slate-200 shadow-2xl p-6 space-y-5 animate-in zoom-in-95 duration-150">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div class="flex items-center gap-2">
+              <div class="size-8 rounded-full bg-teal-50 text-[#008779] flex items-center justify-center font-bold">
+                5W
+              </div>
+              <div>
+                <h3 class="font-bold text-sm text-slate-900">5-Why Root Cause Analysis</h3>
+                <p class="text-[11px] text-slate-500">หมวด {{ selectedCauseForWhy.categoryName }}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="size-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 cursor-pointer"
+              @click="selectedCauseForWhy = null"
+            >
+              <UIcon name="i-lucide-x" class="size-4" />
+            </button>
+          </div>
+
+          <!-- Cause info -->
+          <div class="space-y-3">
+            <div>
+              <label class="font-bold text-xs text-slate-700 block mb-1">ชื่อปัจจัย/ปัญหา</label>
+              <input
+                v-model="selectedCauseForWhy.cause.name"
+                type="text"
+                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:bg-white focus:border-[#008779] outline-none"
+              />
+            </div>
+
+            <div class="flex items-center gap-3">
+              <label class="font-bold text-xs text-slate-700">ประเภทการควบคุม:</label>
+              <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+                <input v-model="selectedCauseForWhy.cause.type" type="radio" value="C" />
+                <span class="font-semibold text-teal-700">[C] Controllable (ควบคุมได้)</span>
+              </label>
+              <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+                <input v-model="selectedCauseForWhy.cause.type" type="radio" value="N" />
+                <span class="font-semibold text-slate-600">[N] Noise (สัญญาณรบกวน)</span>
+              </label>
+            </div>
+
+            <!-- 5-Why Chain -->
+            <div class="space-y-2 pt-2 border-t border-slate-100">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-slate-800">ลำดับการซักถาม 5-Why (ทำไมจึงเกิดปัญหานี้?):</span>
+                <button
+                  v-if="selectedCauseForWhy.cause.whys.length < 5"
+                  type="button"
+                  class="text-[11px] font-bold text-[#008779] hover:underline cursor-pointer"
+                  @click="addWhyStep"
+                >
+                  + เพิ่ม Why ถัดไป
+                </button>
+              </div>
+
+              <div class="space-y-2">
+                <div
+                  v-for="(w, idx) in selectedCauseForWhy.cause.whys"
+                  :key="idx"
+                  class="flex items-center gap-2"
+                >
+                  <span class="size-6 rounded-full bg-teal-50 text-[#008779] font-bold text-[10px] flex items-center justify-center shrink-0 border border-teal-200">
+                    W{{ idx + 1 }}
+                  </span>
+                  <input
+                    v-model="selectedCauseForWhy.cause.whys[idx]"
+                    type="text"
+                    :placeholder="`ทำไมขั้นที่ ${idx + 1}...`"
+                    class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:bg-white focus:border-[#008779] outline-none"
+                  />
+                  <button
+                    type="button"
+                    class="text-slate-400 hover:text-rose-500 cursor-pointer p-1"
+                    @click="selectedCauseForWhy.cause.whys.splice(idx, 1)"
+                  >
+                    <UIcon name="i-lucide-trash-2" class="size-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Actions -->
+          <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            <button
+              type="button"
+              class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+              @click="selectedCauseForWhy = null"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="button"
+              class="px-4 py-2 rounded-xl text-xs font-bold bg-[#008779] hover:bg-[#007366] text-white cursor-pointer shadow-xs"
+              @click="saveWhyModal"
+            >
+              บันทึก 5-Why
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
 
     <!-- SLIDE-OVER DRAWER (Matching Interview Decision: Open Slide-over on right for Data Entry) -->
     <Teleport to="body">
